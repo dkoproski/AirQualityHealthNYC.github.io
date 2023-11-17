@@ -1,0 +1,10 @@
+---
+title: "Air Quality and Health in NYC"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+---
+
+#This is the index page

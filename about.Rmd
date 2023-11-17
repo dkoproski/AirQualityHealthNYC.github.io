@@ -1,0 +1,12 @@
+---
+title: "Air Quality and Health in NYC"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+---
+
+# About
+This will be the main page with general info about the project
+
