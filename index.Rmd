@@ -5,6 +5,15 @@ output:
     toc: true
     toc_float: true
     theme: cosmo
+    code_folding: hide
 ---
 
-#This is the landing page
+# This is the landing page
+Example of code folding
+
+
+# This is a data frame
+Here is the data frame code
+```{r}
+data <- data.frame(x = 1:10, y = rnorm(10))
+```

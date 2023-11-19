@@ -5,7 +5,7 @@ navbar:
   right:
     - text: "Background"
       href: background.html
-    - text: "Data Sources"
+    - text: "Data Sources & Processing"
       href: data.html
     - text: "Exploratory Analysis & Visualizations"
       href: EAaV.html
