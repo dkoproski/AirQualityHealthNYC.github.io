@@ -1,9 +1,17 @@
-name: "Yay internet!"
+name: "Air_Quality_and_Health_in_NYC"
 output_dir: "."
 navbar:
   title: "Home"
   right:
-    - text: "About"
+    - text: "Background"
+      href: background.html
+    - text: "Data Sources"
+      href: data.html
+    - text: "Exploratory Analysis & Visualizations"
+      href: EAaV.html
+    - text: "Statistical Analysis"
+      href: Stats.html
+    - text: "Final Report"
       href: about.html
 output:
   html_document:
