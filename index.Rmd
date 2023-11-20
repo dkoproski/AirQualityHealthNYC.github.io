@@ -8,12 +8,11 @@ output:
     code_folding: hide
 ---
 
-# This is the landing page
-Example of code folding
+# About
+
+It is well established that long term exposure to poor air quality is associated with negative health outcomes, particularly in urban areas with high population density and vehicle traffic. While New York City has relatively clean air when compared to many other urban environments, it still attributes thousands of deaths to poor air quality annually. While current legislation is in place to improve air quality, more research is needed to determine which locations are most heavily impacted by poor air quality. In particular, pollutants such as nitrogen dioxide, ozone, and other fine particles (PM 2.5) pose significant health hazards and are associated with a number of respiratory diseases in high enough quantities. This project examines the association between air quality and public health in New York City with the goal of showing where interventions are needed most.
 
 
-# This is a data frame
-Here is the data frame code
-```{r}
-data <- data.frame(x = 1:10, y = rnorm(10))
-```
+Sources (will create a tidy citation later): 
+https://www.nyc.gov/site/doh/about/press/pr2023/new-stats-show-nyc-continues-to-clear-the-air.page
+
