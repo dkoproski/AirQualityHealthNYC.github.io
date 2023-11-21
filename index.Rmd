@@ -5,8 +5,8 @@ output:
     toc: true
     toc_float: true
     theme: cosmo
-    code_folding: hide
 ---
+
 
 # About
 
@@ -15,4 +15,3 @@ It is well established that long term exposure to poor air quality is associated
 
 Sources (will create a tidy citation later): 
 https://www.nyc.gov/site/doh/about/press/pr2023/new-stats-show-nyc-continues-to-clear-the-air.page
-
