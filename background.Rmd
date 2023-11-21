@@ -5,47 +5,25 @@ output:
     toc: true
     toc_float: true
     theme: cosmo
-    code_folding: hide
+    code_folding: show
 ---
-```{r, echo = FALSE}
+```{r, message = FALSE}
 library(tidyverse)
-library(zipcodeR)
-library(leaflet)
 ```
 
-# Merging and working with shape files (Lupe and Gustavo's work)
+# Merging and working with shape files
 
-# Geocoding data
+Leaflet works best with latitude and longitude data
 
-# Geocoding tidied data
-
-Leaflet requires latitudes and longitudes for mapping, we can use the `geocode_zip()` function:
-
-```{r}
-air_quality_geocoded =
-  read_csv("cleaned_data/air_quality_zips.csv") 
-
-geocoded_data =
-  geocode_zip(unique(air_quality_geocoded$zip))
-  
-geocode_df =
-  geocoded_data |> 
-  mutate(lat = ifelse(zipcode == 11695, 40.5600, lat),
-         lng = ifelse(zipcode == 11695, -73.8900, lng)) |> 
-  mutate(zipcode = as.character(zipcode))
-  
+```{r, message = FALSE, warning = FALSE}
+df_air_geo = 
+  read_csv("cleaned_shapes/zip_shapes.csv") |> 
+  select(zip, intptlat10, intptlon10) |> 
+  left_join(read_csv("cleaned_data/air_quality_zips.csv"), by = "zip") |> 
+  mutate(lat = intptlat10,
+         lon = intptlon10) |> 
+  select(-intptlat10, -intptlon10)
 ```
 
-Note here that one zip code returned NA, manual replacement of missing data from zip code 11695, (lat, lng) = (40.5600, 73.8900).
 
-## Merging geocoded zip codes to dataframe
-
-```{r}
-air_quality_geocoded_df =
-  air_quality_geocoded |> 
-  mutate(zip = as.character(zip)) |>  
-  left_join(geocoded_data, by = c("zip" = "zipcode"))
-```
-
-The resulting dataset now has the corresponding latitude and longitude values for the center of each zip code. This makes them compatible with leaflet for map making.
 

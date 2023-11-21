@@ -326,10 +326,10 @@ div.tocify {
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="background.html">Background</a>
+  <a href="data.html">Data Sources</a>
 </li>
 <li>
-  <a href="data.html">Data Sources &amp; Processing</a>
+  <a href="background.html">Data Processing</a>
 </li>
 <li>
   <a href="EAaV.html">Exploratory Analysis &amp; Visualizations</a>
@@ -362,7 +362,18 @@ div.tocify {
 </div>
 
 
-
+<pre class="r"><code>library(tidyverse)</code></pre>
+<div id="merging-and-working-with-shape-files" class="section level1">
+<h1>Merging and working with shape files</h1>
+<p>Leaflet works best with latitude and longitude data</p>
+<pre class="r"><code>df_air_geo = 
+  read_csv(&quot;cleaned_shapes/zip_shapes.csv&quot;) |&gt; 
+  select(zip, intptlat10, intptlon10) |&gt; 
+  left_join(read_csv(&quot;cleaned_data/air_quality_zips.csv&quot;), by = &quot;zip&quot;) |&gt; 
+  mutate(lat = intptlat10,
+         lon = intptlon10) |&gt; 
+  select(-intptlat10, -intptlon10)</code></pre>
+</div>
 
 
 
@@ -401,7 +412,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
+  window.initializeCodeFolding("show" === "show");
 });
 </script>
 

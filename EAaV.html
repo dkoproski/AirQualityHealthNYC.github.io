@@ -326,10 +326,10 @@ div.tocify {
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="background.html">Background</a>
+  <a href="data.html">Data Sources</a>
 </li>
 <li>
-  <a href="data.html">Data Sources &amp; Processing</a>
+  <a href="background.html">Data Processing</a>
 </li>
 <li>
   <a href="EAaV.html">Exploratory Analysis &amp; Visualizations</a>
@@ -363,7 +363,46 @@ Visualizations</h1>
 </div>
 
 
-<p>#Test</p>
+<pre class="r"><code>ui = fluidPage(
+    titlePanel(&quot;Air Quality Metrics in New York&quot;),
+
+    sidebarLayout(
+        sidebarPanel(
+            selectInput(&quot;metric&quot;, &quot;Choose Air Pollutant:&quot;,
+                        choices = c(&quot;Nitrogen Dioxide&quot;, &quot;Ozone&quot;, &quot;PM2.5&quot;))
+        ),
+
+        mainPanel(
+            leafletOutput(&quot;map&quot;)
+        )
+    )
+)
+
+
+server = function(input, output) {
+    
+    output$map &lt;- renderLeaflet({
+
+        data &lt;- your_data |&gt; 
+            dplyr::select(lat, long, input$metric)
+
+        leaflet(data) |&gt; 
+            addTiles() |&gt; 
+            addCircles(lat = ~lat, lng = ~long, weight = 1,
+                       radius = ~getRadius(input$metric),
+                       color = ~getColor(input$metric))
+    })
+}
+
+getRadius = function(metric) {
+}
+
+getColor = function(metric) {
+
+}
+
+shinyApp(ui = ui, server = server)</code></pre>
+<div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div>
 
 
 
