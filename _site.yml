@@ -3,10 +3,10 @@ output_dir: "."
 navbar:
   title: "Home"
   right:
-    - text: "Background"
-      href: background.html
-    - text: "Data Sources & Processing"
+    - text: "Data Sources"
       href: data.html
+    - text: "Data Processing"
+      href: background.html
     - text: "Exploratory Analysis & Visualizations"
       href: EAaV.html
     - text: "Statistical Analysis"
