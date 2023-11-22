@@ -4,6 +4,7 @@ output:
   html_document:
     toc: true
     toc_float: true
+    runtime: shiny
     theme: cosmo
     code_folding: hide
 ---
@@ -12,48 +13,11 @@ output:
 library(tidyverse)
 library(leaflet)
 library(shiny)
+library(shinylive)
 ```
 
 ```{r}
-ui = fluidPage(
-    titlePanel("Air Quality Metrics in New York"),
-
-    sidebarLayout(
-        sidebarPanel(
-            selectInput("metric", "Choose Air Pollutant:",
-                        choices = c("Nitrogen Dioxide", "Ozone", "PM2.5"))
-        ),
-
-        mainPanel(
-            leafletOutput("map")
-        )
-    )
-)
 
 
-server = function(input, output) {
-    
-    output$map <- renderLeaflet({
-
-        data <- your_data |> 
-            dplyr::select(lat, long, input$metric)
-
-
-        leaflet(data) |> 
-            addTiles() |> 
-            addCircles(lat = ~lat, lng = ~long, weight = 1,
-                       radius = ~getRadius(input$metric),
-                       color = ~getColor(input$metric))
-    })
-}
-
-getRadius = function(metric) {
-}
-
-getColor = function(metric) {
-
-}
-
-shinyApp(ui = ui, server = server)
 ```
 
