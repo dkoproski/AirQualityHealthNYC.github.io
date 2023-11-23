@@ -12,12 +12,43 @@ output:
 ```{r, echo = FALSE, message = FALSE}
 library(tidyverse)
 library(leaflet)
-library(shiny)
-library(shinylive)
 ```
 
+## Plot of NO2 and Ozone over time in NYC
+
 ```{r}
+air_df = read_csv("clean_data/air_quality_zips.csv")
 
+plot_data <- air_df |> 
+  filter(name %in% c("Nitrogen dioxide (NO2)", "Ozone (O3)", "Fine particles (PM 2.5)")) |>  
+  group_by(start_date, name) |> 
+  summarise(mean_dv = mean(data_value, na.rm = TRUE)) |>  
+  ungroup()
 
+plot_data = plot_data |> 
+  mutate(start_date = as.Date(start_date, format="%m/%d/%Y"))
+
+overlay_data = plot_data |>  
+  filter(name %in% c("Nitrogen dioxide (NO2)", "Ozone (O3)"))
+
+overlay_data |> 
+  ggplot(aes(x = start_date, y = mean_dv, color = name)) +
+  geom_line() +
+  labs(title = "Nitrogen Dioxide and Ozone Levels in NYC Over Time",
+       x = "Date",
+       y = "Pollutant Level (parts per billion)")
+
+```
+
+## PM2.5 over time
+
+```{r}
+plot_data |> 
+  filter(name == "Fine particles (PM 2.5)") |>
+  ggplot(aes(x = start_date, y = mean_dv)) +
+  geom_point() +
+  labs(title = "Ozone Levels Throughout NYC Over Time",
+       x = "Date",
+       y = "Pollutant Level (mcg/m3)")
 ```
 
