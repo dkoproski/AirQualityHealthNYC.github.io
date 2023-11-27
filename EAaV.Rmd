@@ -38,15 +38,9 @@ plot_data |>
        y = "Pollutant Level (mcg/m3)")
 ```
 
-```{r}
-scale_radius = function(value) {
-  base_size = 10  
-  scale_factor = 100 
-  scaled_radius = base_size + scale_factor * (value - min(pm25_data$data_value)) / 
-                   (max(pm25_data$data_value) - min(pm25_data$data_value))
-  return(scaled_radius)
-}
+## Map of PM2.5 with Year Selector
 
+```{r}
 df_air_geo = 
   read_csv("cleaned_shapes/zip_shapes.csv") |> 
   select(zip, intptlat10, intptlon10) |> 
@@ -65,10 +59,10 @@ pm25_data = df_air_geo |>
             lon = mean(lon))
 
 
-threshold = 9.84
+threshold = 8
 
 m = leaflet()  |> 
-  addTiles() |>  
+  addProviderTiles(providers$CartoDB.DarkMatter)|>  
   setView(lng = -74.0060, lat = 40.7128, zoom = 10) 
 
 years = unique(pm25_data$year)
@@ -78,9 +72,12 @@ for(year in years) {
   m = m |>
     addCircleMarkers(data = data_for_year,
                      lng = ~lon, lat = ~lat, weight = 1,
-                     radius = ~scale_radius(data_value)/10,
+                     radius = ~log(data_value)*5,
                      color = ~ifelse(data_value > threshold, "red", "green"),
                      popup = ~paste(year, data_value),
+                     label = ~paste("Zip:", as.character(zip),
+                                  ", Year:", year,
+                                  ", Concentration:", data_value, "mcg/m3"),
                      group = as.character(year))
 }
 
@@ -88,7 +85,77 @@ m = m |>
   addLayersControl(overlayGroups = as.character(years),
                    options = layersControlOptions(collapsed = FALSE))
 
-saveWidget(m, "PM25_Map.html")
+saveWidget(m, "PM25_Map.html", selfcontained = TRUE)
+```
+
+```{r}
+#Scaling function
+scale_radius = function(value) {
+  base_size = 5 
+  scale_factor = 10  
+  scaled_radius = base_size + scale_factor * (value - min(pm25_data$data_value)) / 
+                   (max(pm25_data$data_value) - min(pm25_data$data_value))
+  return(scaled_radius)
+}
+
+
+pal = colorNumeric(palette = "viridis", domain = df_air_geo$data_value)
+
+df_air_geo = 
+  read_csv("cleaned_shapes/zip_shapes.csv") |> 
+  select(zip, intptlat10, intptlon10) |> 
+  left_join(read_csv("cleaned_data/air_quality_zips.csv"), by = "zip") |> 
+  mutate(lat = intptlat10,
+         lon = intptlon10) |> 
+  select(-intptlat10, -intptlon10) |> 
+  filter(name == "Fine particles (PM 2.5)",
+  str_detect(time_period, "Annual Average")) |> 
+  mutate(year = as.numeric(str_extract(time_period, "\\d{4}")))
+
+pm25_data = df_air_geo |> 
+  group_by(year, zip) |> 
+  summarise(data_value = mean(data_value),
+            lat = mean(lat),  
+            lon = mean(lon))
+
+m = leaflet()  |> 
+  addProviderTiles(providers$CartoDB.Positron)|>  
+  setView(lng = -74.0060, lat = 40.7128, zoom = 10) 
+
+years = sort(unique(pm25_data$year), decreasing = TRUE)
+first_year = min(years)
+
+for(year in years) {
+  data_for_year = pm25_data[pm25_data$year == year, ]
+  
+  m = m |>
+    addCircleMarkers(data = data_for_year,
+                     lng = ~lon, lat = ~lat, weight = 1,
+                     radius = ~scale_radius(data_value),
+                     color = ~pal(data_value),
+                     popup = ~paste(year, data_value),
+                     label = ~paste("Zip:", as.character(zip),
+                                  ", Year:", year,
+                                  ", Concentration:", data_value, "mcg/m3"),
+                     group = as.character(year))
+}
+
+# Change collapsed to TRUE if we want the list of years to be collapsed
+m = m |>
+  addLayersControl(overlayGroups = as.character(years),
+                   options = layersControlOptions(collapsed = FALSE))
+
+# Remove this if we want all years selected by default.
+for(year in years) {
+  if(year != first_year) {
+      group_name = paste(year)
+      m = m |> hideGroup(group_name)
+    }
+  }
+
+saveWidget(m, "PM25_Map.html", selfcontained = TRUE)
 ```
 
 <iframe src="PM25_Map.html" width="800" height="600"></iframe>
+
+From the layered map, we see that PM 2.5 particle levels have continuously decreased since 2009. Furthermore, lower Manhattan seems to have the highest levels of PM 2.5 through all years.

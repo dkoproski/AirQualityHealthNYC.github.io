@@ -373,6 +373,27 @@ div.tocify {
   mutate(lat = intptlat10,
          lon = intptlon10) |&gt; 
   select(-intptlat10, -intptlon10)</code></pre>
+<pre><code>## Rows: 36110 Columns: 19
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (5): classfp10, mtfcc10, funcstat10, borough, neighborhood
+## dbl (14): zip, geoid10, aland10, awater10, intptlat10, intptlon10, x_center,...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+## Rows: 26402 Columns: 15
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
+## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## Warning in left_join(select(read_csv(&quot;cleaned_shapes/zip_shapes.csv&quot;), zip, : Detected an unexpected many-to-many relationship between `x` and `y`.
+## ℹ Row 1 of `x` matches multiple rows in `y`.
+## ℹ Row 332 of `y` matches multiple rows in `x`.
+## ℹ If a many-to-many relationship is expected, set `relationship =
+##   &quot;many-to-many&quot;` to silence this warning.</code></pre>
 </div>
 
 
