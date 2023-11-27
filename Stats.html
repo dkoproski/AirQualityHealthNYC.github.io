@@ -362,7 +362,45 @@ div.tocify {
 </div>
 
 
+<div id="regression-of-fine-particles-pm-2.5-over-time"
+class="section level2">
+<h2>Regression of Fine Particles (PM 2.5) over time</h2>
+<pre class="r"><code>plot_data |&gt; 
+  filter(name == &quot;Fine particles (PM 2.5)&quot;) |&gt; 
+  ggplot(aes(x = start_date, y = mean_dv)) +
+  geom_point() +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE) + 
+  labs(title = &quot;PM2.5 Levels Throughout NYC Over Time&quot;,
+       x = &quot;Date&quot;,
+       y = &quot;Pollutant Level (mcg/m3)&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="Stats_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<pre class="r"><code>filtered_data &lt;- plot_data |&gt; 
+  filter(name == &quot;Fine particles (PM 2.5)&quot;)
 
+model =
+  lm(mean_dv ~ start_date, data = filtered_data)
+
+summary(model)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = mean_dv ~ start_date, data = filtered_data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.1982 -0.6290 -0.0763  0.5636  1.7473 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 27.2026215  1.6879715   16.12  &lt; 2e-16 ***
+## start_date  -0.0010837  0.0001007  -10.77 5.34e-12 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7694 on 31 degrees of freedom
+## Multiple R-squared:  0.789,  Adjusted R-squared:  0.7822 
+## F-statistic: 115.9 on 1 and 31 DF,  p-value: 5.342e-12</code></pre>
+</div>
 
 
 
