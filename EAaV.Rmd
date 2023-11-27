@@ -14,41 +14,24 @@ library(tidyverse)
 library(leaflet)
 ```
 
-```{r}
-air_df = read_csv("cleaned_data/air_quality_zips.csv")
-
-plot_data <- air_df |> 
-  filter(name %in% c("Nitrogen dioxide (NO2)", "Ozone (O3)", "Fine particles (PM 2.5)")) |>  
-  group_by(start_date, name) |> 
-  summarise(mean_dv = mean(data_value, na.rm = TRUE)) |>  
-  ungroup()
-
-plot_data = plot_data |> 
-  mutate(start_date = as.Date(start_date, format="%m/%d/%Y"))
-```
-
-
-## Plot of NO2 and Ozone over time in NYC
-
-```{r}
-overlay_data = plot_data |>  
-  filter(name %in% c("Nitrogen dioxide (NO2)", "Ozone (O3)"))
-
-overlay_data |> 
-  ggplot(aes(x = start_date, y = mean_dv, color = name)) +
-  geom_line() +
-  labs(title = "Nitrogen Dioxide and Ozone Levels in NYC Over Time",
-       x = "Date",
-       y = "Pollutant Level (parts per billion)")
-
-```
-
 ## Levels of PM2.5 over time in NYC
 
 ```{r}
+air_df = read_csv("cleaned_data/air_quality_zips.csv")
+
+plot_data = air_df |> 
+  filter(name %in% c("Nitrogen dioxide (NO2)", "Ozone (O3)", "Fine particles (PM 2.5)")) |> 
+  filter(str_detect(time_period, "Annual Average")) |> 
+  mutate(year = str_extract(time_period, "\\d{4}")) |>  
+  group_by(year, name) |> 
+  summarise(mean_dv = mean(data_value, na.rm = TRUE)) |> 
+  ungroup() |> 
+  mutate(year = as.numeric(year))
+## Removing annual averages causes data loss, removing seasonal averages does not.
+
 plot_data |> 
   filter(name == "Fine particles (PM 2.5)") |>
-  ggplot(aes(x = start_date, y = mean_dv)) +
+  ggplot(aes(x = year, y = mean_dv)) +
   geom_point() +
   labs(title = "PM2.5 Levels Throughout NYC Over Time",
        x = "Date",

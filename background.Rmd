@@ -15,7 +15,7 @@ library(tidyverse)
 
 Leaflet works best with latitude and longitude data
 
-```{r, message = FALSE, warning = FALSE, eval = FALSE}
+```{r}
 df_air_geo = 
   read_csv("cleaned_shapes/zip_shapes.csv") |> 
   select(zip, intptlat10, intptlon10) |> 

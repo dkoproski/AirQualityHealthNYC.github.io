@@ -12,7 +12,7 @@ output:
 ```{r}
 plot_data |> 
   filter(name == "Fine particles (PM 2.5)") |> 
-  ggplot(aes(x = start_date, y = mean_dv)) +
+  ggplot(aes(x = year, y = mean_dv)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) + 
   labs(title = "PM2.5 Levels Throughout NYC Over Time",
@@ -20,11 +20,11 @@ plot_data |>
        y = "Pollutant Level (mcg/m3)")
 
 
-filtered_data <- plot_data |> 
+filtered_data = plot_data |> 
   filter(name == "Fine particles (PM 2.5)")
 
 model =
-  lm(mean_dv ~ start_date, data = filtered_data)
+  lm(mean_dv ~ year, data = filtered_data)
 
 summary(model)
 ```
