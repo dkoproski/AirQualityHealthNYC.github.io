@@ -4,7 +4,6 @@ output:
   html_document:
     toc: true
     toc_float: true
-    runtime: shiny
     theme: cosmo
     code_folding: hide
 ---
@@ -12,6 +11,7 @@ output:
 ```{r, echo = FALSE, message = FALSE}
 library(tidyverse)
 library(leaflet)
+library(htmlwidgets)
 ```
 
 ## Levels of PM2.5 over time in NYC
@@ -24,7 +24,7 @@ plot_data = air_df |>
   filter(str_detect(time_period, "Annual Average")) |> 
   mutate(year = str_extract(time_period, "\\d{4}")) |>  
   group_by(year, name) |> 
-  summarise(mean_dv = mean(data_value, na.rm = TRUE)) |> 
+  summarise(mean_dv = mean(data_value)) |> 
   ungroup() |> 
   mutate(year = as.numeric(year))
 ## Removing annual averages causes data loss, removing seasonal averages does not.
@@ -38,3 +38,57 @@ plot_data |>
        y = "Pollutant Level (mcg/m3)")
 ```
 
+```{r}
+scale_radius = function(value) {
+  base_size = 10  
+  scale_factor = 100 
+  scaled_radius = base_size + scale_factor * (value - min(pm25_data$data_value)) / 
+                   (max(pm25_data$data_value) - min(pm25_data$data_value))
+  return(scaled_radius)
+}
+
+df_air_geo = 
+  read_csv("cleaned_shapes/zip_shapes.csv") |> 
+  select(zip, intptlat10, intptlon10) |> 
+  left_join(read_csv("cleaned_data/air_quality_zips.csv"), by = "zip") |> 
+  mutate(lat = intptlat10,
+         lon = intptlon10) |> 
+  select(-intptlat10, -intptlon10) |> 
+  filter(name == "Fine particles (PM 2.5)",
+  str_detect(time_period, "Annual Average")) |> 
+  mutate(year = as.numeric(str_extract(time_period, "\\d{4}")))
+
+pm25_data = df_air_geo |> 
+  group_by(year, zip) |> 
+  summarise(data_value = mean(data_value),
+            lat = mean(lat),  
+            lon = mean(lon))
+
+
+threshold = 9.84
+
+m = leaflet()  |> 
+  addTiles() |>  
+  setView(lng = -74.0060, lat = 40.7128, zoom = 10) 
+
+years = unique(pm25_data$year)
+for(year in years) {
+  data_for_year = pm25_data[pm25_data$year == year, ]
+  
+  m = m |>
+    addCircleMarkers(data = data_for_year,
+                     lng = ~lon, lat = ~lat, weight = 1,
+                     radius = ~scale_radius(data_value)/10,
+                     color = ~ifelse(data_value > threshold, "red", "green"),
+                     popup = ~paste(year, data_value),
+                     group = as.character(year))
+}
+
+m = m |>
+  addLayersControl(overlayGroups = as.character(years),
+                   options = layersControlOptions(collapsed = FALSE))
+
+saveWidget(m, "PM25_Map.html")
+```
+
+<iframe src="PM25_Map.html" width="800" height="600"></iframe>
