@@ -7,7 +7,7 @@ output:
     theme: cosmo
     code_folding: hide
 ---
-## Fine Particle Regression
+## Regression of Fine Particles (PM 2.5) over time
 
 ```{r}
 plot_data |> 

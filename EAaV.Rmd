@@ -14,8 +14,6 @@ library(tidyverse)
 library(leaflet)
 ```
 
-## Plot of NO2 and Ozone over time in NYC
-
 ```{r}
 air_df = read_csv("cleaned_data/air_quality_zips.csv")
 
@@ -27,7 +25,12 @@ plot_data <- air_df |>
 
 plot_data = plot_data |> 
   mutate(start_date = as.Date(start_date, format="%m/%d/%Y"))
+```
 
+
+## Plot of NO2 and Ozone over time in NYC
+
+```{r}
 overlay_data = plot_data |>  
   filter(name %in% c("Nitrogen dioxide (NO2)", "Ozone (O3)"))
 
@@ -40,7 +43,7 @@ overlay_data |>
 
 ```
 
-## Levels of PM2.5 over time
+## Levels of PM2.5 over time in NYC
 
 ```{r}
 plot_data |> 
