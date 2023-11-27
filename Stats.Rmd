@@ -7,3 +7,25 @@ output:
     theme: cosmo
     code_folding: hide
 ---
+## Fine Particle Regression
+
+```{r}
+plot_data |> 
+  filter(name == "Fine particles (PM 2.5)") |> 
+  ggplot(aes(x = start_date, y = mean_dv)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(title = "PM2.5 Levels Throughout NYC Over Time",
+       x = "Date",
+       y = "Pollutant Level (mcg/m3)")
+
+
+filtered_data <- plot_data |> 
+  filter(name == "Fine particles (PM 2.5)")
+
+model =
+  lm(mean_dv ~ start_date, data = filtered_data)
+
+summary(model)
+```
+

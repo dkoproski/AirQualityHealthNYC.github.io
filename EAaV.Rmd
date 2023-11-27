@@ -40,14 +40,14 @@ overlay_data |>
 
 ```
 
-## PM2.5 over time
+## Levels of PM2.5 over time
 
 ```{r}
 plot_data |> 
   filter(name == "Fine particles (PM 2.5)") |>
   ggplot(aes(x = start_date, y = mean_dv)) +
   geom_point() +
-  labs(title = "Ozone Levels Throughout NYC Over Time",
+  labs(title = "PM2.5 Levels Throughout NYC Over Time",
        x = "Date",
        y = "Pollutant Level (mcg/m3)")
 ```
