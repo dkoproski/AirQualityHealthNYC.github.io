@@ -7,3 +7,36 @@ output:
     theme: cosmo
     code_folding: hide
 ---
+
+[Related work....]
+
+## Methods 
+
+Data: Source, scraping method, cleaning, etc.
+Exploratory analysis: 
+Additional analysis: 
+
+## Results 
+
+Exploratory analysis: 
+Additional analysis: 
+
+## Discussion and Conclusions
+What were your findings? 
+Are they what you expect? 
+What insights into the data can you make?
+Limitations? 
+Future implications? 
+
+
+# Tidying Incidence per county dataset
+
+```{r, message = FALSE, warning = FALSE, eval = FALSE}
+df_incd = 
+  read_csv("datasets/incd_county.csv") |> 
+  janitor::clean_names() |> 
+  mutate(
+    county = str_extract(county, "^[^(]+")
+  ) |> 
+  filter(county %in% c("New York County", "Kings County", "Bronx County", "Richmond County", "Queens County"))
+```
