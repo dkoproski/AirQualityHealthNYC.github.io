@@ -7,6 +7,9 @@ output:
     theme: cosmo
     code_folding: hide
 ---
+
+### NYC Air Quality Estimation and Respitory disease risk due to air pollutants 
+
 ## Introduction 
 
 Public health and overall community well-being are impacted by environmental factors such as the quantity of air pollutants in an area. Key pollutants of public health concern include: carbon monoxide (CO), ozone (O3), nitrogen dioxide(NO2), particulate matter (PM), and sulfur dioxide (SO2) [1](https://www.who.int/health-topics/air-pollution#tab=tab_1). Air pollution is associated with a number of health concerns such as respiratory diseases and heart attacks [2](https://www.epa.gov/report-environment/air#:~:text=Air%20pollution%2C%20whether%20indoors%20or,respiratory%20symptoms%2C%20and%20premature%20mortality.). According to the New York State Department of Heath, in taking levels PM_2.5 can increase the risk for health problems [3](https://www.health.ny.gov/environmental/indoors/air/pmq_a.htm). 
@@ -18,9 +21,16 @@ Our initial questions included: What are the air quality levels in New York City
 
 [Related work....]
 
+Ambient PM2.5 attributed deaths increased from 3.5 million in 1990 to 4.2 million in 2015. In 2015, the fifth-ranking cause of global deaths was ambient PM2. [3](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439030/). 
+
+In a study following the PM2.5 concentration in NYC from 2015-2020, similar decrease levels between January and May were observed. There was less air pollutant in 2020 that could have been due to the government shutdown during the corona virus pandemic could not be confirmed. [4](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7314691/#bb0010). 
+READ______[5](https://pubs.acs.org/doi/10.1021/acs.est.0c00694). 
+
+
 ## Methods 
 
 Data: Source, scraping method, cleaning, etc.
+Improvement Ratio [6](https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3Dihub)
 Exploratory analysis: 
 Additional analysis: 
 
