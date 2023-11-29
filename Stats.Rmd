@@ -7,6 +7,11 @@ output:
     theme: cosmo
     code_folding: hide
 ---
+```{r, echo=FALSE, message = FALSE, warning = FALSE}
+library(tidyverse)
+```
+
+
 ## Regression of Fine Particles (PM 2.5) over time
 
 ```{r}
@@ -27,6 +32,22 @@ model =
   lm(mean_dv ~ year, data = filtered_data)
 
 summary(model)
+```
+
+
+```{r}
+df_air_zips = 
+  read_csv("data/cleaned_data/air_quality_zips.csv") |> 
+  mutate(zip = as.factor(air_quality_zips$zip))
+
+df_incd = 
+  read_csv("data/disease_datasets/incd.csv") |> 
+
+
+model =
+  lm(Health_Outcome ~ NO2, data = final_merged_data)
+summary(model)
+
 ```
 
 
