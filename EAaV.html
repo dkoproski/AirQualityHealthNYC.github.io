@@ -365,9 +365,9 @@ Visualizations</h1>
 
 <div id="levels-of-pm2.5-over-time-in-nyc" class="section level2">
 <h2>Levels of PM2.5 over time in NYC</h2>
-<pre class="r"><code>air_df = read_csv(&quot;cleaned_data/air_quality_zips.csv&quot;)</code></pre>
+<pre class="r"><code>air_df = read_csv(&quot;data/cleaned_data/air_quality_zips.csv&quot;)</code></pre>
 <pre><code>## Rows: 26402 Columns: 15
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
 ## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
@@ -394,10 +394,13 @@ plot_data |&gt;
        x = &quot;Date&quot;,
        y = &quot;Pollutant Level (mcg/m3)&quot;)</code></pre>
 <p><img src="EAaV_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+</div>
+<div id="map-of-pm2.5-with-year-selector" class="section level2">
+<h2>Map of PM2.5 with Year Selector</h2>
 <pre class="r"><code>df_air_geo = 
-  read_csv(&quot;cleaned_shapes/zip_shapes.csv&quot;) |&gt; 
+  read_csv(&quot;data/cleaned_shapes/zip_shapes.csv&quot;) |&gt; 
   select(zip, intptlat10, intptlon10) |&gt; 
-  left_join(read_csv(&quot;cleaned_data/air_quality_zips.csv&quot;), by = &quot;zip&quot;) |&gt; 
+  left_join(read_csv(&quot;data/cleaned_data/air_quality_zips.csv&quot;), by = &quot;zip&quot;) |&gt; 
   mutate(lat = intptlat10,
          lon = intptlon10) |&gt; 
   select(-intptlat10, -intptlon10) |&gt; 
@@ -405,7 +408,7 @@ plot_data |&gt;
   str_detect(time_period, &quot;Annual Average&quot;)) |&gt; 
   mutate(year = as.numeric(str_extract(time_period, &quot;\\d{4}&quot;)))</code></pre>
 <pre><code>## Rows: 36110 Columns: 19
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr  (5): classfp10, mtfcc10, funcstat10, borough, neighborhood
 ## dbl (14): zip, geoid10, aland10, awater10, intptlat10, intptlon10, x_center,...
@@ -413,14 +416,14 @@ plot_data |&gt;
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 ## Rows: 26402 Columns: 15
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
 ## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre><code>## Warning in left_join(select(read_csv(&quot;cleaned_shapes/zip_shapes.csv&quot;), zip, : Detected an unexpected many-to-many relationship between `x` and `y`.
+<pre><code>## Warning in left_join(select(read_csv(&quot;data/cleaned_shapes/zip_shapes.csv&quot;), : Detected an unexpected many-to-many relationship between `x` and `y`.
 ## ℹ Row 1 of `x` matches multiple rows in `y`.
 ## ℹ Row 332 of `y` matches multiple rows in `x`.
 ## ℹ If a many-to-many relationship is expected, set `relationship =
@@ -459,8 +462,97 @@ m = m |&gt;
                    options = layersControlOptions(collapsed = FALSE))
 
 saveWidget(m, &quot;PM25_Map.html&quot;, selfcontained = TRUE)</code></pre>
+<pre class="r"><code>#Scaling function
+scale_radius = function(value) {
+  base_size = 5 
+  scale_factor = 10  
+  scaled_radius = base_size + scale_factor * (value - min(pm25_data$data_value)) / 
+                   (max(pm25_data$data_value) - min(pm25_data$data_value))
+  return(scaled_radius)
+}
+
+
+pal = colorNumeric(palette = &quot;viridis&quot;, domain = df_air_geo$data_value)
+
+df_air_geo = 
+  read_csv(&quot;data/cleaned_shapes/zip_shapes.csv&quot;) |&gt; 
+  select(zip, intptlat10, intptlon10) |&gt; 
+  left_join(read_csv(&quot;data/cleaned_data/air_quality_zips.csv&quot;), by = &quot;zip&quot;) |&gt; 
+  mutate(lat = intptlat10,
+         lon = intptlon10) |&gt; 
+  select(-intptlat10, -intptlon10) |&gt; 
+  filter(name == &quot;Fine particles (PM 2.5)&quot;,
+  str_detect(time_period, &quot;Annual Average&quot;)) |&gt; 
+  mutate(year = as.numeric(str_extract(time_period, &quot;\\d{4}&quot;)))</code></pre>
+<pre><code>## Rows: 36110 Columns: 19
+## ── Column specification ─────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (5): classfp10, mtfcc10, funcstat10, borough, neighborhood
+## dbl (14): zip, geoid10, aland10, awater10, intptlat10, intptlon10, x_center,...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+## Rows: 26402 Columns: 15
+## ── Column specification ─────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
+## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## Warning in left_join(select(read_csv(&quot;data/cleaned_shapes/zip_shapes.csv&quot;), : Detected an unexpected many-to-many relationship between `x` and `y`.
+## ℹ Row 1 of `x` matches multiple rows in `y`.
+## ℹ Row 332 of `y` matches multiple rows in `x`.
+## ℹ If a many-to-many relationship is expected, set `relationship =
+##   &quot;many-to-many&quot;` to silence this warning.</code></pre>
+<pre class="r"><code>pm25_data = df_air_geo |&gt; 
+  group_by(year, zip) |&gt; 
+  summarise(data_value = mean(data_value),
+            lat = mean(lat),  
+            lon = mean(lon))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;year&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre class="r"><code>m = leaflet()  |&gt; 
+  addProviderTiles(providers$CartoDB.Positron)|&gt;  
+  setView(lng = -74.0060, lat = 40.7128, zoom = 10) 
+
+years = sort(unique(pm25_data$year), decreasing = TRUE)
+first_year = min(years)
+
+for(year in years) {
+  data_for_year = pm25_data[pm25_data$year == year, ]
+  
+  m = m |&gt;
+    addCircleMarkers(data = data_for_year,
+                     lng = ~lon, lat = ~lat, weight = 1,
+                     radius = ~scale_radius(data_value),
+                     color = ~pal(data_value),
+                     popup = ~paste(year, data_value),
+                     label = ~paste(&quot;Zip:&quot;, as.character(zip),
+                                  &quot;, Year:&quot;, year,
+                                  &quot;, Concentration:&quot;, data_value, &quot;mcg/m3&quot;),
+                     group = as.character(year))
+}
+
+# Change collapsed to TRUE if we want the list of years to be collapsed
+m = m |&gt;
+  addLayersControl(overlayGroups = as.character(years),
+                   options = layersControlOptions(collapsed = FALSE))
+
+# Remove this if we want all years selected by default.
+for(year in years) {
+  if(year != first_year) {
+      group_name = paste(year)
+      m = m |&gt; hideGroup(group_name)
+    }
+  }
+
+saveWidget(m, &quot;PM25_Map.html&quot;, selfcontained = TRUE)</code></pre>
 <iframe src="PM25_Map.html" width="800" height="600">
 </iframe>
+<p>From the layered map, we see that PM 2.5 particle levels have
+continuously decreased since 2009. Furthermore, lower Manhattan seems to
+have the highest levels of PM 2.5 through all years.</p>
 </div>
 
 

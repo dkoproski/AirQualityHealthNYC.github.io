@@ -76,7 +76,7 @@ model_pm2.5_data =
 model_pm2.5 =
   lm(age_adjusted_incidence_rate_rate_note_cases_per_100_000 ~ mean_dv, model_pm2.5_data)
 
-summary(model_pm2.5)
+summary(model_pm2.5) 
 
 model_pm2.5_data |> 
   ggplot(aes(x = mean_dv, y = age_adjusted_incidence_rate_rate_note_cases_per_100_000)) +
@@ -193,4 +193,62 @@ model_resp_NO2_data |>
   geom_point() +
   geom_smooth(method = "lm", se = FALSE)
 ```
+
+## Ozone and asthma
+
+```{r}
+df_ozone =
+  read_csv("data/cleaned_data/air_quality_zips.csv") |> 
+  filter(name == "Ozone (O3)") |> 
+  filter(str_detect(time_period, "2016|2017|2018|2019|2020")) |> 
+  mutate(year = str_extract(time_period, "\\d{4}"))
+
+df_asth_ozone = 
+  merge(asthma_nyc, df_ozone, by = c("zip", "year"))
+
+model_ozone_asth =
+  lm(count ~ data_value, data = df_asth_ozone)
+
+summary(model_ozone_asth)
+
+df_asth_ozone |> 
+  ggplot(aes(x = data_value, y = count)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+
+## Ozone and respiratory disease (general)
+
+```{r}
+df_ozone =
+  read_csv("data/cleaned_data/air_quality_zips.csv") |> 
+  filter(name == "Ozone (O3)") |> 
+  filter(str_detect(time_period, "2016|2017|2018|2019|2020")) |> 
+  mutate(year = str_extract(time_period, "\\d{4}"))
+
+df_resp_ozone = 
+  merge(respiratory_nyc, df_ozone, by = c("zip", "year"))
+
+model_ozone_resp =
+  lm(count ~ data_value, data = df_resp_air)
+
+summary(model_ozone_resp)
+
+df_resp_ozone |> 
+  ggplot(aes(x = data_value, y = count)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+Readings were taken in Summer.
+
+
+
+
+
+
+
+
+
 
