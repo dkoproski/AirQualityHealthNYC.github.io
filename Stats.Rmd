@@ -38,20 +38,83 @@ summary(model)
 ```{r}
 df_air_zips = 
   read_csv("data/cleaned_data/air_quality_zips.csv") |> 
-  mutate(zip = as.factor(air_quality_zips$zip))
+  mutate(zip = as.factor(zip)) |>
+  filter(str_detect(time_period, "Annual Average")) |> 
+  mutate(year = str_extract(time_period, "\\d{4}")) |> 
+  filter(year >= 2016 & year <= 2020)
 
 df_incd = 
   read_csv("data/disease_datasets/incd.csv") |> 
+  janitor::clean_names() |> 
+  mutate(fips = as.factor(fips))
 
 df_ziptofip =
-  read_csv("data/cleaned_shapes/New_York_State_ZIP_Codes-County_FIPS_Cross-Reference")
+  read_csv("data/cleaned_shapes/New_York_State_ZIP_Codes-County_FIPS_Cross-Reference.csv") |> janitor::clean_names() |> 
+  mutate(zip = zip_code)
 
-model =
-  lm(Health_Outcome ~ NO2, data = final_merged_data)
-summary(model)
+air_quality_with_fips =
+  merge(df_air_zips, df_ziptofip, by = "zip") |> 
+  mutate(fips = county_fips)
 
+df_air_disease_fips =
+  merge(air_quality_with_fips, df_incd, by = "fips")
+
+df_air_disease_fips |> 
+  group_by(fips) |> 
+  summarise(n = n())
+
+model_pm2.5_means =
+  df_air_disease_fips |> 
+  filter(name == "Fine particles (PM 2.5)") |>
+  group_by(zip) |> 
+  summarise(mean_dv = mean(data_value))
+  
+model_pm2.5_data =
+  left_join(model_pm2.5_means, df_air_disease_fips, by = "zip")
+
+model_pm2.5 =
+  lm(age_adjusted_incidence_rate_rate_note_cases_per_100_000 ~ mean_dv, model_pm2.5_data)
+
+summary(model_pm2.5)
+
+model_pm2.5_data |> 
+  ggplot(aes(x = mean_dv, y = age_adjusted_incidence_rate_rate_note_cases_per_100_000)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(title = "Incidence of diseases vs mean PM2.5 concentration",
+       x = "Mean pollutant level by zip code (mcg/m3)",
+       y = "Age adjusted incidence rate")
 ```
 
 
+```{r}
+df_air_zips = 
+  read_csv("data/cleaned_data/air_quality_zips.csv") |> 
+  mutate(zip = as.factor(zip)) |>
+  filter(str_detect(time_period, "Annual Average")) |> 
+  mutate(year = str_extract(time_period, "\\d{4}")) |> 
+  filter(year >= 2016 & year <= 2020)
+
+asthma_nyc = 
+  read_csv("data/disease_datasets/asthmanyc_clean.csv") |> 
+  janitor::clean_names() |> 
+  select(!c(data_note_1, data_note_2, dim1name)) |> 
+  filter(dim2value == "All age groups",
+         zip != 88888,
+         zip != "Citwide") |> 
+  mutate(count = as.numeric(count)) |> 
+  filter(zip == 10002)
+
+df_asthma_air =
+  merge(asthma_nyc,df_air_zips, by = "zip")
+
+model_pm2.5_means =
+  df_asthma_air |> 
+  filter(name == "Fine particles (PM 2.5)") |>
+  group_by(zip) |> 
+  filter(zip == 10002) |> 
+  select(count)
+  summarize(mean = mean(count))
+```
 
 

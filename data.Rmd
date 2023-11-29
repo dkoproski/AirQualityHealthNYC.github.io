@@ -16,4 +16,7 @@ Since October of 2014, the City of New York  hs actively maintained a dataset of
 
 ## Geographic Location Dataset and Shape Files
 
+zips to fips data
+[here](https://data.ny.gov/Government-Finance/New-York-State-ZIP-Codes-County-FIPS-Cross-Referen/juva-r6g2/data)
+
 ## Disease Dataset
