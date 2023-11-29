@@ -17,7 +17,7 @@ library(htmlwidgets)
 ## Levels of PM2.5 over time in NYC
 
 ```{r}
-air_df = read_csv("cleaned_data/air_quality_zips.csv")
+air_df = read_csv("data/cleaned_data/air_quality_zips.csv")
 
 plot_data = air_df |> 
   filter(name %in% c("Nitrogen dioxide (NO2)", "Ozone (O3)", "Fine particles (PM 2.5)")) |> 
@@ -42,9 +42,9 @@ plot_data |>
 
 ```{r}
 df_air_geo = 
-  read_csv("cleaned_shapes/zip_shapes.csv") |> 
+  read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
   select(zip, intptlat10, intptlon10) |> 
-  left_join(read_csv("cleaned_data/air_quality_zips.csv"), by = "zip") |> 
+  left_join(read_csv("data/cleaned_data/air_quality_zips.csv"), by = "zip") |> 
   mutate(lat = intptlat10,
          lon = intptlon10) |> 
   select(-intptlat10, -intptlon10) |> 
@@ -102,9 +102,9 @@ scale_radius = function(value) {
 pal = colorNumeric(palette = "viridis", domain = df_air_geo$data_value)
 
 df_air_geo = 
-  read_csv("cleaned_shapes/zip_shapes.csv") |> 
+  read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
   select(zip, intptlat10, intptlon10) |> 
-  left_join(read_csv("cleaned_data/air_quality_zips.csv"), by = "zip") |> 
+  left_join(read_csv("data/cleaned_data/air_quality_zips.csv"), by = "zip") |> 
   mutate(lat = intptlat10,
          lon = intptlon10) |> 
   select(-intptlat10, -intptlon10) |> 

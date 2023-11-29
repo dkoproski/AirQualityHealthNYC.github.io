@@ -43,6 +43,8 @@ df_air_zips =
 df_incd = 
   read_csv("data/disease_datasets/incd.csv") |> 
 
+df_ziptofip =
+  read_csv("data/cleaned_shapes/New_York_State_ZIP_Codes-County_FIPS_Cross-Reference")
 
 model =
   lm(Health_Outcome ~ NO2, data = final_merged_data)
