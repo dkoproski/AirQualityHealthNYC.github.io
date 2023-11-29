@@ -34,6 +34,7 @@ model =
 summary(model)
 ```
 
+## Probably wont include, not many data points
 
 ```{r}
 df_air_zips = 
@@ -86,6 +87,7 @@ model_pm2.5_data |>
        y = "Age adjusted incidence rate")
 ```
 
+## Asthma related hospitalizations vs. PM2.5 concentration
 
 ```{r}
 df_air_zips = 
@@ -102,19 +104,93 @@ asthma_nyc =
   filter(dim2value == "All age groups",
          zip != 88888,
          zip != "Citwide") |> 
-  mutate(count = as.numeric(count)) |> 
-  filter(zip == 10002)
+  mutate(count = as.numeric(count),
+         year = date) |> 
+  filter(year >= 2016 & year <= 2020)
 
-df_asthma_air =
-  merge(asthma_nyc,df_air_zips, by = "zip")
+df_asthma_air = 
+  merge(asthma_nyc, df_air_zips, by = c("zip", "year"))
 
-model_pm2.5_means =
+model_asth_pm2.5_data =
   df_asthma_air |> 
-  filter(name == "Fine particles (PM 2.5)") |>
-  group_by(zip) |> 
-  filter(zip == 10002) |> 
-  select(count)
-  summarize(mean = mean(count))
+  filter(name == "Fine particles (PM 2.5)")
+
+model_asth_pm2.5 =
+  lm(count ~ data_value, data = model_asth_pm2.5_data)
+
+summary(model_asth_pm2.5)
+
+model_asth_pm2.5_data |> 
+  ggplot(aes(x = data_value, y = count)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
 ```
 
+## Asthma related hospitalizations vs. NO2 concentration
+
+```{r}
+model_asth_no2_data =
+  df_asthma_air |> 
+  filter(name == "Nitrogen dioxide (NO2)")
+
+model_asth_no2 =
+  lm(count ~ data_value, data = model_asth_no2_data)
+
+summary(model_asth_no2)
+
+model_asth_no2_data |> 
+  ggplot(aes(x = data_value, y = count)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+## General respiratory hospitalization vs PM2.5
+
+```{r}
+respiratory_nyc = 
+  read_csv("data/disease_datasets/respiratorynyc_clean.csv") |> 
+  janitor::clean_names() |> 
+  select(!c(data_note_1, data_note_2, dim1name)) |> 
+  filter(dim2value == "All age groups",
+         zip != 88888,
+         zip != "Citwide") |> 
+  mutate(count = as.numeric(count),
+         year = date) |> 
+  filter(year >= 2016 & year <= 2020)
+
+df_resp_air = 
+  merge(respiratory_nyc, df_air_zips, by = c("zip", "year"))
+
+model_resp_pm2.5_data =
+  df_resp_air |> 
+  filter(name == "Fine particles (PM 2.5)")
+
+model_resp_pm2.5 =
+  lm(count ~ data_value, data = model_resp_pm2.5_data)
+
+summary(model_resp_pm2.5)
+
+model_resp_pm2.5_data |> 
+  ggplot(aes(x = data_value, y = count)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+## general respiratory hospitalizations vs. NO2
+
+```{r}
+model_resp_NO2_data =
+  df_resp_air |> 
+  filter(name == "Nitrogen dioxide (NO2)")
+
+model_NO2_resp =
+  lm(count ~ data_value, data = model_resp_NO2_data)
+
+summary(model_NO2_resp)
+
+model_resp_NO2_data |> 
+  ggplot(aes(x = data_value, y = count)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
 
