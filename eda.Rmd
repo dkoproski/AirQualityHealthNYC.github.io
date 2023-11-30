@@ -39,8 +39,7 @@ df_histo_ozone =
   filter(name == "Ozone (O3)") |> 
   filter(str_detect(time_period, "2009|2010|2011|2012|2013|2014|2015|2016|2017|2018|2019|2020|2021")) |> 
   mutate(year = str_extract(time_period, "\\d{4}")) |> 
-  select(year, data_value) |> 
-  filter(year == 2009)
+  select(year, data_value)
 ```
 
 #THE HISTOGRAM
