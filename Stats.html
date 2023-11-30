@@ -372,34 +372,16 @@ class="section level2">
   geom_smooth(method = &quot;lm&quot;, se = FALSE) + 
   labs(title = &quot;PM2.5 Levels Throughout NYC Over Time&quot;,
        x = &quot;Date&quot;,
-       y = &quot;Pollutant Level (mcg/m3)&quot;)</code></pre>
-<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
-<pre class="r"><code>filtered_data = plot_data |&gt; 
+       y = &quot;Pollutant Level (mcg/m3)&quot;)
+
+
+filtered_data = plot_data |&gt; 
   filter(name == &quot;Fine particles (PM 2.5)&quot;)
 
 model =
   lm(mean_dv ~ year, data = filtered_data)
 
 summary(model)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = mean_dv ~ year, data = filtered_data)
-## 
-## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -0.41176 -0.28581 -0.07349  0.42390  0.46542 
-## 
-## Coefficients:
-##              Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept) 766.43462   52.41182   14.62 1.49e-08 ***
-## year         -0.37610    0.02601  -14.46 1.68e-08 ***
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 0.3509 on 11 degrees of freedom
-## Multiple R-squared:   0.95,  Adjusted R-squared:  0.9455 
-## F-statistic: 209.1 on 1 and 11 DF,  p-value: 1.676e-08</code></pre>
 </div>
 <div id="probably-wont-include-not-many-data-points"
 class="section level2">
@@ -409,39 +391,18 @@ class="section level2">
   mutate(zip = as.factor(zip)) |&gt;
   filter(str_detect(time_period, &quot;Annual Average&quot;)) |&gt; 
   mutate(year = str_extract(time_period, &quot;\\d{4}&quot;)) |&gt; 
-  filter(year &gt;= 2016 &amp; year &lt;= 2020)</code></pre>
-<pre><code>## Rows: 26402 Columns: 15
-## ── Column specification ─────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
-## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>df_incd = 
+  filter(year &gt;= 2016 &amp; year &lt;= 2020)
+
+df_incd = 
   read_csv(&quot;data/disease_datasets/incd.csv&quot;) |&gt; 
   janitor::clean_names() |&gt; 
-  mutate(fips = as.factor(fips))</code></pre>
-<pre><code>## Rows: 64 Columns: 10
-## ── Column specification ─────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (4): County, CI*Rank([rank note]), Lower CI (CI*Rank), Upper CI (CI*Rank)
-## dbl (6): FIPS, Age-Adjusted Incidence Rate([rate note]) - cases per 100,000,...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>df_ziptofip =
+  mutate(fips = as.factor(fips))
+
+df_ziptofip =
   read_csv(&quot;data/cleaned_shapes/New_York_State_ZIP_Codes-County_FIPS_Cross-Reference.csv&quot;) |&gt; janitor::clean_names() |&gt; 
-  mutate(zip = zip_code)</code></pre>
-<pre><code>## Rows: 2543 Columns: 6
-## ── Column specification ─────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (3): County Name, County Code, File Date
-## dbl (3): State FIPS, County FIPS, ZIP Code
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>air_quality_with_fips =
+  mutate(zip = zip_code)
+
+air_quality_with_fips =
   merge(df_air_zips, df_ziptofip, by = &quot;zip&quot;) |&gt; 
   mutate(fips = county_fips)
 
@@ -510,16 +471,9 @@ class="section level2">
   mutate(zip = as.factor(zip)) |&gt;
   filter(str_detect(time_period, &quot;Annual Average&quot;)) |&gt; 
   mutate(year = str_extract(time_period, &quot;\\d{4}&quot;)) |&gt; 
-  filter(year &gt;= 2016 &amp; year &lt;= 2020)</code></pre>
-<pre><code>## Rows: 26402 Columns: 15
-## ── Column specification ─────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
-## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>asthma_nyc = 
+  filter(year &gt;= 2016 &amp; year &lt;= 2020)
+
+asthma_nyc = 
   read_csv(&quot;data/disease_datasets/asthmanyc_clean.csv&quot;) |&gt; 
   janitor::clean_names() |&gt; 
   select(!c(data_note_1, data_note_2, dim1name)) |&gt; 
@@ -528,17 +482,9 @@ class="section level2">
          zip != &quot;Citwide&quot;) |&gt; 
   mutate(count = as.numeric(count),
          year = date) |&gt; 
-  filter(year &gt;= 2016 &amp; year &lt;= 2020)</code></pre>
-<pre><code>## Rows: 3488 Columns: 8
-## ── Column specification ─────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (6): Data note 1, Data note 2, Dim1Name, Zip, Dim2Name, Dim2Value
-## dbl (1): Date
-## num (1): Count
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>df_asthma_air = 
+  filter(year &gt;= 2016 &amp; year &lt;= 2020)
+
+df_asthma_air = 
   merge(asthma_nyc, df_air_zips, by = c(&quot;zip&quot;, &quot;year&quot;))
 
 model_asth_pm2.5_data =
@@ -622,17 +568,9 @@ class="section level2">
          zip != &quot;Citwide&quot;) |&gt; 
   mutate(count = as.numeric(count),
          year = date) |&gt; 
-  filter(year &gt;= 2016 &amp; year &lt;= 2020)</code></pre>
-<pre><code>## Rows: 3488 Columns: 8
-## ── Column specification ─────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (6): Data note 1, Data note 2, Dim1Name, Zip, Dim2Name, Dim2Value
-## dbl (1): Date
-## num (1): Count
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>df_resp_air = 
+  filter(year &gt;= 2016 &amp; year &lt;= 2020)
+
+df_resp_air = 
   merge(respiratory_nyc, df_air_zips, by = c(&quot;zip&quot;, &quot;year&quot;))
 
 model_resp_pm2.5_data =
@@ -710,16 +648,9 @@ summary(model_NO2_resp)</code></pre>
   read_csv(&quot;data/cleaned_data/air_quality_zips.csv&quot;) |&gt; 
   filter(name == &quot;Ozone (O3)&quot;) |&gt; 
   filter(str_detect(time_period, &quot;2016|2017|2018|2019|2020&quot;)) |&gt; 
-  mutate(year = str_extract(time_period, &quot;\\d{4}&quot;))</code></pre>
-<pre><code>## Rows: 26402 Columns: 15
-## ── Column specification ─────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
-## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>df_asth_ozone = 
+  mutate(year = str_extract(time_period, &quot;\\d{4}&quot;))
+
+df_asth_ozone = 
   merge(asthma_nyc, df_ozone, by = c(&quot;zip&quot;, &quot;year&quot;))
 
 model_ozone_asth =
@@ -755,16 +686,9 @@ summary(model_ozone_asth)</code></pre>
   read_csv(&quot;data/cleaned_data/air_quality_zips.csv&quot;) |&gt; 
   filter(name == &quot;Ozone (O3)&quot;) |&gt; 
   filter(str_detect(time_period, &quot;2016|2017|2018|2019|2020&quot;)) |&gt; 
-  mutate(year = str_extract(time_period, &quot;\\d{4}&quot;))</code></pre>
-<pre><code>## Rows: 26402 Columns: 15
-## ── Column specification ─────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
-## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>df_resp_ozone = 
+  mutate(year = str_extract(time_period, &quot;\\d{4}&quot;))
+
+df_resp_ozone = 
   merge(respiratory_nyc, df_ozone, by = c(&quot;zip&quot;, &quot;year&quot;))
 
 model_ozone_resp =
@@ -795,6 +719,43 @@ summary(model_ozone_resp)</code></pre>
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
 <p><img src="Stats_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre class="r"><code>tidy_model =
+  tidy(model_ozone_resp)
+
+print(tidy_model) |&gt; 
+  knitr::kable()</code></pre>
+<pre><code>## # A tibble: 2 × 5
+##   term        estimate std.error statistic  p.value
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 (Intercept)   629.       57.0      11.0  3.80e-27
+## 2 data_value      5.76      3.97      1.45 1.48e- 1</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">628.682623</td>
+<td align="right">56.986981</td>
+<td align="right">11.032039</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">data_value</td>
+<td align="right">5.759732</td>
+<td align="right">3.974597</td>
+<td align="right">1.449136</td>
+<td align="right">0.1475339</td>
+</tr>
+</tbody>
+</table>
 <p>Readings were taken in Summer.</p>
 </div>
 
