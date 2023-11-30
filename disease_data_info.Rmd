@@ -147,3 +147,23 @@ write_csv(disease_zip, 'data/cleaned_data/disease_zip.csv')
 write_csv(air_quality_disease, 'data/cleaned_data/air_quality_disease.csv')
 ```
 
+```{r}
+#not many NAs
+sum(is.na(air_quality_disease))
+```
+
+```{r}
+#only december 2022 values/data is missing.
+air_quality_disease[!complete.cases(air_quality_disease), ]
+```
+
+
+Notes:
+
+- x-axis:date, y-axis: any variable (time series EDA)
+
+- histograms for distributions of different pollutants, maybe categorize/group by borough
+
+- (grouping by borough and neighborhood for exploration purposes)
+
+- comparing summer months vs air quality, maybe for the three different years. 
