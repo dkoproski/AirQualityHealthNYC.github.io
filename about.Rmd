@@ -19,24 +19,23 @@ The need for a comprehensive analysis and sustainable solutions for the increase
 Our initial questions included: What are the air quality levels in New York City?, Which areas in New York City have more prominent air pollutants? How is air quality associated to the incidence of respiratory diseases in an area?
 
 
-
-
-
-
-
 READ______[6](https://pubs.acs.org/doi/10.1021/acs.est.0c00694). 
 
+Improvement Ratio [7](https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3Dihub)
 
 ## Methods 
 
 Data: Source, scraping method, cleaning, etc.
-Improvement Ratio [7](https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3Dihub)
+The Air Quality data was obtained from [NYC Open Data](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r) with various air pollutants throughout NYC over -time period-. 
+
 Exploratory analysis: 
+To explore the association between PM2.5 Levels and time a linear regression model was used. 
 Additional analysis: 
 
 ## Results 
 
 Exploratory analysis: 
+
 Additional analysis: 
 
 ## Discussion and Conclusions
