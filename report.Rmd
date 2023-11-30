@@ -26,17 +26,17 @@ Improvement Ratio [7](https://www.sciencedirect.com/science/article/pii/S0013935
 ## Methods 
 
 Data: Source, scraping method, cleaning, etc.
-The Air Quality data was obtained from [NYC Open Data](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r) with various air pollutants throughout NYC over -time period-. 
+The Air Quality data was obtained from [NYC Open Data](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r) with various air pollutants throughout NYC from 2009 to 2021. 
 
-Exploratory analysis: 
-To explore the association between PM2.5 Levels and time a linear regression model was used. 
-Additional analysis: 
+Exploratory/Additional analysis: 
+To explore the association between PM2.5 levels and time, a linear regression model was used. To monitor and understand the air quality from 2009 to 2021, a map of PM2.5 with a year selector was constructed. 
+
+
 
 ## Results 
 
-Exploratory analysis: 
-
-Additional analysis: 
+Exploratory/Additional analysis: 
+PM2.5 levels continuously decline from 2009 to 2021, as evident on the layered PM2.5  map. Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Additionally, the layered PM2.5 map shows a greater amount of PM2.5 levels in lower Manhattan throughout the years. 
 
 ## Discussion and Conclusions
 What were your findings? 
