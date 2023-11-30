@@ -1,0 +1,16 @@
+---
+title: "Visualizations"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    code_folding: hide
+---
+
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(leaflet)
+```
+
+## Create file
