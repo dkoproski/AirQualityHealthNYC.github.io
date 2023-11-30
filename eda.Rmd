@@ -92,4 +92,45 @@ combined_fig = combined_fig |>
 combined_fig
 ```
 
+## Boxplots
+
+```{r}
+all_years = sort(unique(c(as.numeric(df_histo_pm2.5$year),
+                           as.numeric(df_histo_NO2$year),
+                           as.numeric(df_histo_ozone$year))))
+
+combined_boxplot_fig = plot_ly()
+
+add_yearly_boxplots = function(data, years, name_prefix) {
+  for(year_value in years) {
+    year_data = filter(data, year == as.character(year_value))
+    combined_boxplot_fig <<- combined_boxplot_fig |>
+      add_boxplot(data = year_data, 
+              y = ~data_value, 
+              name = paste(name_prefix, year_value),
+              marker = list(opacity = 0.6))
+  }
+}
+
+add_yearly_boxplots(df_histo_pm2.5, all_years, "PM2.5")
+add_yearly_boxplots(df_histo_NO2, all_years, "NO2")
+add_yearly_boxplots(df_histo_ozone, all_years, "O3")
+
+buttons = lapply(seq_along(pollutants_data), function(i) {
+  list(method = "update",
+       args = list(list("visible" = 
+                          c(rep(i == 1, num_years), 
+                            rep(i == 2, num_years), 
+                            rep(i == 3, num_years))),
+                   list("title" = paste(pollutant_names[i], "Concentration"))),
+       label = pollutant_names[i])
+})
+
+combined_boxplot_fig = combined_boxplot_fig |>
+  layout(title = "Comparison of Pollutant Concentrations (Boxplots)",
+         updatemenus = list(list(type = "dropdown", buttons = buttons)))
+
+combined_boxplot_fig
+
+```
 
