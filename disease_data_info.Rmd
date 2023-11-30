@@ -133,3 +133,17 @@ air_quality_disease %>%
   filter(borough == 'Manhattan')
 ```
 
+
+```{r}
+#downloading updated data
+#cleaned disease solo data
+write_csv(disease_solo, 'data/cleaned_data/disease_solo.csv')
+
+#cleaned joined disease & zip data
+write_csv(disease_zip, 'data/cleaned_data/disease_zip.csv')
+
+
+#joined air & disease + zip data
+write_csv(air_quality_disease, 'data/cleaned_data/air_quality_disease.csv')
+```
+
