@@ -25,7 +25,9 @@ df_air_geo =
   select(-intptlat10, -intptlon10)
 ```
 
+
 ## 2009-2021: Ozone levels (O3)
+
 
 ```{r, out.width = '100%',echo = FALSE, message = FALSE, warning = FALSE}
 # Extract ozone data
@@ -91,7 +93,9 @@ m = m |>
 m
 ```
 
+
 ## 2008-2021: Fine Particles PM2.5
+
 
 ```{r, out.width = '100%',echo = FALSE, message = FALSE, warning = FALSE}
 # Extract pm2.5 data
@@ -157,7 +161,9 @@ m = m |>
 m
 ```
 
+
 ## 2008-2021: Nitrogen dioxide (NO2)
+
 
 ```{r, out.width = '100%',echo = FALSE, message = FALSE, warning = FALSE}
 # Extract NO2 data
