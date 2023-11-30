@@ -11,151 +11,35 @@ output:
 ```{r, echo = FALSE, message = FALSE}
 library(tidyverse)
 library(leaflet)
-library(htmlwidgets)
+library(plotly)
 ```
 
-## Levels of PM2.5 over time in NYC
+## Dynamic histogram 
 
 ```{r}
-air_df = read_csv("data/cleaned_data/air_quality_zips.csv")
-
-plot_data = air_df |> 
-  filter(name %in% c("Nitrogen dioxide (NO2)", "Ozone (O3)", "Fine particles (PM 2.5)")) |> 
+df_histo_pm2.5 = 
+  read_csv("data/cleaned_data/air_quality_zips.csv") |> 
+  mutate(zip = as.factor(zip)) |>
   filter(str_detect(time_period, "Annual Average")) |> 
-  mutate(year = str_extract(time_period, "\\d{4}")) |>  
-  group_by(year, name) |> 
-  summarise(mean_dv = mean(data_value)) |> 
-  ungroup() |> 
-  mutate(year = as.numeric(year))
-## Removing annual averages causes data loss, removing seasonal averages does not.
-
-plot_data |> 
-  filter(name == "Fine particles (PM 2.5)") |>
-  ggplot(aes(x = year, y = mean_dv)) +
-  geom_point() +
-  labs(title = "PM2.5 Levels Throughout NYC Over Time",
-       x = "Date",
-       y = "Pollutant Level (mcg/m3)")
-```
-
-## Map of PM2.5 with Year Selector
-
-```{r}
-df_air_geo = 
-  read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
-  select(zip, intptlat10, intptlon10) |> 
-  left_join(read_csv("data/cleaned_data/air_quality_zips.csv"), by = "zip") |> 
-  mutate(lat = intptlat10,
-         lon = intptlon10) |> 
-  select(-intptlat10, -intptlon10) |> 
-  filter(name == "Fine particles (PM 2.5)",
-  str_detect(time_period, "Annual Average")) |> 
-  mutate(year = as.numeric(str_extract(time_period, "\\d{4}")))
-
-pm25_data = df_air_geo |> 
-  group_by(year, zip) |> 
-  summarise(data_value = mean(data_value),
-            lat = mean(lat),  
-            lon = mean(lon))
-
-
-threshold = 8
-
-m = leaflet()  |> 
-  addProviderTiles(providers$CartoDB.DarkMatter)|>  
-  setView(lng = -74.0060, lat = 40.7128, zoom = 10) 
-
-years = unique(pm25_data$year)
-for(year in years) {
-  data_for_year = pm25_data[pm25_data$year == year, ]
-  
-  m = m |>
-    addCircleMarkers(data = data_for_year,
-                     lng = ~lon, lat = ~lat, weight = 1,
-                     radius = ~log(data_value)*5,
-                     color = ~ifelse(data_value > threshold, "red", "green"),
-                     popup = ~paste(year, data_value),
-                     label = ~paste("Zip:", as.character(zip),
-                                  ", Year:", year,
-                                  ", Concentration:", data_value, "mcg/m3"),
-                     group = as.character(year))
-}
-
-m = m |>
-  addLayersControl(overlayGroups = as.character(years),
-                   options = layersControlOptions(collapsed = FALSE))
-
-saveWidget(m, "PM25_Map.html", selfcontained = TRUE)
+  mutate(year = str_extract(time_period, "\\d{4}")) |> 
+  filter(name == "Fine particles (PM 2.5)") |> 
+  select(year, data_value)
 ```
 
 ```{r}
-#Scaling function
-scale_radius = function(value) {
-  base_size = 5 
-  scale_factor = 10  
-  scaled_radius = base_size + scale_factor * (value - min(pm25_data$data_value)) / 
-                   (max(pm25_data$data_value) - min(pm25_data$data_value))
-  return(scaled_radius)
+df_histo_pm2.5 = df_histo_pm2.5 |> 
+  mutate(year = as.character(year))
+
+fig = plot_ly(alpha = 0.6)
+
+for(year_value in unique(df_histo_pm2.5$year)) {
+  year_data = filter(df_histo_pm2.5, year == year_value)
+  fig = fig |> 
+    add_histogram(x = year_data$data_value, 
+                  name = year_value,
+                  marker = list(opacity = 0.6))
 }
 
-
-pal = colorNumeric(palette = "viridis", domain = df_air_geo$data_value)
-
-df_air_geo = 
-  read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
-  select(zip, intptlat10, intptlon10) |> 
-  left_join(read_csv("data/cleaned_data/air_quality_zips.csv"), by = "zip") |> 
-  mutate(lat = intptlat10,
-         lon = intptlon10) |> 
-  select(-intptlat10, -intptlon10) |> 
-  filter(name == "Fine particles (PM 2.5)",
-  str_detect(time_period, "Annual Average")) |> 
-  mutate(year = as.numeric(str_extract(time_period, "\\d{4}")))
-
-pm25_data = df_air_geo |> 
-  group_by(year, zip) |> 
-  summarise(data_value = mean(data_value),
-            lat = mean(lat),  
-            lon = mean(lon))
-
-m = leaflet()  |> 
-  addProviderTiles(providers$CartoDB.Positron)|>  
-  setView(lng = -74.0060, lat = 40.7128, zoom = 10) 
-
-years = sort(unique(pm25_data$year), decreasing = TRUE)
-first_year = min(years)
-
-for(year in years) {
-  data_for_year = pm25_data[pm25_data$year == year, ]
-  
-  m = m |>
-    addCircleMarkers(data = data_for_year,
-                     lng = ~lon, lat = ~lat, weight = 1,
-                     radius = ~scale_radius(data_value),
-                     color = ~pal(data_value),
-                     popup = ~paste(year, data_value),
-                     label = ~paste("Zip:", as.character(zip),
-                                  ", Year:", year,
-                                  ", Concentration:", data_value, "mcg/m3"),
-                     group = as.character(year))
-}
-
-# Change collapsed to TRUE if we want the list of years to be collapsed
-m = m |>
-  addLayersControl(overlayGroups = as.character(years),
-                   options = layersControlOptions(collapsed = FALSE))
-
-# Remove this if we want all years selected by default.
-for(year in years) {
-  if(year != first_year) {
-      group_name = paste(year)
-      m = m |> hideGroup(group_name)
-    }
-  }
-
-saveWidget(m, "PM25_Map.html", selfcontained = TRUE)
+fig
 ```
 
-<iframe src="PM25_Map.html" width="800" height="600"></iframe>
-
-From the layered map, we see that PM 2.5 particle levels have continuously decreased since 2009. Furthermore, lower Manhattan seems to have the highest levels of PM 2.5 through all years.
