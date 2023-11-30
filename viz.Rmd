@@ -8,17 +8,13 @@ output:
     code_folding: hide
 ---
 
-```{r, echo = FALSE, message = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(leaflet)
 library(plotly)
 library(glue)
 library(leaflet.extras)
-```
 
-## 2009-2021: Ozone levels (O3)
-
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
 air_df = read_csv("data/cleaned_data/air_quality_zips.csv")
 df_air_geo = 
   read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
@@ -27,13 +23,18 @@ df_air_geo =
   mutate(lat = intptlat10,
          lon = intptlon10) |> 
   select(-intptlat10, -intptlon10)
+```
 
+## 2009-2021: Ozone levels (O3)
+
+```{r, out.width = '100%',echo = FALSE, message = FALSE, warning = FALSE}
+# Extract ozone data
 o3_data = df_air_geo |> 
   filter(str_detect(name, "Ozone") & str_detect(name, "\\(")) |> 
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          year = year(start_date),
          name = str_remove(name, "(due to).*")) |> 
-  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
+  select(zip, name, measure, measure_info, year, data_value, lat, lon) |> 
   group_by(zip, name, year, lat, lon) |> 
   summarize(zipmean = mean(data_value)) 
 
@@ -47,21 +48,12 @@ for (k in 2009:2021) {
   yearly_data_frames[[as.character(k)]] = year_data
 }
 
-pm25_data = df_air_geo |> 
-  filter(str_detect(name, "Fine")) |> 
-  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
-         year = year(start_date),
-         name = str_remove(name, "(due to).*")) |> 
-  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
-  group_by(zip, name, year, lat, lon) |> 
-  summarize(zipmean = mean(data_value))
-
+# Create map
 
 palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000", "#660000")
 legend <- c("15-20", "20-25", "25-30", "30-35", "35-40", ">40")
 
-
-m = leaflet() |> addTiles() 
+m = leaflet() |> addTiles()
 
 year_i = unique(o3_data$year)
 for(year in year_i) {
@@ -73,7 +65,7 @@ for(year in year_i) {
   label_text <- glue(
     "<b>Zipcode: </b> {yeardata$zip}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
-    "<b>Mean: </b> {yeardata$zipmean}<br/>") |> 
+    "<b>Zip mean: </b> {yeardata$zipmean} ppb<br/>") |> 
     lapply(htmltools::HTML)
   
   
@@ -91,10 +83,77 @@ m = m |>
   addHeatmap(data = yeardata,lng = ~lon, lat = ~lat, 
              intensity = 2, blur = 5, max = 4, radius = 10, 
              group = "Heatmap Overlay") |> 
-  addLegend(labels = legend, colors = palette, title = "Ozone levels") |> 
+  addLegend(labels = legend, colors = palette, title = "Ozone levels (parts per billion)") |> 
   addLayersControl(overlayGroups = "Heatmap Overlay",
                    baseGroups = year_i,
                    options = layersControlOptions(collapsed = FALSE)) 
 
 m
 ```
+
+## 2008-2021: Fine Particles PM2.5
+
+```{r, out.width = '100%',echo = FALSE, message = FALSE, warning = FALSE}
+# Extract pm2.5 data
+pm25_data = df_air_geo |> 
+  filter(str_detect(name, "Fine")) |> 
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         year = year(start_date),
+         name = str_remove(name, "(due to).*")) |> 
+  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
+  group_by(zip, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value))
+
+# Create yearly dataframes
+yearly_data_frames <- list()
+for (k in 2008:2021) {
+  year_data = pm25_data |> 
+    filter(year == k)
+  df_name = paste0("pm25_", k)
+  assign(df_name, year_data)
+  yearly_data_frames[[as.character(k)]] = year_data
+}
+
+# Create map
+
+palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000", "#660000")
+legend <- c("5-7", "7-9", "9-11", "11-13", "13-15", ">15")
+
+m = leaflet() |> addTiles()
+
+year_i = unique(pm25_data$year)
+for(year in year_i) {
+  
+  
+  yeardata = pm25_data[pm25_data$year == year,]
+  
+  
+  label_text <- glue(
+    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Year: </b> {yeardata$year}<br/>",
+    "<b>Zip mean: </b> round({yeardata$zipmean},3) mcg/m3<br/>") |> 
+    lapply(htmltools::HTML)
+  
+  
+  m = m |>
+    addCircleMarkers(data = yeardata, lng = ~lon, lat = ~lat, radius = .5, opacity = 0.8, 
+                     color = ~ifelse(between(zipmean, 5, 7), "#39FF14", 
+                                     ifelse(between(zipmean, 7.1, 9), "#FFFF33", 
+                                            ifelse(between(zipmean, 9.1, 11),"#FF7F00",
+                                                   ifelse(between(zipmean, 11.1, 13), "#E31A1C",
+                                                          ifelse(between(zipmean, 13.1, 15), "#9F0000", "#660000"))))),
+                     label = label_text, group = as.character(year))
+}
+
+m = m |> 
+  addHeatmap(data = yeardata,lng = ~lon, lat = ~lat, 
+             intensity = 2, blur = 5, max = 4, radius = 10, 
+             group = "Heatmap Overlay") |> 
+  addLegend(labels = legend, colors = palette, title = "PM2.5 levels (mcg/m3)") |> 
+  addLayersControl(overlayGroups = "Heatmap Overlay",
+                   baseGroups = year_i,
+                   options = layersControlOptions(collapsed = FALSE)) 
+
+m
+```
+
