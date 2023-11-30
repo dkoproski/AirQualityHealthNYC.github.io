@@ -9,7 +9,7 @@ navbar:
       href: data_processing.html
     - text: "Exploratory Analysis"
       href: eda.html
-    - text: "Visualizations"
+    - text: "Interactive Maps"
       href: viz.html  
     - text: "Statistical Analysis"
       href: stats.html
