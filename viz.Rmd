@@ -11,6 +11,64 @@ output:
 ```{r, echo = FALSE, message = FALSE}
 library(tidyverse)
 library(leaflet)
+library(plotly)
+library(leaflet.extras)
+library(glue)
 ```
 
-## Create file
+## Load dataset
+
+```{r}
+air_df = read_csv("data/cleaned_data/air_quality_zips.csv")
+df_air_geo = 
+  read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
+  select(zip, intptlat10, intptlon10) |> 
+  left_join(read_csv("data/cleaned_data/air_quality_zips.csv"), by = "zip") |> 
+  mutate(lat = intptlat10,
+         lon = intptlon10) |> 
+  select(-intptlat10, -intptlon10)
+
+o3_data = df_air_geo |> 
+  filter(str_detect(name, "Ozone") & str_detect(name, "\\(")) |> 
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         year = year(start_date),
+         name = str_remove(name, "(due to).*")) |> 
+  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
+  group_by(zip, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value)) |> 
+  filter(year == 2009)
+
+pm25_data = df_air_geo |> 
+  filter(str_detect(name, "Fine")) |> 
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         year = year(start_date),
+         name = str_remove(name, "(due to).*")) |> 
+  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
+  group_by(zip, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value))
+```
+
+## Create maps
+
+```{r}
+bins <- c(10,20,30,40,50)
+pal <- colorBin("Spectral", domain = o3_data$zipmean, bins = bins, na.color = "transparent")
+label_text <- glue(
+  "<b>Zipcode: </b> {o3_data$zip}<br/>",
+  "<b>Year: </b> {2009}<br/>",
+  "<b>Mean: </b> {o3_data$zipmean}<br/>") %>%
+  lapply(htmltools::HTML)
+
+m = o3_data |> 
+  leaflet() |> 
+  addTiles() |> 
+  addHeatmap(lng = ~lon, lat = ~lat, intensity = 2, blur = 5, max = 4, radius = 10) |> 
+  addCircles(lng = ~lon, lat = ~lat, radius = .5, opacity = .2, col = "blue", popup = label_text) |> 
+  addLegend(pal = pal, values = o3_data$zipmean,
+                title="Heat map legend") |> 
+  addLayersControl(overlayGroups = 2009,
+                   options = layersControlOptions(collapsed = FALSE))
+m
+```
+
+

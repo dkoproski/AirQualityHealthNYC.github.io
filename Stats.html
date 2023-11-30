@@ -340,6 +340,9 @@ div.tocify {
 <li>
   <a href="about.html">Final Report</a>
 </li>
+<li>
+  <a href="viz.html">Visualizations</a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -362,9 +365,11 @@ div.tocify {
 </div>
 
 
-<div id="regression-of-fine-particles-pm-2.5-over-time"
+<div
+id="regression-of-fine-particles-pm-2.5-over-time-testing-the-state-of-new-yorks-claim-that-air-pollutants-are-decreasing"
 class="section level2">
-<h2>Regression of Fine Particles (PM 2.5) over time</h2>
+<h2>Regression of Fine Particles (PM 2.5) over time (testing the state
+of new york’s claim that air pollutants are decreasing)</h2>
 <pre class="r"><code>plot_data |&gt; 
   filter(name == &quot;Fine particles (PM 2.5)&quot;) |&gt; 
   ggplot(aes(x = year, y = mean_dv)) +
@@ -382,86 +387,6 @@ model =
   lm(mean_dv ~ year, data = filtered_data)
 
 summary(model)</code></pre>
-</div>
-<div id="probably-wont-include-not-many-data-points"
-class="section level2">
-<h2>Probably wont include, not many data points</h2>
-<pre class="r"><code>df_air_zips = 
-  read_csv(&quot;data/cleaned_data/air_quality_zips.csv&quot;) |&gt; 
-  mutate(zip = as.factor(zip)) |&gt;
-  filter(str_detect(time_period, &quot;Annual Average&quot;)) |&gt; 
-  mutate(year = str_extract(time_period, &quot;\\d{4}&quot;)) |&gt; 
-  filter(year &gt;= 2016 &amp; year &lt;= 2020)
-
-df_incd = 
-  read_csv(&quot;data/disease_datasets/incd.csv&quot;) |&gt; 
-  janitor::clean_names() |&gt; 
-  mutate(fips = as.factor(fips))
-
-df_ziptofip =
-  read_csv(&quot;data/cleaned_shapes/New_York_State_ZIP_Codes-County_FIPS_Cross-Reference.csv&quot;) |&gt; janitor::clean_names() |&gt; 
-  mutate(zip = zip_code)
-
-air_quality_with_fips =
-  merge(df_air_zips, df_ziptofip, by = &quot;zip&quot;) |&gt; 
-  mutate(fips = county_fips)
-
-df_air_disease_fips =
-  merge(air_quality_with_fips, df_incd, by = &quot;fips&quot;)
-
-df_air_disease_fips |&gt; 
-  group_by(fips) |&gt; 
-  summarise(n = n())</code></pre>
-<pre><code>## # A tibble: 6 × 2
-##    fips     n
-##   &lt;dbl&gt; &lt;int&gt;
-## 1 36005   250
-## 2 36047   380
-## 3 36061   440
-## 4 36081   610
-## 5 36085   120
-## 6 36119    10</code></pre>
-<pre class="r"><code>model_pm2.5_means =
-  df_air_disease_fips |&gt; 
-  filter(name == &quot;Fine particles (PM 2.5)&quot;) |&gt;
-  group_by(zip) |&gt; 
-  summarise(mean_dv = mean(data_value))
-  
-model_pm2.5_data =
-  left_join(model_pm2.5_means, df_air_disease_fips, by = &quot;zip&quot;)
-
-model_pm2.5 =
-  lm(age_adjusted_incidence_rate_rate_note_cases_per_100_000 ~ mean_dv, model_pm2.5_data)
-
-summary(model_pm2.5) </code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = age_adjusted_incidence_rate_rate_note_cases_per_100_000 ~ 
-##     mean_dv, data = model_pm2.5_data)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -3.2035 -2.0270 -0.7395  0.9032 10.5350 
-## 
-## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  37.8970     0.5582   67.89   &lt;2e-16 ***
-## mean_dv      -1.4210     0.0762  -18.65   &lt;2e-16 ***
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 3.067 on 1808 degrees of freedom
-## Multiple R-squared:  0.1613, Adjusted R-squared:  0.1609 
-## F-statistic: 347.8 on 1 and 1808 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code>model_pm2.5_data |&gt; 
-  ggplot(aes(x = mean_dv, y = age_adjusted_incidence_rate_rate_note_cases_per_100_000)) +
-  geom_point() +
-  geom_smooth(method = &quot;lm&quot;, se = FALSE) + 
-  labs(title = &quot;Incidence of diseases vs mean PM2.5 concentration&quot;,
-       x = &quot;Mean pollutant level by zip code (mcg/m3)&quot;,
-       y = &quot;Age adjusted incidence rate&quot;)</code></pre>
-<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 </div>
 <div id="asthma-related-hospitalizations-vs.-pm2.5-concentration"
 class="section level2">
@@ -518,7 +443,7 @@ summary(model_asth_pm2.5)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 </div>
 <div id="asthma-related-hospitalizations-vs.-no2-concentration"
 class="section level2">
@@ -554,7 +479,7 @@ summary(model_asth_no2)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 </div>
 <div id="general-respiratory-hospitalization-vs-pm2.5"
 class="section level2">
@@ -604,7 +529,7 @@ summary(model_resp_pm2.5)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 </div>
 <div id="general-respiratory-hospitalizations-vs.-no2"
 class="section level2">
@@ -640,7 +565,7 @@ summary(model_NO2_resp)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 </div>
 <div id="ozone-and-asthma" class="section level2">
 <h2>Ozone and asthma</h2>
@@ -678,7 +603,7 @@ summary(model_ozone_asth)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 </div>
 <div id="ozone-and-respiratory-disease-general" class="section level2">
 <h2>Ozone and respiratory disease (general)</h2>
@@ -718,7 +643,7 @@ summary(model_ozone_resp)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 <pre class="r"><code>tidy_model =
   tidy(model_ozone_resp)
 

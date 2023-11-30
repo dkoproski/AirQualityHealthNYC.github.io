@@ -340,6 +340,9 @@ div.tocify {
 <li>
   <a href="about.html">Final Report</a>
 </li>
+<li>
+  <a href="viz.html">Visualizations</a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -367,7 +370,7 @@ Visualizations</h1>
 <h2>Levels of PM2.5 over time in NYC</h2>
 <pre class="r"><code>air_df = read_csv(&quot;data/cleaned_data/air_quality_zips.csv&quot;)</code></pre>
 <pre><code>## Rows: 26402 Columns: 15
-## ── Column specification ─────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
 ## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
@@ -408,7 +411,7 @@ plot_data |&gt;
   str_detect(time_period, &quot;Annual Average&quot;)) |&gt; 
   mutate(year = as.numeric(str_extract(time_period, &quot;\\d{4}&quot;)))</code></pre>
 <pre><code>## Rows: 36110 Columns: 19
-## ── Column specification ─────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr  (5): classfp10, mtfcc10, funcstat10, borough, neighborhood
 ## dbl (14): zip, geoid10, aland10, awater10, intptlat10, intptlon10, x_center,...
@@ -416,7 +419,7 @@ plot_data |&gt;
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 ## Rows: 26402 Columns: 15
-## ── Column specification ─────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
 ## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
@@ -426,8 +429,8 @@ plot_data |&gt;
 <pre><code>## Warning in left_join(select(read_csv(&quot;data/cleaned_shapes/zip_shapes.csv&quot;), : Detected an unexpected many-to-many relationship between `x` and `y`.
 ## ℹ Row 1 of `x` matches multiple rows in `y`.
 ## ℹ Row 332 of `y` matches multiple rows in `x`.
-## ℹ If a many-to-many relationship is expected, set `relationship =
-##   &quot;many-to-many&quot;` to silence this warning.</code></pre>
+## ℹ If a many-to-many relationship is expected, set `relationship = &quot;many-to-many&quot;` to silence
+##   this warning.</code></pre>
 <pre class="r"><code>pm25_data = df_air_geo |&gt; 
   group_by(year, zip) |&gt; 
   summarise(data_value = mean(data_value),
@@ -485,7 +488,7 @@ df_air_geo =
   str_detect(time_period, &quot;Annual Average&quot;)) |&gt; 
   mutate(year = as.numeric(str_extract(time_period, &quot;\\d{4}&quot;)))</code></pre>
 <pre><code>## Rows: 36110 Columns: 19
-## ── Column specification ─────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr  (5): classfp10, mtfcc10, funcstat10, borough, neighborhood
 ## dbl (14): zip, geoid10, aland10, awater10, intptlat10, intptlon10, x_center,...
@@ -493,7 +496,7 @@ df_air_geo =
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 ## Rows: 26402 Columns: 15
-## ── Column specification ─────────────────────────────────────────────────────
+## ── Column specification ─────────────────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
 ## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
@@ -503,8 +506,8 @@ df_air_geo =
 <pre><code>## Warning in left_join(select(read_csv(&quot;data/cleaned_shapes/zip_shapes.csv&quot;), : Detected an unexpected many-to-many relationship between `x` and `y`.
 ## ℹ Row 1 of `x` matches multiple rows in `y`.
 ## ℹ Row 332 of `y` matches multiple rows in `x`.
-## ℹ If a many-to-many relationship is expected, set `relationship =
-##   &quot;many-to-many&quot;` to silence this warning.</code></pre>
+## ℹ If a many-to-many relationship is expected, set `relationship = &quot;many-to-many&quot;` to silence
+##   this warning.</code></pre>
 <pre class="r"><code>pm25_data = df_air_geo |&gt; 
   group_by(year, zip) |&gt; 
   summarise(data_value = mean(data_value),
