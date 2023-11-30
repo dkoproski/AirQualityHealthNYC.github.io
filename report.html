@@ -365,26 +365,46 @@ div.tocify {
 </div>
 
 
-<div
-id="nyc-air-quality-estimation-and-respitory-disease-risk-due-to-air-pollutants"
-class="section level3">
-<h3>NYC Air Quality Estimation and Respitory disease risk due to air
-pollutants</h3>
-</div>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Public health and overall community well-being are impacted by
 environmental factors such as the quantity of air pollutants in an area.
 Key pollutants of public health concern include: carbon monoxide (CO),
-ozone (O3), nitrogen dioxide(NO2), particulate matter (PM), and sulfur
-dioxide (SO2) <a
-href="https://www.who.int/health-topics/air-pollution#tab=tab_1">1</a>.
-Air pollution is associated with a number of health concerns such as
+ozone (O3), nitrogen dioxide(NO2), particulate matter 2.5 (PM2.5), and
+sulfur dioxide (SO2) <a
+href="https://www.who.int/health-topics/air-pollution#tab=tab_1">WHO</a>.</p>
+<p>As a colorless and odorless gas, CO poses a great health risk when
+inhaled in large amounts. Majority of CO levels are attributed to
+machinery that use fossil fuels such as vechiles and gas space heaters
+<a
+href="https://www.epa.gov/co-pollution/basic-information-about-carbon-monoxide-co-outdoor-air-pollution">EPA
+CO</a>. Some air pollutants, such as, ground-level ozone are created via
+a chemical reaction between nitrogen oxides (NO_x), volatile organic
+compounds (VOC), and sunlight <a
+href="https://www.epa.gov/ground-level-ozone-pollution/ground-level-ozone-basics">EPA
+O3</a>. During summer months O3 levels tend to peak due to regions with
+elevated NOX emissions. Areas with high traffic levels, NO_x reacts to
+ground-level O3 to conclude a reduction of O3 concentrations. Moreover,
+areas such as city centers or areas with NO_x emission show a lower O3
+levels <a
+href="https://a816-dohbesp.nyc.gov/IndicatorPublic/beta/key-topics/airquality/nyccas/">EHDP
+O3</a>. PM2.5, a prevalent air pollutant, originates from both outdoor
+and indoor environments. Outdoor sources comprise of vehicle emissions,
+gas, and fires, while indoor contributors encompass tobacco smoke,
+candle combustion, and oil lamps <a
+href="https://www.health.ny.gov/environmental/indoors/air/pmq_a.htm">NYSD
+PM2.5</a>. SO2 in NYC is mainly generated through the combustion of
+residual fuel oil during the winter months from residential buildings.
+Additionally, SO2 contributed to PM2.5 formation in the atmosphere <a
+href="https://a816-dohbesp.nyc.gov/IndicatorPublic/beta/key-topics/airquality/nyccas/">EHDP
+SO2</a> .</p>
+<p>Air pollution is associated with a number of health concerns such as
 respiratory diseases and heart attacks <a
-href="https://www.epa.gov/report-environment/air#:~:text=Air%20pollution%2C%20whether%20indoors%20or,respiratory%20symptoms%2C%20and%20premature%20mortality.">2</a>.
+href="https://www.epa.gov/report-environment/air#:~:text=Air%20pollution%2C%20whether%20indoors%20or,respiratory%20symptoms%2C%20and%20premature%20mortality.">EPA</a>.
 According to the New York State Department of Heath, in-taking levels
 PM_2.5 can increase the risk for health problems <a
-href="https://www.health.ny.gov/environmental/indoors/air/pmq_a.htm">3</a>.</p>
+href="https://www.health.ny.gov/environmental/indoors/air/pmq_a.htm">NYSD
+Health</a>.</p>
 <p>The need for a comprehensive analysis and sustainable solutions for
 the increase of air pollutants is needed. The motivation behind this
 project stems from the potential effects pollutants may have on human
@@ -405,12 +425,14 @@ href="https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3D
 <p>Data: Source, scraping method, cleaning, etc. The Air Quality data
 was obtained from <a
 href="https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r">NYC
-Open Data</a> with various air pollutants throughout NYC from 2009 to
-2021.</p>
+Open Data</a>, showing dataon various air pollutants throughout NYC from
+2009 to 2021.</p>
 <p>Exploratory/Additional analysis: To explore the association between
 PM2.5 levels and time, a linear regression model was used. To monitor
 and understand the air quality from 2009 to 2021, a map of PM2.5 with a
 year selector was constructed.</p>
+<p>Visualizations: A heat map was constructed to enhance accessibility
+of ozone level data in the city from 2009 to 2021.</p>
 </div>
 <div id="results" class="section level2">
 <h2>Results</h2>
@@ -424,21 +446,19 @@ levels in lower Manhattan throughout the years.</p>
 <h2>Discussion and Conclusions</h2>
 <p>What were your findings? Are they what you expect? What insights into
 the data can you make? Limitations? Future implications?</p>
-<p>-info on PM2.5 and previous findings- -compare result to findings-
-PM2.5, a prevalent air pollutant, originates from both outdoor and
-indoor environments.Outdoor sources comprise of vehicle emissions, gas,
-and fires, while indoor contributors encompass tobacco smoke, candle
-combustion, and oil lamps <a
-href="https://www.health.ny.gov/environmental/indoors/air/pmq_a.htm">3</a>.
-Ambient PM2.5 attributed deaths increased from 3.5 million in 1990 to
+<p>-info on PM2.5 and previous findings- -compare result to
+findings-</p>
+<p>Ambient PM2.5 attributed deaths increased from 3.5 million in 1990 to
 4.2 million in 2015. In 2015, the fifth-ranking cause of global deaths
-was ambient PM2. <a
-href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439030/">4</a>. In a
-study following the PM2.5 concentration in NYC from 2015-2020, similar
-decrease levels between January and May were observed. There was less
-air pollutant in 2020 that could have been due to the government
-shutdown during the corona virus pandemic could not be confirmed. <a
-href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7314691/#bb0010">5</a>.</p>
+was ambient PM2.5 <a
+href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439030/">PM2.5
+related deaths</a>. In a study following the PM2.5 concentration in NYC
+from 2015-2020, similar decrease levels between January and May were
+observed. There was less air pollutant in 2020 that could have been due
+to the government shutdown during the corona virus pandemic could not be
+confirmed. <a
+href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7314691/#bb0010">COVID
+shutdown</a>.</p>
 </div>
 
 
