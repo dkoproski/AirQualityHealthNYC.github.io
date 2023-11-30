@@ -1,5 +1,5 @@
 ---
-title: "Visualizations"
+title: "Interactive Maps"
 output: 
   html_document:
     toc: true
@@ -16,9 +16,9 @@ library(glue)
 library(leaflet.extras)
 ```
 
-## Load dataset
+## 2009-2021: Ozone levels (O3)
 
-```{r}
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 air_df = read_csv("data/cleaned_data/air_quality_zips.csv")
 df_air_geo = 
   read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
@@ -55,39 +55,46 @@ pm25_data = df_air_geo |>
   select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
   group_by(zip, name, year, lat, lon) |> 
   summarize(zipmean = mean(data_value))
-```
 
-## Create maps
 
-```{r}
 palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000", "#660000")
 legend <- c("15-20", "20-25", "25-30", "30-35", "35-40", ">40")
-label_text <- glue(
-  "<b>Zipcode: </b> {o3_data$zip}<br/>",
-  "<b>Year: </b> {2009}<br/>",
-  "<b>Mean: </b> {o3_data$zipmean}<br/>") |> 
-  lapply(htmltools::HTML)
 
-m = leaflet() |> addTiles()
+
+m = leaflet() |> addTiles() 
 
 year_i = unique(o3_data$year)
 for(year in year_i) {
+  
+  
   yeardata = o3_data[o3_data$year == year,]
+  
+  
+  label_text <- glue(
+    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Year: </b> {yeardata$year}<br/>",
+    "<b>Mean: </b> {yeardata$zipmean}<br/>") |> 
+    lapply(htmltools::HTML)
+  
+  
   m = m |>
     addCircleMarkers(data = yeardata, lng = ~lon, lat = ~lat, radius = .5, opacity = 0.8, 
-                   color = ~ifelse(between(zipmean, 15, 20), "#39FF14", 
-                                   ifelse(between(zipmean, 20.1, 25), "#FFFF33", 
-                                          ifelse(between(zipmean, 25.1, 30),"#FF7F00",
-                                                 ifelse(between(zipmean, 30.1, 35), "#E31A1C",
-                                                        ifelse(between(zipmean, 35.1, 40), "#9F0000", "#660000"))))),
-                   popup = label_text, group = as.character(year))
+                     color = ~ifelse(between(zipmean, 15, 20), "#39FF14", 
+                                     ifelse(between(zipmean, 20.1, 25), "#FFFF33", 
+                                            ifelse(between(zipmean, 25.1, 30),"#FF7F00",
+                                                   ifelse(between(zipmean, 30.1, 35), "#E31A1C",
+                                                          ifelse(between(zipmean, 35.1, 40), "#9F0000", "#660000"))))),
+                     label = label_text, group = as.character(year))
 }
 
 m = m |> 
-  addHeatmap(data = yeardata,lng = ~lon, lat = ~lat, intensity = 2, blur = 5, max = 4, radius = 10, group = "Heatmap Overlay") |> 
-  addLegend(labels = legend, colors = palette, title="Ozone levels") |> 
+  addHeatmap(data = yeardata,lng = ~lon, lat = ~lat, 
+             intensity = 2, blur = 5, max = 4, radius = 10, 
+             group = "Heatmap Overlay") |> 
+  addLegend(labels = legend, colors = palette, title = "Ozone levels") |> 
   addLayersControl(overlayGroups = "Heatmap Overlay",
-                          baseGroups = as.character(year_i),
+                   baseGroups = year_i,
                    options = layersControlOptions(collapsed = FALSE)) 
+
 m
 ```
