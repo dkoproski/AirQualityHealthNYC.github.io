@@ -13,16 +13,39 @@ library(tidyverse)
 
 # Merging and working with shape files
 
-Leaflet works best with latitude and longitude data
 
-```{r}
-df_air_geo = 
-  read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
-  select(zip, intptlat10, intptlon10) |> 
-  left_join(read_csv("data/cleaned_data/air_quality_zips.csv"), by = "zip") |> 
-  mutate(lat = intptlat10,
-         lon = intptlon10) |> 
-  select(-intptlat10, -intptlon10)
+
+```{r, eval = FALSE}
+nyc_zips =
+  read_csv("data/cleaned_shapes/nyc_zip_codes.csv") |> 
+  mutate(zip = as.character(ZipCode)) |> 
+  select(zip)
+
+resp_df = 
+  read_csv("data/raw_data/respiratory.csv")
+
+asth_df = 
+  read_csv("data/raw_data/asthma.csv")
+
+resp_df_tidy =
+  resp_df |> 
+  janitor::clean_names() |> 
+  mutate(age_group = dim2value,
+         count_resp = count) |> 
+  select(zip, age_group, date, count_resp) 
+
+asth_df_tidy = 
+  asth_df |> 
+  janitor::clean_names() |> 
+  mutate(age_group = dim2value,
+         count_asth = count) |> 
+  select(zip, age_group, date, count_asth) 
+
+
+df_all_resp = 
+  merge(resp_df_tidy, asth_df_tidy, by = c("zip", "date", "age_group")) |>
+  inner_join(nyc_zips, by = "zip") |> 
+  write_csv("data/cleaned_data/joined_respiratory.csv")
 ```
 
 
