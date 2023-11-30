@@ -11,8 +11,7 @@ output:
 library(tidyverse)
 ```
 
-# Merging and working with shape files
-
+# Hospitalization data by zip code for asthma and respiratory diseases
 
 
 ```{r, eval = FALSE}

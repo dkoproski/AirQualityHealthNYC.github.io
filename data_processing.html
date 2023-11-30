@@ -368,37 +368,36 @@ div.tocify {
 <pre class="r"><code>library(tidyverse)</code></pre>
 <div id="merging-and-working-with-shape-files" class="section level1">
 <h1>Merging and working with shape files</h1>
-<p>Leaflet works best with latitude and longitude data</p>
-<pre class="r"><code>df_air_geo = 
-  read_csv(&quot;data/cleaned_shapes/zip_shapes.csv&quot;) |&gt; 
-  select(zip, intptlat10, intptlon10) |&gt; 
-  left_join(read_csv(&quot;data/cleaned_data/air_quality_zips.csv&quot;), by = &quot;zip&quot;) |&gt; 
-  mutate(lat = intptlat10,
-         lon = intptlon10) |&gt; 
-  select(-intptlat10, -intptlon10)</code></pre>
-<pre><code>## Rows: 36110 Columns: 19
-## ── Column specification ──────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr  (5): classfp10, mtfcc10, funcstat10, borough, neighborhood
-## dbl (14): zip, geoid10, aland10, awater10, intptlat10, intptlon10, x_center,...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-## Rows: 26402 Columns: 15
-## ── Column specification ──────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
-## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre><code>## Warning in left_join(select(read_csv(&quot;data/cleaned_shapes/zip_shapes.csv&quot;), : Detected an unexpected many-to-many relationship between
-## `x` and `y`.
-## ℹ Row 1 of `x` matches multiple rows in `y`.
-## ℹ Row 332 of `y` matches multiple rows in `x`.
-## ℹ If a many-to-many relationship is expected, set
-##   `relationship = &quot;many-to-many&quot;` to silence this
-##   warning.</code></pre>
+<pre class="r"><code>nyc_zips =
+  read_csv(&quot;data/cleaned_shapes/nyc_zip_codes.csv&quot;) |&gt; 
+  mutate(zip = as.character(ZipCode)) |&gt; 
+  select(zip)
+
+resp_df = 
+  read_csv(&quot;data/raw_data/respiratory.csv&quot;)
+
+asth_df = 
+  read_csv(&quot;data/raw_data/asthma.csv&quot;)
+
+resp_df_tidy =
+  resp_df |&gt; 
+  janitor::clean_names() |&gt; 
+  mutate(age_group = dim2value,
+         count_resp = count) |&gt; 
+  select(zip, age_group, date, count_resp) 
+
+asth_df_tidy = 
+  asth_df |&gt; 
+  janitor::clean_names() |&gt; 
+  mutate(age_group = dim2value,
+         count_asth = count) |&gt; 
+  select(zip, age_group, date, count_asth) 
+
+
+df_all_resp = 
+  merge(resp_df_tidy, asth_df_tidy, by = c(&quot;zip&quot;, &quot;date&quot;, &quot;age_group&quot;)) |&gt;
+  inner_join(nyc_zips, by = &quot;zip&quot;) |&gt; 
+  write_csv(&quot;data/cleaned_data/joined_respiratory.csv&quot;)</code></pre>
 </div>
 
 
