@@ -157,3 +157,86 @@ m = m |>
 m
 ```
 
+## 2008-2021: Nitrogen dioxide (NO2)
+
+```{r, out.width = '100%',echo = FALSE, message = FALSE, warning = FALSE}
+# Extract NO2 data
+no2_data = df_air_geo |> 
+  filter(str_detect(name, "Nitrogen")) |> 
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         year = year(start_date),
+         name = str_remove(name, "(due to).*")) |> 
+  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
+  group_by(zip, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value))
+
+# Create yearly dataframes
+yearly_data_frames <- list()
+for (k in 2008:2021) {
+  year_data = no2_data |> 
+    filter(year == k)
+  df_name = paste0("no2_", k)
+  assign(df_name, year_data)
+  yearly_data_frames[[as.character(k)]] = year_data
+}
+
+# Create map
+
+palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000", "#660000")
+legend <- c("8-15", "15-22", "22-29", "29-36", "36-43", "43-50")
+
+m = leaflet() |> addTiles()
+
+year_i = unique(no2_data$year)
+for(year in year_i) {
+  
+  
+  yeardata = no2_data[no2_data$year == year,]
+  
+  
+  label_text <- glue(
+    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Year: </b> {yeardata$year}<br/>",
+    "<b>Zip mean: </b> {round(yeardata$zipmean,3)} ppb<br/>") |> 
+    lapply(htmltools::HTML)
+  
+  
+  m = m |>
+    addCircleMarkers(data = yeardata, lng = ~lon, lat = ~lat, radius = .5, opacity = 0.8, 
+                     color = ~ifelse(between(zipmean, 8, 15), "#39FF14", 
+                                     ifelse(between(zipmean, 15.1, 22), "#FFFF33", 
+                                            ifelse(between(zipmean, 22.1, 29),"#FF7F00",
+                                                   ifelse(between(zipmean, 29.1, 36), "#E31A1C",
+                                                          ifelse(between(zipmean, 36.1, 43), "#9F0000", "#660000"))))),
+                     label = label_text, group = as.character(year))
+}
+
+m = m |> 
+  addHeatmap(data = yeardata,lng = ~lon, lat = ~lat, 
+             intensity = 2, blur = 5, max = 4, radius = 10, 
+             group = "Heatmap Overlay") |> 
+  addLegend(labels = legend, colors = palette, title = "NO2 levels (parts per billion)") |> 
+  addLayersControl(overlayGroups = "Heatmap Overlay",
+                   baseGroups = year_i,
+                   options = layersControlOptions(collapsed = FALSE)) 
+
+m
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
