@@ -56,3 +56,35 @@ zip_shapes <- read_csv('data/cleaned_shapes/nyc_zip_codes.csv') %>%
   clean_names()
 ```
 
+```{r}
+#there are 178 unique zips in disease
+unique(disease_solo$zip_code)
+```
+
+```{r}
+#joining disease w zip
+disease_zip <- left_join(disease_solo, zip_shapes, by = 'zip_code') %>%
+  mutate(year = as.integer(year))
+```
+
+```{r}
+#total number of na's now: 5172
+#this is including both borough and neigh
+#so total of 2586 rows with NA's
+#meaning some zipcodes didn't match
+sum(is.na(disease_zip))
+```
+
+```{r}
+#this shows how which rows have NA's
+#4 unique zip codes with NA's:
+#10069
+#11109
+#10282
+#10000
+disease_zip %>%
+  select(zip_code, borough, neighborhood) %>%
+  filter(is.na(borough)) %>%
+  unique()
+```
+
