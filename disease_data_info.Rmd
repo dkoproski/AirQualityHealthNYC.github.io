@@ -107,6 +107,29 @@ air_quality <- read_csv('data/cleaned_data/alt_air_data.csv',
     month == '09' ~ 'September',
     month == '10' ~ 'October',
     month == '11' ~ 'November',
-    month == '12' ~ 'December'))
+    month == '12' ~ 'December'),
+    
+    year = as.integer(year))
+```
+
+```{r}
+head(disease_zip)
+```
+
+```{r}
+head(air_quality)
+```
+
+```{r}
+#joining air & disease
+air_quality_disease <- left_join(air_quality, disease_zip, by = c('zip_code', 'year', 'month', 'day')) %>%
+  select(-extract_date) %>%
+  filter(!(year == '2020' & month == 'January'),
+         !(year == '2020' & month == 'February'))
+```
+
+```{r}
+air_quality_disease %>%
+  filter(borough == 'Manhattan')
 ```
 
