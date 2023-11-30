@@ -13,6 +13,8 @@ navbar:
       href: Stats.html
     - text: "Final Report"
       href: about.html
+    - text: "Visualizations"
+      href: viz.html  
 output:
   html_document:
     theme: cosmo
