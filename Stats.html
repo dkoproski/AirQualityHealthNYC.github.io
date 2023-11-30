@@ -329,19 +329,19 @@ div.tocify {
   <a href="data.html">Data Sources</a>
 </li>
 <li>
-  <a href="background.html">Data Processing</a>
+  <a href="data_processing.html">Data Processing</a>
 </li>
 <li>
-  <a href="EAaV.html">Exploratory Analysis &amp; Visualizations</a>
-</li>
-<li>
-  <a href="Stats.html">Statistical Analysis</a>
-</li>
-<li>
-  <a href="about.html">Final Report</a>
+  <a href="eda.html">Exploratory Analysis</a>
 </li>
 <li>
   <a href="viz.html">Visualizations</a>
+</li>
+<li>
+  <a href="stats.html">Statistical Analysis</a>
+</li>
+<li>
+  <a href="report.html">Final Report</a>
 </li>
       </ul>
     </div><!--/.nav-collapse -->
@@ -443,7 +443,7 @@ summary(model_asth_pm2.5)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 </div>
 <div id="asthma-related-hospitalizations-vs.-no2-concentration"
 class="section level2">
@@ -479,7 +479,7 @@ summary(model_asth_no2)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 </div>
 <div id="general-respiratory-hospitalization-vs-pm2.5"
 class="section level2">
@@ -529,7 +529,7 @@ summary(model_resp_pm2.5)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 </div>
 <div id="general-respiratory-hospitalizations-vs.-no2"
 class="section level2">
@@ -565,7 +565,7 @@ summary(model_NO2_resp)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 </div>
 <div id="ozone-and-asthma" class="section level2">
 <h2>Ozone and asthma</h2>
@@ -603,7 +603,7 @@ summary(model_ozone_asth)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 </div>
 <div id="ozone-and-respiratory-disease-general" class="section level2">
 <h2>Ozone and respiratory disease (general)</h2>
@@ -643,7 +643,7 @@ summary(model_ozone_resp)</code></pre>
   geom_point() +
   geom_smooth(method = &quot;lm&quot;, se = FALSE)</code></pre>
 <pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 <pre class="r"><code>tidy_model =
   tidy(model_ozone_resp)
 

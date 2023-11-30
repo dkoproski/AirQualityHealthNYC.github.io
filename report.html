@@ -11,7 +11,7 @@
 
 
 
-<title>Data Sources</title>
+<title>Air Quality and Health in NYC</title>
 
 <script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -360,44 +360,80 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Data Sources</h1>
+<h1 class="title toc-ignore">Air Quality and Health in NYC</h1>
 
 </div>
 
 
-<p>This project uses publicly available data from multiple sources in
-its analysis.</p>
-<div id="new-york-city-air-quality-dataset" class="section level2">
-<h2>New York City Air Quality Dataset</h2>
-<p>Since October of 2014, the City of New York has actively maintained a
-dataset of up to date air quality information across most neighborhoods
-in the city. Accessible <a
-href="https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r">here</a>,
-the raw data has measurements of certain air pollutants including
-nitrogen dioxide (NO2), ozone (O3) and fine particles (PM2.5). The
-dataset also contains some general information about vehicle traffic,
-air-pollutant related hospitalizations and more.</p>
-</div>
-<div id="disease-datasets" class="section level2">
-<h2>Disease Datasets</h2>
-<div id="asthma-and-respiratory-hospitalizations-data"
+<div
+id="nyc-air-quality-estimation-and-respitory-disease-risk-due-to-air-pollutants"
 class="section level3">
-<h3>Asthma and respiratory hospitalizations data</h3>
-<p>The City of New York actively updates a public dataset containing the
-count of hospitalizations due to asthma, diarrhea, influenza-like
-illness, respiratory diseases and vomit for each zip code. Data
-collection began in 2016 and was last updated in early 2023. The data
-can be viewed <a
-href="https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&amp;PopulationSource=Syndromic">here</a>
-and subsets of the data can be selected and downloaded for personal
-use.</p>
+<h3>NYC Air Quality Estimation and Respitory disease risk due to air
+pollutants</h3>
 </div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Public health and overall community well-being are impacted by
+environmental factors such as the quantity of air pollutants in an area.
+Key pollutants of public health concern include: carbon monoxide (CO),
+ozone (O3), nitrogen dioxide(NO2), particulate matter (PM), and sulfur
+dioxide (SO2) <a
+href="https://www.who.int/health-topics/air-pollution#tab=tab_1">1</a>.
+Air pollution is associated with a number of health concerns such as
+respiratory diseases and heart attacks <a
+href="https://www.epa.gov/report-environment/air#:~:text=Air%20pollution%2C%20whether%20indoors%20or,respiratory%20symptoms%2C%20and%20premature%20mortality.">2</a>.
+According to the New York State Department of Heath, in-taking levels
+PM_2.5 can increase the risk for health problems <a
+href="https://www.health.ny.gov/environmental/indoors/air/pmq_a.htm">3</a>.</p>
+<p>The need for a comprehensive analysis and sustainable solutions for
+the increase of air pollutants is needed. The motivation behind this
+project stems from the potential effects pollutants may have on human
+health. We aim to understand the association between air quality and
+public health in New York City, to identify where interventions are
+needed.</p>
+<p>Our initial questions included: What are the air quality levels in
+New York City?, Which areas in New York City have more prominent air
+pollutants? How is air quality associated to the incidence of
+respiratory diseases in an area?</p>
+<p>READ______<a
+href="https://pubs.acs.org/doi/10.1021/acs.est.0c00694">6</a>.</p>
+<p>Improvement Ratio <a
+href="https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3Dihub">7</a></p>
 </div>
-<div id="geographic-location-dataset-and-shape-files"
-class="section level2">
-<h2>Geographic Location Dataset and Shape Files</h2>
-<p>zips to fips data (may not use, but will keep here for) <a
-href="https://data.ny.gov/Government-Finance/New-York-State-ZIP-Codes-County-FIPS-Cross-Referen/juva-r6g2/data">here</a></p>
+<div id="methods" class="section level2">
+<h2>Methods</h2>
+<p>Data: Source, scraping method, cleaning, etc. The Air Quality data
+was obtained from <a
+href="https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r">NYC
+Open Data</a> with various air pollutants throughout NYC over -time
+period-.</p>
+<p>Exploratory analysis: To explore the association between PM2.5 Levels
+and time a linear regression model was used. Additional analysis:</p>
+</div>
+<div id="results" class="section level2">
+<h2>Results</h2>
+<p>Exploratory analysis:</p>
+<p>Additional analysis:</p>
+</div>
+<div id="discussion-and-conclusions" class="section level2">
+<h2>Discussion and Conclusions</h2>
+<p>What were your findings? Are they what you expect? What insights into
+the data can you make? Limitations? Future implications?</p>
+<p>-info on PM2.5 and previous findings- -compare result to findings-
+PM2.5, a prevalent air pollutant, originates from both outdoor and
+indoor environments.Outdoor sources comprise of vehicle emissions, gas,
+and fires, while indoor contributors encompass tobacco smoke, candle
+combustion, and oil lamps <a
+href="https://www.health.ny.gov/environmental/indoors/air/pmq_a.htm">3</a>.
+Ambient PM2.5 attributed deaths increased from 3.5 million in 1990 to
+4.2 million in 2015. In 2015, the fifth-ranking cause of global deaths
+was ambient PM2. <a
+href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439030/">4</a>. In a
+study following the PM2.5 concentration in NYC from 2015-2020, similar
+decrease levels between January and May were observed. There was less
+air pollutant in 2020 that could have been due to the government
+shutdown during the corona virus pandemic could not be confirmed. <a
+href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7314691/#bb0010">5</a>.</p>
 </div>
 
 

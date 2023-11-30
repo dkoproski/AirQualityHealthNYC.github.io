@@ -6,15 +6,15 @@ navbar:
     - text: "Data Sources"
       href: data.html
     - text: "Data Processing"
-      href: background.html
-    - text: "Exploratory Analysis & Visualizations"
-      href: EAaV.html
-    - text: "Statistical Analysis"
-      href: Stats.html
-    - text: "Final Report"
-      href: about.html
+      href: data_processing.html
+    - text: "Exploratory Analysis"
+      href: eda.html
     - text: "Visualizations"
       href: viz.html  
+    - text: "Statistical Analysis"
+      href: stats.html
+    - text: "Final Report"
+      href: report.html
 output:
   html_document:
     theme: cosmo

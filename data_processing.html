@@ -11,7 +11,7 @@
 
 
 
-<title>Data Sources</title>
+<title>Data Processing</title>
 
 <script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -360,44 +360,44 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Data Sources</h1>
+<h1 class="title toc-ignore">Data Processing</h1>
 
 </div>
 
 
-<p>This project uses publicly available data from multiple sources in
-its analysis.</p>
-<div id="new-york-city-air-quality-dataset" class="section level2">
-<h2>New York City Air Quality Dataset</h2>
-<p>Since October of 2014, the City of New York has actively maintained a
-dataset of up to date air quality information across most neighborhoods
-in the city. Accessible <a
-href="https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r">here</a>,
-the raw data has measurements of certain air pollutants including
-nitrogen dioxide (NO2), ozone (O3) and fine particles (PM2.5). The
-dataset also contains some general information about vehicle traffic,
-air-pollutant related hospitalizations and more.</p>
-</div>
-<div id="disease-datasets" class="section level2">
-<h2>Disease Datasets</h2>
-<div id="asthma-and-respiratory-hospitalizations-data"
-class="section level3">
-<h3>Asthma and respiratory hospitalizations data</h3>
-<p>The City of New York actively updates a public dataset containing the
-count of hospitalizations due to asthma, diarrhea, influenza-like
-illness, respiratory diseases and vomit for each zip code. Data
-collection began in 2016 and was last updated in early 2023. The data
-can be viewed <a
-href="https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&amp;PopulationSource=Syndromic">here</a>
-and subsets of the data can be selected and downloaded for personal
-use.</p>
-</div>
-</div>
-<div id="geographic-location-dataset-and-shape-files"
-class="section level2">
-<h2>Geographic Location Dataset and Shape Files</h2>
-<p>zips to fips data (may not use, but will keep here for) <a
-href="https://data.ny.gov/Government-Finance/New-York-State-ZIP-Codes-County-FIPS-Cross-Referen/juva-r6g2/data">here</a></p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<div id="merging-and-working-with-shape-files" class="section level1">
+<h1>Merging and working with shape files</h1>
+<p>Leaflet works best with latitude and longitude data</p>
+<pre class="r"><code>df_air_geo = 
+  read_csv(&quot;data/cleaned_shapes/zip_shapes.csv&quot;) |&gt; 
+  select(zip, intptlat10, intptlon10) |&gt; 
+  left_join(read_csv(&quot;data/cleaned_data/air_quality_zips.csv&quot;), by = &quot;zip&quot;) |&gt; 
+  mutate(lat = intptlat10,
+         lon = intptlon10) |&gt; 
+  select(-intptlat10, -intptlon10)</code></pre>
+<pre><code>## Rows: 36110 Columns: 19
+## ── Column specification ──────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (5): classfp10, mtfcc10, funcstat10, borough, neighborhood
+## dbl (14): zip, geoid10, aland10, awater10, intptlat10, intptlon10, x_center,...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+## Rows: 26402 Columns: 15
+## ── Column specification ──────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (9): name, measure, measure_info, geo_type_name, geo_place_name, time_pe...
+## dbl (6): unique_id, indicator_id, geo_join_id, data_value, id, zip
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## Warning in left_join(select(read_csv(&quot;data/cleaned_shapes/zip_shapes.csv&quot;), : Detected an unexpected many-to-many relationship between `x` and
+## `y`.
+## ℹ Row 1 of `x` matches multiple rows in `y`.
+## ℹ Row 332 of `y` matches multiple rows in `x`.
+## ℹ If a many-to-many relationship is expected, set `relationship =
+##   &quot;many-to-many&quot;` to silence this warning.</code></pre>
 </div>
 
 
@@ -437,7 +437,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
+  window.initializeCodeFolding("show" === "show");
 });
 </script>
 
