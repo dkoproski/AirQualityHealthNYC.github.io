@@ -1,0 +1,76 @@
+---
+title: "Fixing UHF Air Quality Data"
+author: "Gustavo Garcia-Franceschini"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(sf)
+library(sfheaders)
+```
+
+# Loading UHF Air Quality
+
+```{r}
+df_air = read_csv("data/raw_data/air_quality.csv") %>%
+  janitor::clean_names() %>%
+  select(-message) %>%
+  mutate(id = as.character(geo_join_id)) %>%
+  filter(geo_type_name == "UHF42")
+```
+
+# Loading zip shapes
+
+```{r}
+zip_shapes = read_sf(dsn = "raw_shapes/", layer = 'tl_2019_us_zcta510') %>% 
+  rename(zip = ZCTA5CE10)
+```
+
+# Loading UHF shapes
+
+I am using the `zip_shapes` file so I can project the `air_shapes` from their current projection back to regular long/lat coordinates.
+
+```{r}
+air_shapes = read_sf(dsn = "raw_shapes/", layer = "UHF42") %>%
+  filter(id != "0") %>%
+  st_transform(crs= st_crs(zip_shapes)) %>%
+  rename(geo_join_id = id) %>%
+  mutate(geo_join_id = as.numeric(geo_join_id))
+```
+
+# Now joining the UHF Air Quality Data with the shapefile
+
+```{r}
+df_air = df_air %>%
+  left_join(air_shapes) %>%
+   mutate(x_center = map_dbl(geometry, ~st_point_on_surface(.x)[[1]]),
+         y_center = map_dbl(geometry, ~st_point_on_surface(.x)[[2]]),
+         intplon10 = x_center, intplat10 = y_center) #I do this so that the 
+        #zip_code shape files and UHF air quality shapefiles have the same 
+        #variable names for the point in the center of polygons
+        #Otherwise, code done with zip_code shapefiles would need to be
+        #edited to account for these new variable names
+```
+
+# Plotting to make sure it worked
+
+Now each row has a polygon and an `x_center`, `y_center` coordinate: the center of the polygon
+
+```{r}
+ggplot(data = df_air) +
+    geom_sf(aes(geometry = geometry)) +
+  geom_point(aes(x = x_center, y = y_center)) + theme_void()
+```
+
+# Saving data
+
+```{r}
+df_air %>%
+  select(-geometry) %>% 
+  write_csv("data/cleaned_data/uhf_airquality.csv")
+```
+
+
