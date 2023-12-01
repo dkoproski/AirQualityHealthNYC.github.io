@@ -135,7 +135,7 @@ for(year in year_i) {
   label_text <- glue(
     "<b>Zipcode: </b> {yeardata$zip}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
-    "<b>Zip mean: </b> round({yeardata$zipmean},3) mcg/m3<br/>") |> 
+    "<b>Zip mean: </b> {round(yeardata$zipmean,3)} mcg/m3<br/>") |> 
     lapply(htmltools::HTML)
   
   
