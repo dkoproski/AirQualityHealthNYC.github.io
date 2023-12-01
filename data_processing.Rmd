@@ -11,19 +11,103 @@ output:
 library(tidyverse)
 ```
 
-# Merging and working with shape files
+# Hospitalization data by zip code for asthma and respiratory diseases
 
-Leaflet works best with latitude and longitude data
 
-```{r}
-df_air_geo = 
-  read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
-  select(zip, intptlat10, intptlon10) |> 
-  left_join(read_csv("data/cleaned_data/air_quality_zips.csv"), by = "zip") |> 
-  mutate(lat = intptlat10,
-         lon = intptlon10) |> 
-  select(-intptlat10, -intptlon10)
+```{r, eval = FALSE}
+nyc_zips =
+  read_csv("data/cleaned_shapes/nyc_zip_codes.csv") |> 
+  mutate(zip = as.character(ZipCode)) |> 
+  select(zip)
+
+resp_df = 
+  read_csv("data/raw_data/respiratory.csv")
+
+asth_df = 
+  read_csv("data/raw_data/asthma.csv")
+
+resp_df_tidy =
+  resp_df |> 
+  janitor::clean_names() |> 
+  mutate(age_group = dim2value,
+         count_resp = count) |> 
+  select(zip, age_group, date, count_resp) 
+
+asth_df_tidy = 
+  asth_df |> 
+  janitor::clean_names() |> 
+  mutate(age_group = dim2value,
+         count_asth = count) |> 
+  select(zip, age_group, date, count_asth) 
+
+df_all_resp = 
+  merge(resp_df_tidy, asth_df_tidy, by = c("zip", "date", "age_group"))
+  
+df_all_resp |> 
+  write_csv("data/joined_respiratory.csv")
 ```
 
 
+```{r}
+df_all_resp =
+  read_csv("data/cleaned_data/joined_respiratory.csv")
+### note, the above dataset contains info on age groups, I have to filter this out to merge the data. If you want to use age groups in any analyses, use "df_all_resp".
+
+df_hosp =
+  read_csv("data/cleaned_data/disease_zip.csv") |> 
+  mutate(zip = as.character(zip_code))
+
+df_all_resp_merge =
+  df_all_resp |> 
+  filter(age_group == "All age groups") |> 
+  select(zip, date, count_resp, count_asth) |>
+  mutate(date = mdy(date)) |> 
+  mutate(
+    month = format(date, "%B"),  
+    day = as.character(day(date)),             
+    year = year(date)            
+  ) |> 
+  filter(zip != 88888) |> 
+  filter(zip != "Citwide")
+
+
+df_all_hospitalizations =
+  left_join(df_all_resp_merge, df_hosp, by = c("month", "day", "year", "zip"))
+
+df_all_hospitalizations2 =
+  left_join(df_hosp, df_all_resp_merge, by = c("month", "day", "year", "zip"))
+
+df_all_hospitalizations_inner =
+  inner_join(df_hosp, df_all_resp_merge, by = c("month", "day", "year", "zip"))
+```
+
+```{r}
+unique_dates = unique(df_all_resp$date)
+unique_zips = unique(df_all_resp$zip)
+
+full_combinations = expand.grid(date = unique_dates, zip = unique_zips)
+
+missing_combinations_asthma_resp = anti_join(full_combinations, df_all_resp, by = c("date", "zip"))
+
+missing_combinations_asthma_resp
+
+
+
+
+
+
+
+
+
+
+full_combinations = expand.grid(date = unique_dates, zip = unique_zips)
+
+missing_combinations_hosp = anti_join(full_combinations, df_hosp, by = c("date", "zip"))
+
+missing_combinations_hosp
+```
+
+```{r}
+
+```
 
