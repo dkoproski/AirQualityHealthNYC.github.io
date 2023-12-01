@@ -40,12 +40,74 @@ asth_df_tidy =
          count_asth = count) |> 
   select(zip, age_group, date, count_asth) 
 
-
 df_all_resp = 
-  merge(resp_df_tidy, asth_df_tidy, by = c("zip", "date", "age_group")) |>
-  inner_join(nyc_zips, by = "zip") |> 
-  write_csv("data/cleaned_data/joined_respiratory.csv")
+  merge(resp_df_tidy, asth_df_tidy, by = c("zip", "date", "age_group"))
+  
+df_all_resp |> 
+  write_csv("data/joined_respiratory.csv")
 ```
 
 
+```{r}
+df_all_resp =
+  read_csv("data/cleaned_data/joined_respiratory.csv")
+### note, the above dataset contains info on age groups, I have to filter this out to merge the data. If you want to use age groups in any analyses, use "df_all_resp".
+
+df_hosp =
+  read_csv("data/cleaned_data/disease_zip.csv") |> 
+  mutate(zip = as.character(zip_code))
+
+df_all_resp_merge =
+  df_all_resp |> 
+  filter(age_group == "All age groups") |> 
+  select(zip, date, count_resp, count_asth) |>
+  mutate(date = mdy(date)) |> 
+  mutate(
+    month = format(date, "%B"),  
+    day = as.character(day(date)),             
+    year = year(date)            
+  ) |> 
+  filter(zip != 88888) |> 
+  filter(zip != "Citwide")
+
+
+df_all_hospitalizations =
+  left_join(df_all_resp_merge, df_hosp, by = c("month", "day", "year", "zip"))
+
+df_all_hospitalizations2 =
+  left_join(df_hosp, df_all_resp_merge, by = c("month", "day", "year", "zip"))
+
+df_all_hospitalizations_inner =
+  inner_join(df_hosp, df_all_resp_merge, by = c("month", "day", "year", "zip"))
+```
+
+```{r}
+unique_dates = unique(df_all_resp$date)
+unique_zips = unique(df_all_resp$zip)
+
+full_combinations = expand.grid(date = unique_dates, zip = unique_zips)
+
+missing_combinations_asthma_resp = anti_join(full_combinations, df_all_resp, by = c("date", "zip"))
+
+missing_combinations_asthma_resp
+
+
+
+
+
+
+
+
+
+
+full_combinations = expand.grid(date = unique_dates, zip = unique_zips)
+
+missing_combinations_hosp = anti_join(full_combinations, df_hosp, by = c("date", "zip"))
+
+missing_combinations_hosp
+```
+
+```{r}
+
+```
 
