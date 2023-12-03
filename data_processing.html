@@ -366,8 +366,11 @@ div.tocify {
 
 
 <pre class="r"><code>library(tidyverse)</code></pre>
-<div id="merging-and-working-with-shape-files" class="section level1">
-<h1>Merging and working with shape files</h1>
+<div
+id="hospitalization-data-by-zip-code-for-asthma-and-respiratory-diseases"
+class="section level1">
+<h1>Hospitalization data by zip code for asthma and respiratory
+diseases</h1>
 <pre class="r"><code>nyc_zips =
   read_csv(&quot;data/cleaned_shapes/nyc_zip_codes.csv&quot;) |&gt; 
   mutate(zip = as.character(ZipCode)) |&gt; 
@@ -393,11 +396,131 @@ asth_df_tidy =
          count_asth = count) |&gt; 
   select(zip, age_group, date, count_asth) 
 
-
 df_all_resp = 
-  merge(resp_df_tidy, asth_df_tidy, by = c(&quot;zip&quot;, &quot;date&quot;, &quot;age_group&quot;)) |&gt;
-  inner_join(nyc_zips, by = &quot;zip&quot;) |&gt; 
-  write_csv(&quot;data/cleaned_data/joined_respiratory.csv&quot;)</code></pre>
+  merge(resp_df_tidy, asth_df_tidy, by = c(&quot;zip&quot;, &quot;date&quot;, &quot;age_group&quot;))
+  
+df_all_resp |&gt; 
+  write_csv(&quot;data/joined_respiratory.csv&quot;)</code></pre>
+<pre class="r"><code>df_all_resp =
+  read_csv(&quot;data/cleaned_data/joined_respiratory.csv&quot;)</code></pre>
+<pre><code>## Rows: 687089 Columns: 5
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (3): zip, age_group, date
+## dbl (2): count_resp, count_asth
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>### note, the above dataset contains info on age groups, I have to filter this out to merge the data. If you want to use age groups in any analyses, use &quot;df_all_resp&quot;.
+
+df_hosp =
+  read_csv(&quot;data/cleaned_data/disease_zip.csv&quot;) |&gt; 
+  mutate(zip = as.character(zip_code))</code></pre>
+<pre><code>## Rows: 176883 Columns: 10
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (5): extract_date, month, day, borough, neighborhood
+## dbl (5): year, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>df_all_resp_merge =
+  df_all_resp |&gt; 
+  filter(age_group == &quot;All age groups&quot;) |&gt; 
+  select(zip, date, count_resp, count_asth) |&gt;
+  mutate(date = mdy(date)) |&gt; 
+  mutate(
+    month = format(date, &quot;%B&quot;),  
+    day = as.character(day(date)),             
+    year = year(date)            
+  ) |&gt; 
+  filter(zip != 88888) |&gt; 
+  filter(zip != &quot;Citwide&quot;)
+
+
+df_all_hospitalizations =
+  left_join(df_all_resp_merge, df_hosp, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;))
+
+df_all_hospitalizations2 =
+  left_join(df_hosp, df_all_resp_merge, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;))
+
+df_all_hospitalizations_inner =
+  inner_join(df_hosp, df_all_resp_merge, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;))</code></pre>
+<pre class="r"><code>unique_dates = unique(df_all_resp$date)
+unique_zips = unique(df_all_resp$zip)
+
+full_combinations = expand.grid(date = unique_dates, zip = unique_zips)
+
+missing_combinations_asthma_resp = anti_join(full_combinations, df_all_resp, by = c(&quot;date&quot;, &quot;zip&quot;))
+
+missing_combinations_asthma_resp
+
+
+
+
+
+
+
+
+
+
+full_combinations = expand.grid(date = unique_dates, zip = unique_zips)
+
+missing_combinations_hosp = anti_join(full_combinations, df_hosp, by = c(&quot;date&quot;, &quot;zip&quot;))
+
+missing_combinations_hosp</code></pre>
+</div>
+<div id="merging-joined_respiratory.csv-and-air_quality_disease.csv"
+class="section level1">
+<h1>Merging <code>joined_respiratory.csv</code> and
+<code>air_quality_disease.csv</code></h1>
+<pre class="r"><code>library(tidyverse)
+
+# Load dataset with respiratory and asthma counts
+dis_df = read_csv(&quot;data/cleaned_data/joined_respiratory.csv&quot;) |&gt; 
+  filter(zip != 88888 &amp; zip != &quot;Citwide&quot; &amp; age_group == &quot;All age groups&quot;) |&gt; 
+  mutate(date = as.Date(format(as.Date(date, &quot;%m/%d/%y&quot;))),
+         year = as.numeric(format(date, format = &quot;%Y&quot;)),
+         month = month.name[as.numeric(format(date, format = &quot;%m&quot;))],
+         day = as.numeric(format(date, format = &quot;%d&quot;)),
+         zip = as.numeric(zip)) |&gt;
+  select(-date, -age_group)</code></pre>
+<pre><code>## Rows: 687089 Columns: 5
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (3): zip, age_group, date
+## dbl (2): count_resp, count_asth
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code># Load cleaned air quality dataset that has been merged with disease
+air_dis_df = read_csv(&quot;data/cleaned_data/air_quality_disease.csv&quot;) |&gt; 
+  rename(zip = zip_code) |&gt; 
+  mutate(day = as.numeric(day)) |&gt; 
+  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, everything())</code></pre>
+<pre><code>## Rows: 22261 Columns: 33
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (14): month, day, source, units, site_name, aqs_parameter_desc, cbsa_nam...
+## dbl (19): year, site_id, poc, daily_aqi_value, daily_obs_count, percent_comp...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code># Merge two datasets
+all_dis_df =
+  full_join(dis_df, air_dis_df, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;)) |&gt; 
+  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, count_resp, count_asth, everything())
+
+# Realized many NAs, suspect zipcode and date NAs
+checkdate_perzip_airdis = air_dis_df |&gt; 
+  group_by(zip) |&gt; 
+  summarize(count = n())
+
+checkdate_perzip_dis = dis_df |&gt; 
+  group_by(zip) |&gt; 
+  summarize(count = n())
+
+# Found many NAs in air_quality_disease.csv - need revision</code></pre>
 </div>
 
 

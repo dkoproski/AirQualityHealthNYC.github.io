@@ -81,7 +81,7 @@ df_all_hospitalizations_inner =
   inner_join(df_hosp, df_all_resp_merge, by = c("month", "day", "year", "zip"))
 ```
 
-```{r}
+```{r, eval = F}
 unique_dates = unique(df_all_resp$date)
 unique_zips = unique(df_all_resp$zip)
 
@@ -107,7 +107,42 @@ missing_combinations_hosp = anti_join(full_combinations, df_hosp, by = c("date",
 missing_combinations_hosp
 ```
 
-```{r}
+# Merging `joined_respiratory.csv` and `air_quality_disease.csv`
 
+
+```{r}
+library(tidyverse)
+
+# Load dataset with respiratory and asthma counts
+dis_df = read_csv("data/cleaned_data/joined_respiratory.csv") |> 
+  filter(zip != 88888 & zip != "Citwide" & age_group == "All age groups") |> 
+  mutate(date = as.Date(format(as.Date(date, "%m/%d/%y"))),
+         year = as.numeric(format(date, format = "%Y")),
+         month = month.name[as.numeric(format(date, format = "%m"))],
+         day = as.numeric(format(date, format = "%d")),
+         zip = as.numeric(zip)) |>
+  select(-date, -age_group)
+
+# Load cleaned air quality dataset that has been merged with disease
+air_dis_df = read_csv("data/cleaned_data/air_quality_disease.csv") |> 
+  rename(zip = zip_code) |> 
+  mutate(day = as.numeric(day)) |> 
+  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, everything())
+
+# Merge two datasets
+all_dis_df =
+  full_join(dis_df, air_dis_df, by = c("month", "day", "year", "zip")) |> 
+  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, count_resp, count_asth, everything())
+
+# Realized many NAs, suspect zipcode and date NAs
+checkdate_perzip_airdis = air_dis_df |> 
+  group_by(zip) |> 
+  summarize(count = n())
+
+checkdate_perzip_dis = dis_df |> 
+  group_by(zip) |> 
+  summarize(count = n())
+
+# Found many NAs in air_quality_disease.csv - need revision
 ```
 
