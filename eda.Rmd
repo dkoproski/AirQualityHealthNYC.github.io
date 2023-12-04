@@ -16,6 +16,8 @@ options(readr.show_col_types = FALSE)
 
 # Air quality EDA
 
+From the histogram and the boxplots below, it appears that PM2.5 concentrations have been steadily decreasing since 2010. The same trend is evident for NO2, but the decrease seems to be much more gradual relative to PM2.5. Finally, Ozone does not appear to be increasing or decreasing over the time period
+
 ```{r, message = FALSE, echo = FALSE}
 df_histo_pm2.5 = 
   read_csv("data/cleaned_data/uhf_airquality.csv") |> 
@@ -36,9 +38,9 @@ df_histo_NO2 =
 df_histo_ozone =
   read_csv("data/cleaned_data/uhf_airquality.csv")  |> 
   filter(name == "Ozone (O3)") |> 
-  filter(str_detect(time_period, "2010|2011|2012|2013|2014|2015|2016|2017|2018|2019|2020|2021")) |> 
   mutate(year = str_extract(time_period, "\\d{4}")) |> 
-  select(year, data_value)
+  select(year, data_value) |> 
+  filter(year != 2009)
 ```
 
 

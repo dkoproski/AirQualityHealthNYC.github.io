@@ -442,14 +442,13 @@ air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt;
          year = as.numeric(year)) |&gt; 
   filter(!(year == &#39;2020&#39; &amp; month == &#39;January&#39;),
          !(year == &#39;2020&#39; &amp; month == &#39;February&#39;),
-         !(aqs_parameter_desc == &quot;Acceptable PM2.5 AQI &amp; Speciation Mass&quot;)) |&gt;  
+         !(aqs_parameter_desc == &quot;Acceptable PM2.5 AQI &amp; Speciation Mass&quot;)) |&gt;
   rename(zip = zip_code) |&gt; 
   select(year, month, day, zip, daily_aqi_value, pollutant, value) |&gt; 
   group_by(day, month, year, zip, pollutant) |&gt; 
-  summarize(value = mean(value))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;day&#39;, &#39;month&#39;, &#39;year&#39;, &#39;zip&#39;. You can
-## override using the `.groups` argument.</code></pre>
-<pre class="r"><code>air_qual_df_aqi = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt; 
+  summarize(value = mean(value))
+
+air_qual_df_aqi = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt; 
   separate(date, into=c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;)) |&gt;
   mutate(day = as.numeric(day),
          month = month.name[as.numeric(month)],
@@ -460,10 +459,9 @@ air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt;
   rename(zip = zip_code) |&gt; 
   select(year, month, day, zip, daily_aqi_value, pollutant, value) |&gt; 
   group_by(day, month, year, zip, pollutant) |&gt; 
-  summarize(daily_aqi = mean(daily_aqi_value))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;day&#39;, &#39;month&#39;, &#39;year&#39;, &#39;zip&#39;. You can
-## override using the `.groups` argument.</code></pre>
-<pre class="r"><code>### note: removed acceptable pm2.5... from https://www.epa.gov/aqs/aqs-memos-technical-note-reporting-pm25-continuous-monitoring-and-speciation-data-air-quality
+  summarize(daily_aqi = mean(daily_aqi_value))
+
+### note: removed acceptable pm2.5... from https://www.epa.gov/aqs/aqs-memos-technical-note-reporting-pm25-continuous-monitoring-and-speciation-data-air-quality
 
 # Finally merge disease and air qual data together
 
