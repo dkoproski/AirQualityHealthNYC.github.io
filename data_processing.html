@@ -417,7 +417,7 @@ dis_asth_df = read_csv(&quot;data/cleaned_data/joined_respiratory.csv&quot;) |&g
          zip = as.numeric(zip)) |&gt;
   select(year, month, day, zip, count_resp, count_asth) </code></pre>
 <pre><code>## Rows: 687089 Columns: 5
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (3): zip, age_group, date
 ## dbl (2): count_resp, count_asth
@@ -434,7 +434,7 @@ dis_pneu_df = read_csv(&quot;data/raw_data/disease_hospital_admin.csv&quot;) |&g
   rename(zip = mod_zcta) |&gt; 
   select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions)</code></pre>
 <pre><code>## Rows: 176883 Columns: 6
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (2): extract_date, date
 ## dbl (4): mod_zcta, total_ed_visits, ili_pne_visits, ili_pne_admissions
@@ -461,7 +461,7 @@ air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt;
   group_by(day, month, year, zip, pollutant) |&gt; 
   summarize(value = mean(value))</code></pre>
 <pre><code>## Rows: 23685 Columns: 26
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (11): date, source, units, site_name, aqs_parameter_desc, cbsa_name, sta...
 ## dbl (15): site_id, poc, daily_aqi_value, daily_obs_count, percent_complete, ...
@@ -482,7 +482,7 @@ air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt;
   group_by(day, month, year, zip, pollutant) |&gt; 
   summarize(daily_aqi = mean(daily_aqi_value))</code></pre>
 <pre><code>## Rows: 23685 Columns: 26
-## ── Column specification ────────────────────────────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (11): date, source, units, site_name, aqs_parameter_desc, cbsa_name, sta...
 ## dbl (15): site_id, poc, daily_aqi_value, daily_obs_count, percent_complete, ...

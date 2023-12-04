@@ -28,7 +28,7 @@ df_air_geo =
 ## 2009-2021: Ozone levels (O3)
 
 
-```{r, out.width = '100%',echo = FALSE, message = FALSE, warning = FALSE}
+```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract ozone data
 o3_data = df_air_geo |> 
   filter(str_detect(name, "Ozone") & str_detect(name, "\\(")) |> 
@@ -96,7 +96,7 @@ m
 ## 2008-2021: Fine Particles PM2.5
 
 
-```{r, out.width = '100%',echo = FALSE, message = FALSE, warning = FALSE}
+```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract pm2.5 data
 pm25_data = df_air_geo |> 
   filter(str_detect(name, "Fine")) |> 
@@ -164,7 +164,7 @@ m
 ## 2008-2021: Nitrogen dioxide (NO2)
 
 
-```{r, out.width = '100%',echo = FALSE, message = FALSE, warning = FALSE}
+```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract NO2 data
 no2_data = df_air_geo |> 
   filter(str_detect(name, "Nitrogen")) |> 
