@@ -15,9 +15,9 @@ library(plotly)
 options(readr.show_col_types = FALSE)
 ```
 
-## Dynamic histogram 
+# Air quality EDA
 
-```{r}
+```{r, eval = FALSE}
 df_histo_pm2.5 = 
   read_csv("data/cleaned_data/air_quality_zips.csv") |> 
   mutate(zip = as.factor(zip)) |>
@@ -42,7 +42,8 @@ df_histo_ozone =
   select(year, data_value)
 ```
 
-#THE HISTOGRAM
+
+## Histogram of levels of air pollutants by year
 
 ```{r}
 all_years = sort(unique(c(as.numeric(df_histo_pm2.5$year),
@@ -92,7 +93,7 @@ combined_fig = combined_fig |>
 combined_fig
 ```
 
-## Boxplots
+## Boxplots of levels of air pollutants by year 
 
 ```{r}
 add_yearly_boxplots <- function(data, years, name_prefix, visible) {
@@ -144,3 +145,6 @@ combined_boxplot_fig
 
 ```
 
+# Disease EDA
+
+## Histogram of respiratory related hospitalizations

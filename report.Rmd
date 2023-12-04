@@ -65,7 +65,7 @@ The heat map revealed distinct spatial and temporal patterns of O3. Lower Manhat
 
 
 ### Limitations
-
+- Issues with data processing?
 
 ### Future Implications
 
