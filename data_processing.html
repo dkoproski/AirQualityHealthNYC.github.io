@@ -365,7 +365,8 @@ div.tocify {
 </div>
 
 
-<pre class="r"><code>library(tidyverse)</code></pre>
+<pre class="r"><code>library(tidyverse)
+options(readr.show_col_types = FALSE)</code></pre>
 <div
 id="hospitalization-data-by-zip-code-for-asthma-and-respiratory-diseases"
 class="section level1">
@@ -415,16 +416,9 @@ dis_asth_df = read_csv(&quot;data/cleaned_data/joined_respiratory.csv&quot;) |&g
          month = month.name[as.numeric(format(date, format = &quot;%m&quot;))],
          day = as.numeric(format(date, format = &quot;%d&quot;)),
          zip = as.numeric(zip)) |&gt;
-  select(year, month, day, zip, count_resp, count_asth) </code></pre>
-<pre><code>## Rows: 687089 Columns: 5
-## ── Column specification ───────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (3): zip, age_group, date
-## dbl (2): count_resp, count_asth
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code># Load dataset with pneumonia data
+  select(year, month, day, zip, count_resp, count_asth) 
+
+# Load dataset with pneumonia data
 
 dis_pneu_df = read_csv(&quot;data/raw_data/disease_hospital_admin.csv&quot;) |&gt; 
   separate(date, into=c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;)) |&gt; 
@@ -432,16 +426,9 @@ dis_pneu_df = read_csv(&quot;data/raw_data/disease_hospital_admin.csv&quot;) |&g
          month = month.name[as.numeric(month)],
          year = as.numeric(year)) |&gt; 
   rename(zip = mod_zcta) |&gt; 
-  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions)</code></pre>
-<pre><code>## Rows: 176883 Columns: 6
-## ── Column specification ───────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (2): extract_date, date
-## dbl (4): mod_zcta, total_ed_visits, ili_pne_visits, ili_pne_admissions
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code># Merge two disease datasets
+  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions)
+
+# Merge two disease datasets
 
 all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;))
@@ -460,15 +447,8 @@ air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt;
   select(year, month, day, zip, daily_aqi_value, pollutant, value) |&gt; 
   group_by(day, month, year, zip, pollutant) |&gt; 
   summarize(value = mean(value))</code></pre>
-<pre><code>## Rows: 23685 Columns: 26
-## ── Column specification ───────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (11): date, source, units, site_name, aqs_parameter_desc, cbsa_name, sta...
-## dbl (15): site_id, poc, daily_aqi_value, daily_obs_count, percent_complete, ...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-## `summarise()` has grouped output by &#39;day&#39;, &#39;month&#39;, &#39;year&#39;, &#39;zip&#39;. You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;day&#39;, &#39;month&#39;, &#39;year&#39;, &#39;zip&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>air_qual_df_aqi = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt; 
   separate(date, into=c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;)) |&gt;
   mutate(day = as.numeric(day),
@@ -481,15 +461,8 @@ air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt;
   select(year, month, day, zip, daily_aqi_value, pollutant, value) |&gt; 
   group_by(day, month, year, zip, pollutant) |&gt; 
   summarize(daily_aqi = mean(daily_aqi_value))</code></pre>
-<pre><code>## Rows: 23685 Columns: 26
-## ── Column specification ───────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (11): date, source, units, site_name, aqs_parameter_desc, cbsa_name, sta...
-## dbl (15): site_id, poc, daily_aqi_value, daily_obs_count, percent_complete, ...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-## `summarise()` has grouped output by &#39;day&#39;, &#39;month&#39;, &#39;year&#39;, &#39;zip&#39;. You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;day&#39;, &#39;month&#39;, &#39;year&#39;, &#39;zip&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>### note: removed acceptable pm2.5... from https://www.epa.gov/aqs/aqs-memos-technical-note-reporting-pm25-continuous-monitoring-and-speciation-data-air-quality
 
 # Finally merge disease and air qual data together
