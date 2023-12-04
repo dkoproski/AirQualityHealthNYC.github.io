@@ -13,7 +13,6 @@ library(tidyverse)
 
 # Hospitalization data by zip code for asthma and respiratory diseases
 
-
 ```{r, eval = FALSE}
 nyc_zips =
   read_csv("data/cleaned_shapes/nyc_zip_codes.csv") |> 
@@ -47,70 +46,110 @@ df_all_resp |>
   write_csv("data/joined_respiratory.csv")
 ```
 
-
-```{r}
-df_all_resp =
-  read_csv("data/cleaned_data/joined_respiratory.csv")
-### note, the above dataset contains info on age groups, I have to filter this out to merge the data. If you want to use age groups in any analyses, use "df_all_resp".
-
-df_hosp =
-  read_csv("data/cleaned_data/disease_zip.csv") |> 
-  mutate(zip = as.character(zip_code))
-
-df_all_resp_merge =
-  df_all_resp |> 
-  filter(age_group == "All age groups") |> 
-  select(zip, date, count_resp, count_asth) |>
-  mutate(date = mdy(date)) |> 
-  mutate(
-    month = format(date, "%B"),  
-    day = as.character(day(date)),             
-    year = year(date)            
-  ) |> 
-  filter(zip != 88888) |> 
-  filter(zip != "Citwide")
-
-
-df_all_hospitalizations =
-  left_join(df_all_resp_merge, df_hosp, by = c("month", "day", "year", "zip"))
-
-df_all_hospitalizations2 =
-  left_join(df_hosp, df_all_resp_merge, by = c("month", "day", "year", "zip"))
-
-df_all_hospitalizations_inner =
-  inner_join(df_hosp, df_all_resp_merge, by = c("month", "day", "year", "zip"))
-```
-
-```{r, eval = F}
-unique_dates = unique(df_all_resp$date)
-unique_zips = unique(df_all_resp$zip)
-
-full_combinations = expand.grid(date = unique_dates, zip = unique_zips)
-
-missing_combinations_asthma_resp = anti_join(full_combinations, df_all_resp, by = c("date", "zip"))
-
-missing_combinations_asthma_resp
-
-
-
-
-
-
-
-
-
-
-full_combinations = expand.grid(date = unique_dates, zip = unique_zips)
-
-missing_combinations_hosp = anti_join(full_combinations, df_hosp, by = c("date", "zip"))
-
-missing_combinations_hosp
-```
-
 # Merging `joined_respiratory.csv` and `air_quality_disease.csv`
 
-
 ```{r}
+# Load dataset with respiratory and asthma counts (missing some zipcodes)
+
+dis_asth_df = read_csv("data/cleaned_data/joined_respiratory.csv") |> 
+  filter(zip != 88888 & zip != "Citwide" & age_group == "All age groups") |> 
+  mutate(date = as.Date(format(as.Date(date, "%m/%d/%y"))),
+         year = as.numeric(format(date, format = "%Y")),
+         month = month.name[as.numeric(format(date, format = "%m"))],
+         day = as.numeric(format(date, format = "%d")),
+         zip = as.numeric(zip)) |>
+  select(year, month, day, zip, count_resp, count_asth) 
+
+# Load dataset with pneumonia data
+
+dis_pneu_df = read_csv("data/raw_data/disease_hospital_admin.csv") |> 
+  separate(date, into=c("month", "day", "year")) |> 
+  mutate(day = as.numeric(day),
+         month = month.name[as.numeric(month)],
+         year = as.numeric(year)) |> 
+  rename(zip = mod_zcta) |> 
+  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions)
+
+# Merge two disease datasets
+
+all_dis_df =
+  full_join(dis_asth_df, dis_pneu_df, by = c("month", "day", "year", "zip"))
+
+# Now merge disease with air quality dataset
+
+air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |> 
+  separate(date, into=c("month", "day", "year")) |>
+  mutate(day = as.numeric(day),
+         month = month.name[as.numeric(month)],
+         year = as.numeric(year)) |> 
+  filter(!(year == '2020' & month == 'January'),
+         !(year == '2020' & month == 'February'),
+         !(aqs_parameter_desc == "Acceptable PM2.5 AQI & Speciation Mass")) |>  
+  rename(zip = zip_code) |> 
+  select(year, month, day, zip, daily_aqi_value, pollutant, value) |> 
+  group_by(day, month, year, zip, pollutant) |> 
+  summarize(value = mean(value))
+
+air_qual_df_aqi = read_csv("data/cleaned_data/alt_air_data.csv") |> 
+  separate(date, into=c("month", "day", "year")) |>
+  mutate(day = as.numeric(day),
+         month = month.name[as.numeric(month)],
+         year = as.numeric(year)) |> 
+  filter(!(year == '2020' & month == 'January'),
+         !(year == '2020' & month == 'February'),
+         !(aqs_parameter_desc == "Acceptable PM2.5 AQI & Speciation Mass")) |>  
+  rename(zip = zip_code) |> 
+  select(year, month, day, zip, daily_aqi_value, pollutant, value) |> 
+  group_by(day, month, year, zip, pollutant) |> 
+  summarize(daily_aqi = mean(daily_aqi_value))
+
+### note: removed acceptable pm2.5... from https://www.epa.gov/aqs/aqs-memos-technical-note-reporting-pm25-continuous-monitoring-and-speciation-data-air-quality
+
+# Finally merge disease and air qual data together
+
+air_qual_dis = # with value
+  full_join(all_dis_df, air_qual_df, by = c("month", "day", "year", "zip")) |> 
+  select(year, month, day, zip, count_resp, count_asth, total_ed_visits, 
+         ili_pne_visits, ili_pne_admissions, pollutant, value) |> 
+  pivot_wider(names_from = pollutant,
+              values_from = value) |> 
+  select(-`NA`) |> 
+  rename(pm25_ug_m3_lc = PM2.5,
+         co_ppm = CO,
+         o3_ppm = Ozone,
+         no2_ppb = NO2) |> 
+  filter(!(year == '2022' & month == 'December')) 
+  
+air_qual_dis_aqi = # with daily aqi value
+  full_join(all_dis_df, air_qual_df_aqi, by = c("month", "day", "year", "zip")) |> 
+  select(year, month, day, zip, count_resp, count_asth, total_ed_visits, 
+         ili_pne_visits, ili_pne_admissions, pollutant, daily_aqi) |> 
+  pivot_wider(names_from = pollutant,
+              values_from = daily_aqi) |> 
+  select(-`NA`) |> 
+  rename(pm25_ug_m3_lc = PM2.5,
+         co_ppm = CO,
+         o3_ppm = Ozone,
+         no2_ppb = NO2) |> 
+  filter(!(year == '2022' & month == 'December'))
+
+# measurement: ozone (daily_max_8_hour_ozone_concentration)
+# co (daily_max_8_hour_co_concentration)
+# pm2.5 (daily_mean_pm2_5_concentration)
+# no2 (daily_max_1_hour_no2_concentration)
+
+
+```
+
+
+
+
+
+
+
+
+```{r, eval = F}
+# Old code
 library(tidyverse)
 
 # Load dataset with respiratory and asthma counts
@@ -144,5 +183,23 @@ checkdate_perzip_dis = dis_df |>
   summarize(count = n())
 
 # Found many NAs in air_quality_disease.csv - need revision
+
+# Load cleaned air quality dataset that has been merged with disease
+air_dis_df = read_csv("data/cleaned_data/air_quality_disease.csv") |> 
+  rename(zip = zip_code) |> 
+  mutate(day = as.numeric(day)) |> 
+  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, everything())
+
+# Realized many NAs, suspect zipcode and date NAs
+checkdate_perzip_airdis = air_dis_df |> 
+  group_by(zip) |> 
+  summarize(count = n())
+
+checkdate_perzip_dis = dis_df |> 
+  group_by(zip) |> 
+  summarize(count = n())
+
+# Found many NAs in air_quality_disease.csv - need revision
 ```
+
 
