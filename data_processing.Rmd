@@ -8,11 +8,12 @@ output:
 ---
 ```{r, message = FALSE}
 library(tidyverse)
+options(readr.show_col_types = FALSE)
 ```
 
 # Hospitalization data by zip code for asthma and respiratory diseases
 
-```{r, eval = FALSE}
+```{r, eval = FALSE, message = FALSE}
 nyc_zips =
   read_csv("data/cleaned_shapes/nyc_zip_codes.csv") |> 
   mutate(zip = as.character(ZipCode)) |> 
@@ -47,7 +48,7 @@ df_all_resp |>
 
 # Merging `joined_respiratory.csv` and `air_quality_disease.csv`
 
-```{r}
+```{r, message = FALSE}
 # Load dataset with respiratory and asthma counts (missing some zipcodes)
 
 dis_asth_df = read_csv("data/cleaned_data/joined_respiratory.csv") |> 
@@ -83,7 +84,7 @@ air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |>
          year = as.numeric(year)) |> 
   filter(!(year == '2020' & month == 'January'),
          !(year == '2020' & month == 'February'),
-         !(aqs_parameter_desc == "Acceptable PM2.5 AQI & Speciation Mass")) |>  
+         !(aqs_parameter_desc == "Acceptable PM2.5 AQI & Speciation Mass")) |>
   rename(zip = zip_code) |> 
   select(year, month, day, zip, daily_aqi_value, pollutant, value) |> 
   group_by(day, month, year, zip, pollutant) |> 
@@ -148,7 +149,7 @@ air_qual_dis_aqi = # with daily aqi value
 ```
 
 
-```{r, eval = F}
+```{r, eval = F, message = FALSE}
 # EDA
 
 ## Histograms
@@ -202,7 +203,7 @@ model1 |> ggplot(aes(x = pm25_ug_m3_lc, y = total_ed_visits)) + geom_point()
 ```
 
 
-```{r, eval = F}
+```{r, eval = F, message = FALSE}
 # Old code
 library(tidyverse)
 
