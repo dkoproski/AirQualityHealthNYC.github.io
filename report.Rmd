@@ -26,12 +26,12 @@ The need for a comprehensive analysis and sustainable solutions for the increase
 - Which areas in New York City have more prominent air pollutants? 
 - How is air quality associated to the incidence of respiratory diseases in an area?
 
-Paragraph Form: 
-
 ### Related Work 
-In a study evaluating the potential decrease in greenhouse gas (GHG) emissions in relation to air quality and public health in NYC, the suggested policy measures may result in an annual reduction of 160 to 390 deaths attributed to PM2.5. Neighborhoods characterized by higher poverty levels showed a more pronounced health gain. [Johnson, S. 2020](https://pubs.acs.org/doi/10.1021/acs.est.0c00694). 
+In a study evaluating the potential decrease in greenhouse gas (GHG) emissions in relation to air quality and public health in NYC, the suggested policy measures may result in an annual reduction of 160 to 390 deaths attributed to PM2.5. Neighborhoods characterized by higher poverty levels showed a more pronounced health gain [Johnson, S. 2020](https://pubs.acs.org/doi/10.1021/acs.est.0c00694). 
 
-In a study focusing on PM2.5 levels, the potential health benefits for adults and children were assessed. Outcomes such as preterm birth, low birthweight, infant mortality, asthma incidence, hospital admissions, emergency visits, and autism spectrum disorder were considered. A estimated 23% improvement in PM2.5 was calculated, thus leasing to avoided illness cases and death. Furthermore, for the period 2021-2025, the estimated associated economic benifit ranged from \$31.8 billion and \$77 billion [Perera, F. 2021](https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3Dihub).
+In a study focusing on PM2.5 levels, the potential health benefits for adults and children were assessed. Outcomes such as preterm birth, low birthweight, infant mortality, asthma incidence, hospital admissions, emergency visits, and autism spectrum disorder were considered. A estimated 23% improvement in PM2.5 was calculated, thus leasing to avoided illness cases and death. Furthermore, for the period 2021-2025, the estimated associated economic benefit ranged from \$31.8 billion and \$77 billion [Perera, F. 2021](https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3Dihub).
+
+Ambient PM2.5 attributed deaths increased from 3.5 million in 1990 to 4.2 million in 2015. In 2015, the fifth-ranking cause of global deaths was ambient PM2.5 [PM2.5 related deaths](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439030/). In a study following the PM2.5 concentration in NYC from 2015-2020, similar decrease levels between January and May were observed. There was less air pollutant in 2020 that could have been due to the government shutdown during the corona virus pandemic could not be confirmed[COVID shutdown](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7314691/#bb0010). 
 
 ## **Methods** 
 ### Data Sources
@@ -55,7 +55,11 @@ Additionally, the spread, central tendency, and presence of outliers were shown 
 
 ## **Results** 
 
-PM2.5 levels continuously decline from 2009 to 2021, as evident on the layered PM2.5  map. Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Additionally, the layered PM2.5 map shows a greater amount of PM2.5 levels in lower Manhattan throughout the years. 
+PM2.5 and NO2 concentrations continuously declined from 2009 to 2021, as evident on the layered histogram and box plot. PM2.5 showed a steady decrease in concentration, with the lowest median concentration exhibited in 2020. NO2 also displayed a decrease in concentration however it was less noticeable. O3 concentrations displayed a different trend. O3 concentrations initially increased from 2010 to 2016, but seemed to stabilize around 30 ppb with observed measurement decreases from 2017 to 2021.  
+
+
+
+Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Additionally, the layered PM2.5 map shows a greater amount of PM2.5 levels in lower Manhattan throughout the years. 
 
 The heat map revealed distinct spatial and temporal patterns of O3. Lower Manhattan showed a steady increase of O3 levels from 2009 to 2021. Outer boroughs such as Brooklyn showed consistent concentrations of O3 from 2009 to 2021. 
 
@@ -70,13 +74,11 @@ The heat map revealed distinct spatial and temporal patterns of O3. Lower Manhat
 
 
 ### Limitations
-- Issues with data processing?
+
+Several challenges arose in the analysis related to data processing. The datasets had significant constraints, including limited data, temporal dimensions, and location misalignment. The limited data potentially impacted our overall findings. The air quality datasets had different observation frequencies, with one being seasonal and the other daily. Health outcomes affected by air pollutants  may be misrepresented due to the lack of hospital information in areas of high pollutants. Lastly, with only 3,000 observations available from an original data set of 188,000 observations, there was a substantial reduction in sample size data.
 
 ### Future Implications
 
 
 
--info on PM2.5 and previous findings-
--compare result to findings- 
 
-Ambient PM2.5 attributed deaths increased from 3.5 million in 1990 to 4.2 million in 2015. In 2015, the fifth-ranking cause of global deaths was ambient PM2.5 [PM2.5 related deaths](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439030/). In a study following the PM2.5 concentration in NYC from 2015-2020, similar decrease levels between January and May were observed. There was less air pollutant in 2020 that could have been due to the government shutdown during the corona virus pandemic could not be confirmed. [COVID shutdown](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7314691/#bb0010). 
