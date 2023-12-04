@@ -117,7 +117,12 @@ air_qual_dis = # with value
          co_ppm = CO,
          o3_ppm = Ozone,
          no2_ppb = NO2) |> 
-  filter(!(year == '2022' & month == 'December')) 
+  filter(!(year == '2022' & month == 'December')) |> 
+  mutate(
+    numeric_month = match(month, month.name),
+    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
+  )
+
   
 air_qual_dis_aqi = # with daily aqi value
   full_join(all_dis_df, air_qual_df_aqi, by = c("month", "day", "year", "zip")) |> 
@@ -130,7 +135,11 @@ air_qual_dis_aqi = # with daily aqi value
          co_ppm = CO,
          o3_ppm = Ozone,
          no2_ppb = NO2) |> 
-  filter(!(year == '2022' & month == 'December'))
+  filter(!(year == '2022' & month == 'December')) |> 
+  mutate(
+    numeric_month = match(month, month.name),
+    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
+  )
 
 # measurement: ozone (daily_max_8_hour_ozone_concentration)
 # co (daily_max_8_hour_co_concentration)
@@ -138,10 +147,29 @@ air_qual_dis_aqi = # with daily aqi value
 # no2 (daily_max_1_hour_no2_concentration)
 ```
 
+
 ```{r, eval = F}
 # EDA
 
 ## Histograms
+
+ggplot(air_quality, aes(x = date)) +
+  geom_line(aes(y = pm25, color = "PM2.5"), size = 1) +
+  geom_line(aes(y = pm10, color = "PM10"), size = 1) +
+  geom_line(aes(y = no2, color = "NO2"), size = 1) +
+  geom_line(aes(y = so2, color = "SO2"), size = 1) +
+  labs(x = "Date", y = "Pollutant Level", color = "Pollutant") +
+  scale_color_manual(values = c("PM2.5" = "blue", "PM10" = "green", "NO2" = "red", "SO2" = "purple")) +
+  theme_minimal()
+
+ggplot(aes(x = date), data = air_qual_dis) +
+  geom_point(aes(y = co_ppm, color = "CO"), size = 1) +
+  geom_point(aes(y = o3_ppm, color = "O3"), size = 1) +
+  labs(x = "Date", y = "Pollutant Level", color = "Pollutant") +
+  scale_color_manual(values = c("PM2.5" = "blue", "CO" = "green", "O3" = "red", "NO2" = "purple")) +
+  theme_minimal()
+
+
 ggplot(aes(x = pm25_ug_m3_lc), data = air_qual_dis) + geom_histogram() 
 ggplot(aes(x = co_ppm), data = air_qual_dis) + geom_histogram() 
 ggplot(aes(x = o3_ppm), data = air_qual_dis) + geom_histogram() 
@@ -172,18 +200,6 @@ summary(model)
 
 model1 |> ggplot(aes(x = pm25_ug_m3_lc, y = total_ed_visits)) + geom_point()
 ```
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ```{r, eval = F}

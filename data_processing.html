@@ -417,7 +417,7 @@ dis_asth_df = read_csv(&quot;data/cleaned_data/joined_respiratory.csv&quot;) |&g
          zip = as.numeric(zip)) |&gt;
   select(year, month, day, zip, count_resp, count_asth) </code></pre>
 <pre><code>## Rows: 687089 Columns: 5
-## ── Column specification ───────────────────────────────────────────────────
+## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (3): zip, age_group, date
 ## dbl (2): count_resp, count_asth
@@ -434,7 +434,7 @@ dis_pneu_df = read_csv(&quot;data/raw_data/disease_hospital_admin.csv&quot;) |&g
   rename(zip = mod_zcta) |&gt; 
   select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions)</code></pre>
 <pre><code>## Rows: 176883 Columns: 6
-## ── Column specification ───────────────────────────────────────────────────
+## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (2): extract_date, date
 ## dbl (4): mod_zcta, total_ed_visits, ili_pne_visits, ili_pne_admissions
@@ -461,7 +461,7 @@ air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt;
   group_by(day, month, year, zip, pollutant) |&gt; 
   summarize(value = mean(value))</code></pre>
 <pre><code>## Rows: 23685 Columns: 26
-## ── Column specification ───────────────────────────────────────────────────
+## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (11): date, source, units, site_name, aqs_parameter_desc, cbsa_name, sta...
 ## dbl (15): site_id, poc, daily_aqi_value, daily_obs_count, percent_complete, ...
@@ -482,7 +482,7 @@ air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt;
   group_by(day, month, year, zip, pollutant) |&gt; 
   summarize(daily_aqi = mean(daily_aqi_value))</code></pre>
 <pre><code>## Rows: 23685 Columns: 26
-## ── Column specification ───────────────────────────────────────────────────
+## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (11): date, source, units, site_name, aqs_parameter_desc, cbsa_name, sta...
 ## dbl (15): site_id, poc, daily_aqi_value, daily_obs_count, percent_complete, ...
@@ -505,7 +505,12 @@ air_qual_dis = # with value
          co_ppm = CO,
          o3_ppm = Ozone,
          no2_ppb = NO2) |&gt; 
-  filter(!(year == &#39;2022&#39; &amp; month == &#39;December&#39;)) 
+  filter(!(year == &#39;2022&#39; &amp; month == &#39;December&#39;)) |&gt; 
+  mutate(
+    numeric_month = match(month, month.name),
+    date = as.Date(paste(year, numeric_month, day, sep = &quot;-&quot;), format = &quot;%Y-%m-%d&quot;)
+  )
+
   
 air_qual_dis_aqi = # with daily aqi value
   full_join(all_dis_df, air_qual_df_aqi, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;)) |&gt; 
@@ -518,7 +523,11 @@ air_qual_dis_aqi = # with daily aqi value
          co_ppm = CO,
          o3_ppm = Ozone,
          no2_ppb = NO2) |&gt; 
-  filter(!(year == &#39;2022&#39; &amp; month == &#39;December&#39;))
+  filter(!(year == &#39;2022&#39; &amp; month == &#39;December&#39;)) |&gt; 
+  mutate(
+    numeric_month = match(month, month.name),
+    date = as.Date(paste(year, numeric_month, day, sep = &quot;-&quot;), format = &quot;%Y-%m-%d&quot;)
+  )
 
 # measurement: ozone (daily_max_8_hour_ozone_concentration)
 # co (daily_max_8_hour_co_concentration)
@@ -527,6 +536,24 @@ air_qual_dis_aqi = # with daily aqi value
 <pre class="r"><code># EDA
 
 ## Histograms
+
+ggplot(air_quality, aes(x = date)) +
+  geom_line(aes(y = pm25, color = &quot;PM2.5&quot;), size = 1) +
+  geom_line(aes(y = pm10, color = &quot;PM10&quot;), size = 1) +
+  geom_line(aes(y = no2, color = &quot;NO2&quot;), size = 1) +
+  geom_line(aes(y = so2, color = &quot;SO2&quot;), size = 1) +
+  labs(x = &quot;Date&quot;, y = &quot;Pollutant Level&quot;, color = &quot;Pollutant&quot;) +
+  scale_color_manual(values = c(&quot;PM2.5&quot; = &quot;blue&quot;, &quot;PM10&quot; = &quot;green&quot;, &quot;NO2&quot; = &quot;red&quot;, &quot;SO2&quot; = &quot;purple&quot;)) +
+  theme_minimal()
+
+ggplot(aes(x = date), data = air_qual_dis) +
+  geom_point(aes(y = co_ppm, color = &quot;CO&quot;), size = 1) +
+  geom_point(aes(y = o3_ppm, color = &quot;O3&quot;), size = 1) +
+  labs(x = &quot;Date&quot;, y = &quot;Pollutant Level&quot;, color = &quot;Pollutant&quot;) +
+  scale_color_manual(values = c(&quot;PM2.5&quot; = &quot;blue&quot;, &quot;CO&quot; = &quot;green&quot;, &quot;O3&quot; = &quot;red&quot;, &quot;NO2&quot; = &quot;purple&quot;)) +
+  theme_minimal()
+
+
 ggplot(aes(x = pm25_ug_m3_lc), data = air_qual_dis) + geom_histogram() 
 ggplot(aes(x = co_ppm), data = air_qual_dis) + geom_histogram() 
 ggplot(aes(x = o3_ppm), data = air_qual_dis) + geom_histogram() 
