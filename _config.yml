@@ -24,7 +24,7 @@ navigation:
 
 # Build settings
 markdown: kramdown
-theme: WhatATheme
+theme: https://github.com/thedevslot/WhatATheme.git
 
 # WhatATheme specific settings
 author: Your Name
