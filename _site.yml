@@ -15,6 +15,3 @@ navbar:
       href: stats.html
     - text: "Final Report"
       href: report.html
-output:
-  html_document:
-    theme: cosmo

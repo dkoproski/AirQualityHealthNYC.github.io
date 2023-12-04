@@ -3,8 +3,8 @@ title: Air Quality & Health in NYC
 email: n/a
 description: >- # this means to ignore newlines until "baseurl:"
   Write a short description of your site here.
-baseurl: "https://dkoproski.github.io/AirQualityHealthNYC.github.io/" # the subpath of your site, e.g. /blog
-url: "https://dkoproski.github.io/AirQualityHealthNYC.github.io/" # the base hostname & protocol for your site
+baseurl: "https://dkoproski.github.io/AirQualityHealthNYC.github.io" # the subpath of your site, e.g. /blog
+url: "https://dkoproski.github.io/AirQualityHealthNYC.github.io" # the base hostname & protocol for your site
 
 navigation:
   - title: "Home"
