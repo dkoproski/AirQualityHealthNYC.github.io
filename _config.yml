@@ -1,18 +1,18 @@
-
-  title: "Home"
-  right:
-    - text: "Data Sources"
-      href: data.html
-    - text: "Data Processing"
-      href: data_processing.html
-    - text: "Exploratory Analysis"
-      href: eda.html
-    - text: "Interactive Maps"
-      href: viz.html  
-    - text: "Statistical Analysis"
-      href: stats.html
-    - text: "Final Report"
-      href: report.html
+navigation:
+  - title: "Home"
+    url: "/"
+  - title: "About"
+    url: "/about.html"
+  - title: "Data Processing"
+    url: "/data_processing.html"
+  - title: "Exploratory Analysis"
+    url: "/eda.html"
+  - title: "Interactive Maps"
+    url: "/viz.html"
+  - title: "Statistical Analysis"
+    url: "/stats.html"
+  - title: "Final Report"
+    url: "/report.html"
 
 remote_theme: "mmistakes/minimal-mistakes@4.24.0"
 minimal_mistakes_skin    : "default" # "air", "aqua", "contrast", "dark", "dirt", "neon", "mint", "plum", "sunrise"
