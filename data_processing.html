@@ -524,6 +524,38 @@ air_qual_dis_aqi = # with daily aqi value
 # co (daily_max_8_hour_co_concentration)
 # pm2.5 (daily_mean_pm2_5_concentration)
 # no2 (daily_max_1_hour_no2_concentration)</code></pre>
+<pre class="r"><code># EDA
+
+## Histograms
+ggplot(aes(x = pm25_ug_m3_lc), data = air_qual_dis) + geom_histogram() 
+ggplot(aes(x = co_ppm), data = air_qual_dis) + geom_histogram() 
+ggplot(aes(x = o3_ppm), data = air_qual_dis) + geom_histogram() 
+ggplot(aes(x = no2_ppb), data = air_qual_dis) + geom_histogram() 
+ggplot(aes(x = sqrt(total_ed_visits)), data = air_qual_dis) + geom_histogram() 
+
+ggplot(aes(x = ili_pne_visits), data = air_qual_dis) + geom_histogram() 
+ggplot(aes(x = ili_pne_admissions), data = air_qual_dis) + geom_histogram() 
+
+MASS::boxcox(lm(total_ed_visits ~ 1, data = air_qual_dis))
+
+
+
+model1 = lm(count_resp ~ pm25_ug_m3_lc+co_ppm+o3_ppm+no2_ppb, data = air_qual_dis_aqi)
+summary(model1)
+model2 = lm(count_asth ~ pm25_ug_m3_lc+co_ppm+o3_ppm+no2_ppb, data = air_qual_dis_aqi)
+summary(model2)
+model3 = lm(total_ed_visits ~ pm25_ug_m3_lc+co_ppm+o3_ppm+no2_ppb, data = air_qual_dis_aqi)
+summary(model3)
+model4 = lm(ili_pne_visits ~ pm25_ug_m3_lc+co_ppm+o3_ppm+no2_ppb, data = air_qual_dis_aqi)
+summary(model4)
+model5 = lm(ili_pne_admissions ~ pm25_ug_m3_lc+co_ppm+o3_ppm+no2_ppb, data = air_qual_dis_aqi)
+summary(model5)
+base_model = lm(total_ed_visits ~ pm25_ug_m3_lc, data = air_qual_dis_aqi)
+
+model = base_model |&gt; MASS::stepAIC(direction = &quot;both&quot;, trace = 0)
+summary(model)
+
+model1 |&gt; ggplot(aes(x = pm25_ug_m3_lc, y = total_ed_visits)) + geom_point()</code></pre>
 <pre class="r"><code># Old code
 library(tidyverse)
 
