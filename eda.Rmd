@@ -42,6 +42,29 @@ df_histo_ozone =
   select(year, data_value)
 ```
 
+```{r}
+df_histo_pm2.5 = 
+  read_csv("data/cleaned_data/uhf_airquality.csv") |> 
+  filter(str_detect(time_period, "Annual Average")) |> 
+  mutate(year = str_extract(time_period, "\\d{4}")) |> 
+  filter(name == "Fine particles (PM 2.5)") |> 
+  select(year, data_value)
+
+df_histo_NO2 = 
+  read_csv("data/cleaned_data/uhf_airquality.csv")  |> 
+  filter(str_detect(time_period, "Annual Average")) |> 
+  mutate(year = str_extract(time_period, "\\d{4}")) |> 
+  filter(name == "Nitrogen dioxide (NO2)") |> 
+  select(year, data_value) 
+
+df_histo_ozone =
+  read_csv("data/cleaned_data/uhf_airquality.csv")  |> 
+  filter(name == "Ozone (O3)") |> 
+  filter(str_detect(time_period, "2009|2010|2011|2012|2013|2014|2015|2016|2017|2018|2019|2020|2021")) |> 
+  mutate(year = str_extract(time_period, "\\d{4}")) |> 
+  select(year, data_value)
+```
+
 
 ## Histogram of levels of air pollutants by year
 
