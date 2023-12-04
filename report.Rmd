@@ -26,12 +26,12 @@ The need for a comprehensive analysis and sustainable solutions for the increase
 - Which areas in New York City have more prominent air pollutants? 
 - How is air quality associated to the incidence of respiratory diseases in an area?
 
+Paragraph Form: 
+
 ### Related Work 
+In a study evaluating the potential decrease in greenhouse gas (GHG) emissions in relation to air quality and public health in NYC, the suggested policy measures may result in an annual reduction of 160 to 390 deaths attributed to PM2.5. Neighborhoods characterized by higher poverty levels showed a more pronounced health gain. [Johnson, S. 2020](https://pubs.acs.org/doi/10.1021/acs.est.0c00694). 
 
-
-READ______[6](https://pubs.acs.org/doi/10.1021/acs.est.0c00694). 
-
-Improvement Ratio [7](https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3Dihub)
+In a study focusing on PM2.5 levels, the potential health benefits for adults and children were assessed. Outcomes such as preterm birth, low birthweight, infant mortality, asthma incidence, hospital admissions, emergency visits, and autism spectrum disorder were considered. A estimated 23% improvement in PM2.5 was calculated, thus leasing to avoided illness cases and death. Furthermore, for the period 2021-2025, the estimated associated economic benifit ranged from \$31.8 billion and \$77 billion [Perera, F. 2021](https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3Dihub).
 
 ## **Methods** 
 ### Data Sources
