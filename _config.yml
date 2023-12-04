@@ -1,0 +1,33 @@
+# Site settings
+title: Air Quality & Health in NYC
+email: n/a
+description: >- # this means to ignore newlines until "baseurl:"
+  Write a short description of your site here.
+baseurl: "https://dkoproski.github.io/AirQualityHealthNYC.github.io/" # the subpath of your site, e.g. /blog
+url: "https://dkoproski.github.io/AirQualityHealthNYC.github.io/" # the base hostname & protocol for your site
+
+navigation:
+  - title: "Home"
+    url: "/"
+  - title: "Data Sources"
+    url: "/data.html"
+  - title: "Data Processing"
+    url: "/data_processing.html"
+  - title: "Exploratory Analysis"
+    url: "/eda.html"
+  - title: "Interactive Maps"
+    url: "/viz.html"
+  - title: "Statistical Analysis"
+    url: "/stats.html"
+  - title: "Final Report"
+    url: "/report.html"
+
+# Build settings
+markdown: kramdown
+theme: WhatATheme
+
+# WhatATheme specific settings
+author: Your Name
+author_bio: A short bio about you.
+author_location: Your City, Country
+author_website: http://yourwebsite.com
