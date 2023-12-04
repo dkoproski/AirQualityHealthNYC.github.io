@@ -24,7 +24,7 @@ navigation:
 
 # Build settings
 markdown: kramdown
-remote_theme: thedevslot/WhatATheme
+theme: WhatATheme
 
 # WhatATheme specific settings
 author: Your Name
