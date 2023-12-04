@@ -90,18 +90,18 @@ air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |>
   group_by(day, month, year, zip, pollutant) |> 
   summarize(value = mean(value))
 
-air_qual_df_aqi = read_csv("data/cleaned_data/alt_air_data.csv") |> 
-  separate(date, into=c("month", "day", "year")) |>
-  mutate(day = as.numeric(day),
-         month = month.name[as.numeric(month)],
-         year = as.numeric(year)) |> 
-  filter(!(year == '2020' & month == 'January'),
-         !(year == '2020' & month == 'February'),
-         !(aqs_parameter_desc == "Acceptable PM2.5 AQI & Speciation Mass")) |>  
-  rename(zip = zip_code) |> 
-  select(year, month, day, zip, daily_aqi_value, pollutant, value) |> 
-  group_by(day, month, year, zip, pollutant) |> 
-  summarize(daily_aqi = mean(daily_aqi_value))
+# air_qual_df_aqi = read_csv("data/cleaned_data/alt_air_data.csv") |> 
+#   separate(date, into=c("month", "day", "year")) |>
+#   mutate(day = as.numeric(day),
+#          month = month.name[as.numeric(month)],
+#          year = as.numeric(year)) |> 
+#   filter(!(year == '2020' & month == 'January'),
+#          !(year == '2020' & month == 'February'),
+#          !(aqs_parameter_desc == "Acceptable PM2.5 AQI & Speciation Mass")) |>  
+#   rename(zip = zip_code) |> 
+#   select(year, month, day, zip, daily_aqi_value, pollutant, value) |> 
+#   group_by(day, month, year, zip, pollutant) |> 
+#   summarize(daily_aqi = mean(daily_aqi_value))
 
 ### note: removed acceptable pm2.5... from https://www.epa.gov/aqs/aqs-memos-technical-note-reporting-pm25-continuous-monitoring-and-speciation-data-air-quality
 
@@ -125,22 +125,22 @@ air_qual_dis = # with value
   )
 
   
-air_qual_dis_aqi = # with daily aqi value
-  full_join(all_dis_df, air_qual_df_aqi, by = c("month", "day", "year", "zip")) |> 
-  select(year, month, day, zip, count_resp, count_asth, total_ed_visits, 
-         ili_pne_visits, ili_pne_admissions, pollutant, daily_aqi) |> 
-  pivot_wider(names_from = pollutant,
-              values_from = daily_aqi) |> 
-  select(-`NA`) |> 
-  rename(pm25_ug_m3_lc = PM2.5,
-         co_ppm = CO,
-         o3_ppm = Ozone,
-         no2_ppb = NO2) |> 
-  filter(!(year == '2022' & month == 'December')) |> 
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
-  )
+# air_qual_dis_aqi = # with daily aqi value
+#   full_join(all_dis_df, air_qual_df_aqi, by = c("month", "day", "year", "zip")) |> 
+#   select(year, month, day, zip, count_resp, count_asth, total_ed_visits, 
+#          ili_pne_visits, ili_pne_admissions, pollutant, daily_aqi) |> 
+#   pivot_wider(names_from = pollutant,
+#               values_from = daily_aqi) |> 
+#   select(-`NA`) |> 
+#   rename(pm25_ug_m3_lc = PM2.5,
+#          co_ppm = CO,
+#          o3_ppm = Ozone,
+#          no2_ppb = NO2) |> 
+#   filter(!(year == '2022' & month == 'December')) |> 
+#   mutate(
+#     numeric_month = match(month, month.name),
+#     date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
+#   )
 
 # measurement: ozone (daily_max_8_hour_ozone_concentration)
 # co (daily_max_8_hour_co_concentration)
@@ -148,24 +148,96 @@ air_qual_dis_aqi = # with daily aqi value
 # no2 (daily_max_1_hour_no2_concentration)
 ```
 
+# Compare two air quality datasets (daily vs. seasonal/annual)
+
+```{r}
+airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |> 
+  filter(str_detect(name, "Fine") | str_detect(name, "NO2") | str_detect(name, "O3")) 
+
+airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |> 
+  filter(str_detect(name, "Fine")) 
+table(airqual_annual$time_period)
+
+#### Prepare dataset from daily data (Summer: 1June-31Aug, Winter 1Dec-28Feb)
+
+# Annual averages for each pollutant and each zip
+
+airqual_yr_avg = air_qual_df |> 
+  group_by(year, zip, pollutant) |> 
+  summarize(mean = mean(value)) |> 
+  pivot_wider(
+    names_from = pollutant,
+    values_from = mean
+  )
+
+# Seasonal averages for each pollutant and each zip
+
+airqual_szn_avg = air_qual_df |> 
+  mutate(season = case_when(
+    month %in% c("June", "July", "August") ~ "summer",
+    month %in% c("December", "January", "February") ~ "winter",
+    TRUE ~ "other"
+  )) |> 
+  filter(season != "other") |> 
+  group_by(season, year, zip, pollutant) |> 
+  summarize(mean = mean(value)) |> 
+  pivot_wider(
+    names_from = pollutant,
+    values_from = mean
+  )
+
+#### Prepare dataset from daily data
+
+airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |> 
+  filter(str_detect(name, "Fine") | str_detect(name, "NO2") | str_detect(name, "O3")) |> 
+  select(name, )
+
+#### Comparison between daily data and yearly/seasonal data
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r, eval = F, message = FALSE}
 # EDA
 
 ## Histograms
-
-ggplot(air_quality, aes(x = date)) +
-  geom_line(aes(y = pm25, color = "PM2.5"), size = 1) +
-  geom_line(aes(y = pm10, color = "PM10"), size = 1) +
-  geom_line(aes(y = no2, color = "NO2"), size = 1) +
-  geom_line(aes(y = so2, color = "SO2"), size = 1) +
-  labs(x = "Date", y = "Pollutant Level", color = "Pollutant") +
-  scale_color_manual(values = c("PM2.5" = "blue", "PM10" = "green", "NO2" = "red", "SO2" = "purple")) +
-  theme_minimal()
-
 ggplot(aes(x = date), data = air_qual_dis) +
   geom_point(aes(y = co_ppm, color = "CO"), size = 1) +
   geom_point(aes(y = o3_ppm, color = "O3"), size = 1) +
+  labs(x = "Date", y = "Pollutant Level", color = "Pollutant") +
+  scale_color_manual(values = c("PM2.5" = "blue", "CO" = "green", "O3" = "red", "NO2" = "purple")) +
+  theme_minimal()
+
+ggplot(aes(x = date), data = air_qual_dis) +
+  #geom_point(aes(y = pm25_ug_m3_lc, color = "PM2.5"), size = 1) +
+  #geom_point(aes(y = co_ppm, color = "CO"), size = 1) +
+  geom_point(aes(y = o3_ppm, color = "O3"), size = 1) +
+  #geom_point(aes(y = no2_ppb, color = "NO2"), size = 1) +
   labs(x = "Date", y = "Pollutant Level", color = "Pollutant") +
   scale_color_manual(values = c("PM2.5" = "blue", "CO" = "green", "O3" = "red", "NO2" = "purple")) +
   theme_minimal()
