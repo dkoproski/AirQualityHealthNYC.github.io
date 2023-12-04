@@ -36,15 +36,21 @@ Improvement Ratio [7](https://www.sciencedirect.com/science/article/pii/S0013935
 
 ## **Methods** 
 ### Data Sources
-The initial air quality dataset was obtained from [NYC Open Data](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r), showing comprehensive  information on air pollutants in NYC from 2008 to 2021. The year range 2010 to 2021 was chosen. 
-A subsequent air quality data set was obtained from [EPA](https://www.epa.gov/outdoor-air-quality-data/download-daily-data). The inital health data set was obtained from [NYC OpenData](https://data.cityofnewyork.us/Health/Emergency-Department-Visits-and-Admissions-for-Inf/2nwg-uqyg). 
+The initial air quality dataset was obtained from [NYC Open Data](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r), showing comprehensive  information on air pollutants in NYC from 2008 to 2021. The year range 2010 to 2021 was chosen for analysis. A subsequent air quality data set was obtained from [EPA](https://www.epa.gov/outdoor-air-quality-data/download-daily-data). [add info about dataset]
+
+The initial health data set was obtained from [NYC OpenData](https://data.cityofnewyork.us/Health/Emergency-Department-Visits-and-Admissions-for-Inf/2nwg-uqyg), specified emergency department visits, admissions and visits related to influenza-like and/or pneumonia illness, categorized by the modified ZIP code. A secondary disease data set from [NYC Health](https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&PopulationSource=Syndromic) detailed the number of hospitalizations attributed to asthma, diarrhea, influenza-like illness, respiratory diseases, and vomiting for each zip code. The data collection period occurred during 2016 to early 2023. 
+
+Additionally, a geographic location dataset was used to .....
+
+
 
 ### Data Cleaning 
 
-### Exploratory Analyis
-A heat map of O3, PM2.5, and NO2 with a year selector was constructed  to monitor and understand the air quality in NYC. An interactive histogram showing each air pollutant concentration overlaid by year was constructed to depict frequency distribution and central tendency. Additionally, the spread, central tendency, and presence of outliers were shown in an interactive box plot based on air pollutant and year. 
 
-During 2010 to 2021, a heat map analysis was conducted to monitor the concentration of ground-level O3 in the 5 boroughs of NYC. Regions with higher concentrations of O3 were indicated by red and maroon, while lower concentration were shown in green.  
+### Exploratory Analyis
+
+An interactive histogram showing each air pollutant concentration overlaid by year was constructed to depict frequency distribution and central tendency. 
+Additionally, the spread, central tendency, and presence of outliers were shown in an interactive box plot based on air pollutant and year. A heat map of O3, PM2.5, and NO2 with a year selector was constructed  to monitor and understand the air quality in NYC. High concentrations of the selected pollutant were indicated by red and maroon, while lower concentrations were shown in green.  
 
 
 
@@ -65,7 +71,7 @@ The heat map revealed distinct spatial and temporal patterns of O3. Lower Manhat
 
 
 ### Limitations
-
+- Issues with data processing?
 
 ### Future Implications
 
