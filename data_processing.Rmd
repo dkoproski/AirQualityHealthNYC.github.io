@@ -313,8 +313,10 @@ dis_plot=all_dis_plot_df |>
       variable =="count_resp" ~ "Respiratory diseases",
       variable =="count_asth" ~ "Asthma",
       variable =="ili_pne_visits" ~ "Pneumonia (ER visits)",
-      variable =="ili_pne_admissions" ~ "Pneumonia (admissions)"
-    )) |> 
+      variable =="ili_pne_admissions" ~ "Pneumonia (admissions)"),
+      across(variable, ~factor(., levels=c("Asthma","Respiratory diseases",
+                                           "Pneumonia (ER visits)",
+                                           "Pneumonia (admissions)"))))|> 
   ggplot(aes(x = date, y = count, color = variable)) +
   geom_point() +
   facet_wrap(~ variable, ncol = 2, scales="free_y") +
