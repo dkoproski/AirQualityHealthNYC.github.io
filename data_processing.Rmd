@@ -232,7 +232,7 @@ er_plot
 
 From the plot below, we can see that the number of emergency department visits related to pneumonia peak during winter seasons. 
 
-```{r}
+```{r, eval = F}
 resp_plot = all_dis_plot_df |> 
   filter(variable == "count_resp") |> 
   plot_ly(x = ~date, y = ~count, 
@@ -305,6 +305,23 @@ fig = fig |> layout(annotations = annotations)
 fig
 ```
 
+```{r}
+dis_plot=all_dis_plot_df |> 
+  filter(variable != "total_ed_visits") |> 
+  mutate(variable = case_when(
+      variable =="count_resp" ~ "Respiratory diseases",
+      variable =="count_asth" ~ "Asthma",
+      variable =="ili_pne_visits" ~ "Pneumonia (ER visits)",
+      variable =="ili_pne_admissions" ~ "Pneumonia (admissions)"
+    )) |> 
+  ggplot(aes(x = date, y = count, color = variable)) +
+  geom_point() +
+  facet_wrap(~ variable, ncol = 2, scales="free_y") +
+  ggtitle("Daily counts of variables by zip") + 
+  scale_color_discrete()
+
+dis_plot
+```
 
 
 
