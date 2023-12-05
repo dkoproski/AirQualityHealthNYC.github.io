@@ -12,6 +12,8 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(tidyverse)
 library(plotly)
 options(readr.show_col_types = FALSE)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
 ```
 
 # Hospitalization data by zip code for asthma and respiratory diseases
@@ -206,7 +208,7 @@ airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |>
 
 Let us first visualize how the number of emergency department visits change over time. We can see that daily ER visits seem to peak in winter months except in 2021. This could be due to COVID restrictions.
 
-```{r}
+```{r, out.width = '100%'}
 all_dis_plot_df = all_dis_df |>
   mutate(
     numeric_month = match(month, month.name),
@@ -306,7 +308,7 @@ fig = fig |> layout(annotations = annotations)
 fig
 ```
 
-```{r}
+```{r, out.width = '100%'}
 dis_plot = all_dis_plot_df |> 
   filter(variable != "total_ed_visits") |> 
   mutate(variable = case_when(
@@ -319,6 +321,7 @@ dis_plot = all_dis_plot_df |>
                                            "Pneumonia (admissions)"))))|> 
   ggplot(aes(x = date, y = count, color = variable)) +
   geom_point() +
+  geom_smooth(color = "blue") +
   facet_wrap(~ variable, ncol = 2, scales="free_y") +
   ggtitle("Daily counts of disease variables by zip") + 
   scale_color_discrete()
@@ -328,7 +331,7 @@ dis_plot
 
 ## How do pollutant variables change over time?
 
-```{r}
+```{r, out.width = '100%'}
 poll_plot = air_qual_df |> 
   mutate(
     numeric_month = match(month, month.name),
@@ -345,6 +348,7 @@ poll_plot = air_qual_df |>
                                           "PM2.5 (μg/m3)"))),) |> 
   ggplot(aes(x = date, y = value, color = pollutant)) +
   geom_point() +
+  geom_smooth(color = "blue") +
   facet_wrap(~ pollutant, ncol = 2, scales="free_y") +
   ggtitle("Daily average of each pollutant by zip") + 
   scale_color_discrete()
