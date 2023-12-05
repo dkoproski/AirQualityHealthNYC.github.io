@@ -8,6 +8,8 @@ output:
 ---
 ```{r, message = FALSE}
 library(tidyverse)
+library(plotly)
+
 options(readr.show_col_types = FALSE)
 ```
 
@@ -108,8 +110,12 @@ air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |>
 # Finally merge disease and air qual data together
 
 air_qual_dis = # with value
-  full_join(all_dis_df, air_qual_df, by = c("month", "day", "year", "zip")) |> 
-  select(year, month, day, zip, count_resp, count_asth, total_ed_visits, 
+  full_join(all_dis_df, air_qual_df, by = c("month", "day", "year", "zip")) |>  
+  mutate(
+    numeric_month = match(month, month.name),
+    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
+  ) |> 
+  select(year, month, day, date, zip, count_resp, count_asth, total_ed_visits, 
          ili_pne_visits, ili_pne_admissions, pollutant, value) |> 
   pivot_wider(names_from = pollutant,
               values_from = value) |> 
@@ -118,11 +124,8 @@ air_qual_dis = # with value
          co_ppm = CO,
          o3_ppm = Ozone,
          no2_ppb = NO2) |> 
-  filter(!(year == '2022' & month == 'December')) |> 
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
-  )
+  filter(!(year == '2022' & month == 'December')) 
+
 
   
 # air_qual_dis_aqi = # with daily aqi value
@@ -195,6 +198,113 @@ airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |>
 #### Comparison between daily data and yearly/seasonal data
 
 ```
+
+# Exploratory Data Analysis
+
+## How does each variable change over time?
+
+Let us first visualize how the number of emergency department visits change over time. We can see that daily ER visits seem to peak in winter months except in 2021. This could be due to COVID restrictions.
+
+```{r}
+all_dis_plot_df = all_dis_df |>
+  mutate(
+    numeric_month = match(month, month.name),
+    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
+  ) |> 
+  select(-day, -month, -year, -numeric_month) |> 
+  pivot_longer(cols = c("count_resp", "count_asth", "total_ed_visits", "ili_pne_visits", "ili_pne_admissions"), 
+               names_to = "variable",
+               values_to = "count") 
+
+er_plot = all_dis_plot_df |> 
+  filter(variable == "total_ed_visits") |> 
+  plot_ly(x = ~date, y = ~count, 
+          type = 'scatter', 
+          mode = 'markers', 
+          text = ~paste("Zip: ", zip, "<br>Date:", date, "<br>Count:", count),
+          color = "viridis") |> 
+  layout(title = 'Daily total ER visits per zip', plot_bgcolor = "#e5ecf6", 
+         xaxis = list(title = "Date"), 
+         yaxis = list(title = "Counts"))
+
+er_plot
+```
+
+From the plot below, we can see that the number of emergency department visits related to pneumonia peak during winter seasons. 
+
+```{r}
+resp_plot = all_dis_plot_df |> 
+  filter(variable == "count_resp") |> 
+  plot_ly(x = ~date, y = ~count, 
+          type = 'scatter', 
+          mode = 'markers', 
+          text = ~paste("Zip: ", zip, "<br>Date:", date, "<br>Count:", count),
+          marker = list(color = "#35B779"))
+
+asth_plot = all_dis_plot_df |> 
+  filter(variable == "count_asth") |> 
+  plot_ly(x = ~date, y = ~count, 
+          type = 'scatter', 
+          mode = 'markers', 
+          text = ~paste("Zip: ", zip, "<br>Date:", date, "<br>Count:", count),
+          marker = list(color = "#B8860B"))
+
+pne_visit_plot = all_dis_plot_df |> 
+  filter(variable == "ili_pne_visits") |> 
+  plot_ly(x = ~date, y = ~count, 
+          type = 'scatter', 
+          mode = 'markers', 
+          text = ~paste("Zip: ", zip, "<br>Date:", date, "<br>Count:", count),
+          marker = list(color = "#440154"))
+
+pne_adm_plot = all_dis_plot_df |> 
+  filter(variable == "ili_pne_admissions") |> 
+  plot_ly(x = ~date, y = ~count, 
+          type = 'scatter', 
+          mode = 'markers', 
+          text = ~paste("Zip: ", zip, "<br>Date:", date, "<br>Count:", count),
+          marker = list(color = "#31688E"))
+
+fig = subplot(resp_plot, asth_plot, pne_visit_plot, pne_adm_plot, 
+              nrows = 2, shareX = TRUE) |> 
+  layout(plot_bgcolor='#e5ecf6', 
+         title = 'Daily counts of variables by zip',
+         xaxis = list(title = "date"), 
+         showlegend = FALSE) 
+
+annotations = list( 
+  list(
+    x = 0.25, y = 0.9, 
+    text = "Respiratory diseases", 
+    xref = "paper", yref = "paper", 
+    xanchor = "center", yanchor = "bottom", 
+    showarrow = FALSE),  
+  list( 
+    x = 0.75, y = 0.9, 
+    text = "Asthma",  
+    xref = "paper", yref = "paper",  
+    xanchor = "center", yanchor = "bottom", 
+    showarrow = FALSE 
+  ),  
+  list( 
+    x = 0.25, y = 0.4, text = "Pneumonia (ER visits)",  
+    xref = "paper", yref = "paper",  
+    xanchor = "center", yanchor = "bottom",  
+    showarrow = FALSE 
+  ),
+  list( 
+    x = 0.75, y = 0.4,  
+    text = "Pneumonia (admissions)",  
+    xref = "paper", yref = "paper",  
+    xanchor = "center", yanchor = "bottom",  
+    showarrow = FALSE 
+  ))
+
+
+fig = fig |> layout(annotations = annotations) 
+fig
+```
+
 
 
 
@@ -301,8 +411,8 @@ all_dis_df =
   select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, count_resp, count_asth, everything())
 
 # Realized many NAs, suspect zipcode and date NAs
-checkdate_perzip_airdis = air_dis_df |> 
-  group_by(zip) |> 
+checkdate_perzip_airdis = airqual_annual |> 
+  group_by(geo_place_name) |> 
   summarize(count = n())
 
 checkdate_perzip_dis = dis_df |> 
