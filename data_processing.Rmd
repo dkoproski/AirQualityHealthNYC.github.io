@@ -18,7 +18,7 @@ scale_fill_discrete = scale_fill_viridis_d
 
 # Merging `joined_respiratory.csv` and `air_quality_disease.csv`
 
-```{r, message = FALSE}
+````{r, message = FALSE}
 # Load dataset with respiratory and asthma counts (missing some zipcodes)
 
 dis_asth_df = read_csv("data/cleaned_data/joined_respiratory.csv") |> 
@@ -121,7 +121,7 @@ air_qual_dis = # with value
 
 # Compare two air quality datasets (daily vs. seasonal/annual)
 
-```{r}
+```{r, eval = F}
 airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |> 
   filter(str_detect(name, "Fine") | str_detect(name, "NO2") | str_detect(name, "O3")) 
 
@@ -204,10 +204,11 @@ all_dis_df |>
     numeric_month = match(month, month.name),
     date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
   ) |> 
-  ggplot(aes(x = date, y = total_ed_visits, color = "#31688E")) +
+  ggplot(aes(x = date, y = total_ed_visits)) +
   geom_point() +
   labs(title = "Daily total ER visits by zip",
-       y = "Total ER visits")
+       y = "Total ER visits") +
+  theme(legend.position = "none")
 ```
 
 
@@ -343,6 +344,52 @@ poll_plot = air_qual_df |>
 
 poll_plot
 ```
+
+# Cross correlation analysis
+
+```{r}
+ccf_df = air_qual_dis |> 
+  filter(!is.na(o3_ppm) & !is.na(ili_pne_visits)) |> 
+  mutate(date_lag = date + days(117),
+         scaled_o3 = o3_ppm * 100, 
+         lagged_o3 = lag(scaled_o3, n = 117)
+  )
+print(ccf(ccf_df$o3_ppm, ccf_df$ili_pne_admissions, lag.max=250))
+
+# Visualize lag
+
+ccf_df |> 
+  ggplot() +
+  geom_point(aes(x = date_lag, y = scaled_o3), color = "#440154") +
+  geom_point(aes(x = date, y = ili_pne_visits), color = "#D8B26A") +
+  labs(title = "Lagging Ozone variable by 117 days", 
+       x = "Date",
+       y = "Scaled O3") +
+  geom_vline(xintercept = as.numeric(as.Date(c("2021-01-01", "2022-01-01", "2023-01-01"))), color = "grey")
+
+prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
+summary(prelag_model)
+ggplot(aes(x = scaled_o3, 
+           y = ili_pne_visits),
+       data = ccf_df) + 
+  geom_point(color = "#FFA500") +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Pre-lag: Pneumonia hospital visits vs. Ozone (scaled)",
+       x = "Scaled ozone", 
+       y = "Pneumonia hospital visits")
+
+ 
+
+
+lag_model = lm(ili_pne_visits ~ lagged_o3, data = ccf_df)
+summary(lag_model)
+ggplot(aes(x = lagged_o3, y = ili_pne_visits), data = ccf_df) + 
+  geom_point() +
+  geom_smooth(method = "lm")
+
+```
+
+
 
 - talk about lag? observe seasonal changes
 
