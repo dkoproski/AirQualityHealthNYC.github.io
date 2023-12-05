@@ -202,7 +202,7 @@ airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |>
 
 # Exploratory Data Analysis
 
-## How does each variable change over time?
+## How do disease variables change over time?
 
 Let us first visualize how the number of emergency department visits change over time. We can see that daily ER visits seem to peak in winter months except in 2021. This could be due to COVID restrictions.
 
@@ -307,7 +307,7 @@ fig
 ```
 
 ```{r}
-dis_plot=all_dis_plot_df |> 
+dis_plot = all_dis_plot_df |> 
   filter(variable != "total_ed_visits") |> 
   mutate(variable = case_when(
       variable =="count_resp" ~ "Respiratory diseases",
@@ -326,6 +326,21 @@ dis_plot=all_dis_plot_df |>
 dis_plot
 ```
 
+## How do pollutant variables change over time?
+
+```{r}
+poll_plot = air_qual_df |> 
+  mutate(
+    numeric_month = match(month, month.name),
+    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")) |> 
+  ggplot(aes(x = date, y = value, color = pollutant)) +
+  geom_point() +
+  facet_wrap(~ pollutant, ncol = 2, scales="free_y") +
+  ggtitle("Daily average of each pollutant by zip") + 
+  scale_color_discrete()
+
+poll_plot
+```
 
 
 
