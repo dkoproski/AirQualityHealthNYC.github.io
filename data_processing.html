@@ -476,29 +476,9 @@ class="section level1">
 
 airqual_annual = read_csv(&quot;data/cleaned_data/uhf_airquality.csv&quot;) |&gt; 
   filter(str_detect(name, &quot;Fine&quot;)) 
-table(airqual_annual$time_period)</code></pre>
-<pre><code>## 
-## Annual Average 2009 Annual Average 2010 Annual Average 2011 Annual Average 2012 
-##                  42                  42                  42                  42 
-## Annual Average 2013 Annual Average 2014 Annual Average 2015 Annual Average 2016 
-##                  42                  42                  42                  42 
-## Annual Average 2017 Annual Average 2018 Annual Average 2019 Annual Average 2020 
-##                  42                  42                  42                  42 
-## Annual Average 2021         Summer 2009         Summer 2010         Summer 2011 
-##                  42                  42                  42                  42 
-##         Summer 2012         Summer 2013         Summer 2014         Summer 2015 
-##                  42                  42                  42                  42 
-##         Summer 2016         Summer 2017         Summer 2018         Summer 2019 
-##                  42                  42                  42                  42 
-##         Summer 2020         Summer 2021      Winter 2008-09      Winter 2009-10 
-##                  42                  42                  42                  42 
-##      Winter 2010-11      Winter 2011-12      Winter 2012-13      Winter 2013-14 
-##                  42                  42                  42                  42 
-##      Winter 2014-15      Winter 2015-16      Winter 2016-17      Winter 2017-18 
-##                  42                  42                  42                  42 
-##      Winter 2018-19      Winter 2019-20      Winter 2020-21 
-##                  42                  42                  42</code></pre>
-<pre class="r"><code>#### Prepare dataset from daily data (Summer: 1June-31Aug, Winter 1Dec-28Feb)
+table(airqual_annual$time_period)
+
+#### Prepare dataset from daily data (Summer: 1June-31Aug, Winter 1Dec-28Feb)
 
 # Annual averages for each pollutant and each zip
 
@@ -569,10 +549,11 @@ er_plot</code></pre>
     numeric_month = match(month, month.name),
     date = as.Date(paste(year, numeric_month, day, sep = &quot;-&quot;), format = &quot;%Y-%m-%d&quot;)
   ) |&gt; 
-  ggplot(aes(x = date, y = total_ed_visits, color = &quot;#31688E&quot;)) +
+  ggplot(aes(x = date, y = total_ed_visits, color = &quot;#9D5FF3&quot;)) +
   geom_point() +
   labs(title = &quot;Daily total ER visits by zip&quot;,
-       y = &quot;Total ER visits&quot;)</code></pre>
+       y = &quot;Total ER visits&quot;) +
+  theme(legend.position = &quot;none&quot;)</code></pre>
 <p><img src="data_processing_files/figure-html/unnamed-chunk-4-1.png" width="100%" /></p>
 <p>From the plot below, we can see that the number of emergency
 department visits related to pneumonia peak during winter seasons.</p>
@@ -702,6 +683,49 @@ class="section level2">
 
 poll_plot</code></pre>
 <p><img src="data_processing_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+</div>
+</div>
+<div id="cross-correlation-analysis" class="section level1">
+<h1>Cross correlation analysis</h1>
+<pre class="r"><code>ccf_df = air_qual_dis |&gt; 
+  filter(!is.na(o3_ppm) &amp; !is.na(ili_pne_visits)) |&gt; 
+  mutate(date_lag = date + days(117),
+         scaled_o3 = o3_ppm * 100, 
+         lagged_o3 = lag(scaled_o3, n = 117)
+  )
+print(ccf(ccf_df$o3_ppm, ccf_df$ili_pne_admissions, lag.max=250))</code></pre>
+<p><img src="data_processing_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<pre class="r"><code># Visualize lag
+
+ccf_df |&gt; 
+  ggplot() +
+  geom_point(aes(x = date_lag, y = scaled_o3, color = &quot;Ozone (10^-2 ppm)&quot;)) +
+  geom_point(aes(x = date, y = ili_pne_visits, color = &quot;Pneumonia hospital visits&quot;)) +
+  labs(title = &quot;Lagging Ozone variable by 117 days&quot;, 
+       x = &quot;Date&quot;,
+       y = &quot;Values&quot;) +
+  scale_color_manual(labels = c(&quot;Ozone (10^-2 ppm)&quot;, &quot;Pneumonia hospital visits&quot;), 
+                     values = c(&quot;Ozone (10^-2 ppm)&quot; = &quot;blue&quot;, &quot;Pneumonia hospital visits&quot; = &quot;#FFA500&quot;), 
+                     guide = &quot;legend&quot;)</code></pre>
+<p><img src="data_processing_files/figure-html/unnamed-chunk-8-2.png" width="100%" /></p>
+<pre class="r"><code>prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
+summary(prelag_model)
+ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) + 
+  geom_point(color = &quot;#FFA500&quot;) +
+  geom_smooth(method = &quot;lm&quot;, color = &quot;blue&quot;) +
+  labs(title = &quot;Pre-lag: Pneumonia hospital visits vs. Ozone&quot;,
+       x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
+       y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
+<p><img src="data_processing_files/figure-html/unnamed-chunk-8-3.png" width="100%" /></p>
+<pre class="r"><code>lag_model = lm(ili_pne_visits ~ lagged_o3, data = ccf_df)
+summary(lag_model)
+ggplot(aes(x = lagged_o3, y = ili_pne_visits), data = ccf_df) + 
+  geom_point(color = &quot;#FFA500&quot;) +
+  geom_smooth(method = &quot;lm&quot;, color = &quot;blue&quot;) +
+  labs(title = &quot;Post-lag: Pneumonia hospital visits vs. Ozone&quot;,
+       x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
+       y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
+<p><img src="data_processing_files/figure-html/unnamed-chunk-8-4.png" width="100%" /></p>
 <ul>
 <li>talk about lag? observe seasonal changes</li>
 </ul>
@@ -805,7 +829,6 @@ checkdate_perzip_dis = dis_df |&gt;
   summarize(count = n())
 
 # Found many NAs in air_quality_disease.csv - need revision</code></pre>
-</div>
 </div>
 
 
