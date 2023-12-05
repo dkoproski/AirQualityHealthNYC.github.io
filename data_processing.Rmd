@@ -16,41 +16,6 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
-# Hospitalization data by zip code for asthma and respiratory diseases
-
-```{r, eval = FALSE, message = FALSE}
-nyc_zips =
-  read_csv("data/cleaned_shapes/nyc_zip_codes.csv") |> 
-  mutate(zip = as.character(ZipCode)) |> 
-  select(zip)
-
-resp_df = 
-  read_csv("data/raw_data/respiratory.csv")
-
-asth_df = 
-  read_csv("data/raw_data/asthma.csv")
-
-resp_df_tidy =
-  resp_df |> 
-  janitor::clean_names() |> 
-  mutate(age_group = dim2value,
-         count_resp = count) |> 
-  select(zip, age_group, date, count_resp) 
-
-asth_df_tidy = 
-  asth_df |> 
-  janitor::clean_names() |> 
-  mutate(age_group = dim2value,
-         count_asth = count) |> 
-  select(zip, age_group, date, count_asth) 
-
-df_all_resp = 
-  merge(resp_df_tidy, asth_df_tidy, by = c("zip", "date", "age_group"))
-  
-df_all_resp |> 
-  write_csv("data/joined_respiratory.csv")
-```
-
 # Merging `joined_respiratory.csv` and `air_quality_disease.csv`
 
 ```{r, message = FALSE}
@@ -208,7 +173,7 @@ airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |>
 
 Let us first visualize how the number of emergency department visits change over time. We can see that daily ER visits seem to peak in winter months except in 2021. This could be due to COVID restrictions.
 
-```{r, out.width = '100%'}
+```{r, out.width = '100%', eval = F}
 all_dis_plot_df = all_dis_df |>
   mutate(
     numeric_month = match(month, month.name),
@@ -226,12 +191,25 @@ er_plot = all_dis_plot_df |>
           mode = 'markers', 
           text = ~paste("Zip: ", zip, "<br>Date:", date, "<br>Count:", count),
           color = "viridis") |> 
-  layout(title = 'Daily total ER visits per zip', plot_bgcolor = "#e5ecf6", 
+  layout(title = 'Daily total ER visits by zip', plot_bgcolor = "#e5ecf6", 
          xaxis = list(title = "Date"), 
          yaxis = list(title = "Counts"))
 
 er_plot
 ```
+
+```{r, out.width = '100%'}
+all_dis_df |>
+  mutate(
+    numeric_month = match(month, month.name),
+    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
+  ) |> 
+  ggplot(aes(x = date, y = total_ed_visits, color = "#31688E")) +
+  geom_point() +
+  labs(title = "Daily total ER visits by zip",
+       y = "Total ER visits")
+```
+
 
 From the plot below, we can see that the number of emergency department visits related to pneumonia peak during winter seasons. 
 
@@ -309,6 +287,16 @@ fig
 ```
 
 ```{r, out.width = '100%'}
+all_dis_plot_df = all_dis_df |>
+  mutate(
+    numeric_month = match(month, month.name),
+    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
+  ) |> 
+  select(-day, -month, -year, -numeric_month) |> 
+  pivot_longer(cols = c("count_resp", "count_asth", "total_ed_visits", "ili_pne_visits", "ili_pne_admissions"), 
+               names_to = "variable",
+               values_to = "count") 
+
 dis_plot = all_dis_plot_df |> 
   filter(variable != "total_ed_visits") |> 
   mutate(variable = case_when(
@@ -357,6 +345,7 @@ poll_plot
 ```
 
 - talk about lag? observe seasonal changes
+
 
 
 
