@@ -6,10 +6,11 @@ output:
     toc_float: true
     code_folding: hide
 ---
-```{r, message = FALSE}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(tidyverse)
 library(plotly)
-
 options(readr.show_col_types = FALSE)
 ```
 
