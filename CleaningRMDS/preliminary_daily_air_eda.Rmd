@@ -1,0 +1,130 @@
+---
+title: "EDA on Daily Air Quality Data"
+author: "Gustavo Garcia-Franceschini"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# Data files
+
+```{r}
+daily_air = read_csv(here::here("data/cleaned_data/alt_air_data.csv")) %>%
+  mutate(borough = case_when(
+    county == "New York" ~ "Manhattan",
+    county == "Bronx" ~ "Bronx",
+    county == "Kings" ~ "Brooklyn",
+    county == "Queens" ~ "Queens",
+    county == "Richmond" ~ "Staten Island"
+  )) %>% 
+  filter(pollutant != "CO")
+```
+
+# Distributions of pollutant measurements
+
+```{r}
+daily_air %>%
+  ggplot() + geom_histogram(aes(x = value, fill = pollutant)) + 
+  facet_wrap(~pollutant, scales = 'free')
+```
+
+# Distributions of pollutant measurements by county
+
+```{r}
+daily_air %>%
+  ggplot() + geom_boxplot(aes(x = borough, y = value, fill = borough)) + 
+  theme(axis.text.x  = element_text(angle=15)) +
+  facet_wrap(~pollutant, scales = 'free')
+```
+
+# Observing Washington Heights and Union Square
+
+```{r}
+#this data maps measurement sites to neighborhoods
+
+sites_nghbors = read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
+
+wash_heights = sites_nghbors %>%
+  filter(geo_place_name == "Washington Heights") %>%
+  pull(zip_code)
+
+daily_aq_wh = daily_air %>%
+  filter(zip_code %in% wash_heights) %>%
+  group_by(date, pollutant) %>%
+  summarize(mean_value = mean(value))
+
+
+```
+
+```{r}
+#Where Fresh Meadows is Queens and Willowbrook is in Staten Island
+#Hunts Point - Mott Haven is in Bronx
+
+#my neighborhoods on interest:
+
+neighborhoods = c("Washington Heights", "Union Square - Lower East Side",
+                  "Willowbrook", "Hunts Point - Mott Haven", "Fresh Meadows")
+
+store_data = vector("list", length = 5)
+
+for (i in 1:length(neighborhoods)) {
+  
+  n = neighborhoods[i]
+  
+  n_zips = sites_nghbors %>%
+  filter(geo_place_name == n) %>%
+  pull(zip_code)
+  
+  daily_data = daily_air %>%
+    filter(zip_code %in% n_zips) %>%
+    group_by(date, pollutant) %>%
+    summarize(mean_value = mean(value)) %>%
+    mutate(neighborhood = n)
+  
+  store_data[[i]] = daily_data
+  
+}
+```
+
+```{r}
+daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
+  bind_rows(store_data[[3]]) %>%
+  bind_rows(store_data[[4]]) %>%
+  bind_rows(store_data[[5]]) %>%
+  mutate(date = as.Date(date, format = "%m/%d/%Y"))
+```
+
+# Some time series stuff
+
+```{r}
+
+daily_neighborhood_data %>%
+  filter(pollutant == "NO2") %>%
+  ggplot() + geom_line(aes(x = date, y = mean_value,
+                            group = neighborhood, color = neighborhood))
+```
+
+```{r}
+
+daily_neighborhood_data %>%
+  filter(pollutant == "Ozone") %>%
+  ggplot() + geom_line(aes(x = date, y = mean_value,
+                            group = neighborhood, color = neighborhood))
+```
+
+```{r}
+
+daily_neighborhood_data %>%
+  filter(pollutant == "PM2.5") %>%
+  ggplot() + geom_line(aes(x = date, y = mean_value,
+                            group = neighborhood, color = neighborhood))
+```
+
+
+
+
+
