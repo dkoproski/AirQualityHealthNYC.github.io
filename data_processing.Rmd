@@ -320,7 +320,7 @@ dis_plot=all_dis_plot_df |>
   ggplot(aes(x = date, y = count, color = variable)) +
   geom_point() +
   facet_wrap(~ variable, ncol = 2, scales="free_y") +
-  ggtitle("Daily counts of variables by zip") + 
+  ggtitle("Daily counts of disease variables by zip") + 
   scale_color_discrete()
 
 dis_plot
