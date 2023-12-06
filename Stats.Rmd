@@ -9,6 +9,8 @@ output:
 ```{r, echo=FALSE, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(broom)
+library(plotly)
+
 options(readr.show_col_types = FALSE)
 ```
 
@@ -199,6 +201,89 @@ print(tidy_model) |>
 ```
 
 Readings were taken in Summer.
+
+```{r}
+# dataframe containing both air quality and both disease datasets by date and zip code 
+df = read_csv("data/cleaned_data/final_airqualdis.csv")
+```
+
+
+```{r}
+# linear reg on daily asthma and 03 pollutant 
+
+model = lm(ili_pne_admissions ~ o3_ppm, data = df) 
+ggplot(df, aes(x = o3_ppm, y = ili_pne_admissions))+ 
+geom_point()+ 
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              color = "red") + 
+  labs(title = "Linear Regression of Pnem", 
+       x = "o3_ppm", 
+       y = "pnem")
+```
+
+```{r}
+#plot_ly
+# omitted na
+ df_no_na = na.omit(df)
+
+model = lm(ili_pne_admissions ~ o3_ppm, data = df_no_na) 
+
+plot_ly(data = df_no_na, x = ~o3_ppm, y = ~ili_pne_admissions, type = "scatter", mode = "markers", name = "Data") |> 
+  layout(title = "Scatterplot",
+         xaxis = list(title = "O3 Levels"),
+         yaxis = list(title = "PNE Admissions"))
+
+```
+
+
+
+
+```{r}
+#ADD REGRESSION LINE
+# Selecting specific columns for x and y
+x = df_no_na |> 
+  select(pm25_ug_m3_lc, o3_ppm, no2_ppb)
+y = df_no_na |> 
+  select(count_resp, count_asth, total_ed_visits, ili_pne_admissions)
+
+# Initial plot
+initial_plot = plot_ly(data = df_no_na, x = ~x[[1]], y = ~y[[1]], type = "scatter", mode = "markers")
+
+# Add regression line for the first set of x and y variables
+lm_model = lm(y[[1]] ~ x[[1]])
+regression_line_data = data.frame(x = x[[1]], y = predict(lm_model), newdata = df_no_na)
+regression_line = plot_ly(data = regression_line_data, x = ~x, y = ~regression_line_data, type = "scatter", mode = "lines", name = "Regression Line", line = list(color = "blue"))
+
+# Create a scatterplot with dropdown menus and regression line
+plot_ly() |> 
+  add_trace(initial_plot) |> 
+  add_trace(regression_line) |> 
+  layout(
+    updatemenus = list(
+      list(
+        x = 0.8,
+        buttons = lapply(names(x), function(variable) {
+          list(
+            method = "restyle",
+            args = list("x", list(x[[variable]])),
+            label = variable)})),
+      list(
+        y = 0.8,
+        buttons = lapply(names(y), function(variable) {
+          list(
+            method = "restyle",
+            args = list("y", list(y[[variable]])),
+            label = variable)}))))
+
+```
+
+
+
+
+
+
+
 
 
 
