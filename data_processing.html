@@ -729,35 +729,7 @@ ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) +
        x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
        y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
 <p><img src="data_processing_files/figure-html/unnamed-chunk-8-4.png" width="100%" /></p>
-<pre><code>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```r
-# EDA
+<pre class="r"><code># EDA
 
 ## Histograms
 ggplot(aes(x = date), data = air_qual_dis) +

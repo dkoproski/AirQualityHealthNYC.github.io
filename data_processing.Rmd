@@ -386,11 +386,6 @@ ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) +
        y = "Pneumonia hospital visits (count)")
 ```
 
-```
-
-
-
-
 
 
 
