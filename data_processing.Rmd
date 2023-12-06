@@ -12,8 +12,6 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(tidyverse)
 library(plotly)
 options(readr.show_col_types = FALSE)
-scale_colour_discrete = scale_colour_viridis_d
-scale_fill_discrete = scale_fill_viridis_d
 ```
 
 # Merging `joined_respiratory.csv` and `air_quality_disease.csv`
@@ -125,10 +123,6 @@ air_qual_dis = # with value
 airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |> 
   filter(str_detect(name, "Fine") | str_detect(name, "NO2") | str_detect(name, "O3")) 
 
-airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |> 
-  filter(str_detect(name, "Fine")) 
-table(airqual_annual$time_period)
-
 #### Prepare dataset from daily data (Summer: 1June-31Aug, Winter 1Dec-28Feb)
 
 # Annual averages for each pollutant and each zip
@@ -204,7 +198,7 @@ all_dis_df |>
     numeric_month = match(month, month.name),
     date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
   ) |> 
-  ggplot(aes(x = date, y = total_ed_visits)) +
+  ggplot(aes(x = date, y = total_ed_visits, color = "#9D5FF3")) +
   geom_point() +
   labs(title = "Daily total ER visits by zip",
        y = "Total ER visits") +
@@ -345,55 +339,52 @@ poll_plot = air_qual_df |>
 poll_plot
 ```
 
-# Cross correlation analysis
+# Investigating the lagged association of Ozone with variables related to respiratory diseases
 
-```{r}
+## Cross correlation analysis
+
+```{r, out.width='100%', results = 'hide'}
 ccf_df = air_qual_dis |> 
   filter(!is.na(o3_ppm) & !is.na(ili_pne_visits)) |> 
-  mutate(date_lag = date + days(117),
+  mutate(date_lag = date + days(125),
          scaled_o3 = o3_ppm * 100, 
-         lagged_o3 = lag(scaled_o3, n = 117)
+         lagged_pne = lag(ili_pne_visits, n = 125)
   )
-print(ccf(ccf_df$o3_ppm, ccf_df$ili_pne_admissions, lag.max=250))
+
+ccf_res = ccf(ccf_df$o3_ppm, ccf_df$ili_pne_visits, lag.max=250, plot = FALSE)
+plot(ccf_res, main = "Analysing Lag between Ozone and Pneumonia ER visits (in days)")
 
 # Visualize lag
 
 ccf_df |> 
   ggplot() +
-  geom_point(aes(x = date_lag, y = scaled_o3), color = "#440154") +
-  geom_point(aes(x = date, y = ili_pne_visits), color = "#D8B26A") +
-  labs(title = "Lagging Ozone variable by 117 days", 
+  geom_point(aes(x = date_lag, y = lagged_pne, color = "Pneumonia ER visits")) +
+  geom_point(aes(x = date, y = scaled_o3, color = "Ozone (10^-2 ppm)")) +
+  labs(title = "Lagging Pneumonia ER visits by 125 days", 
        x = "Date",
-       y = "Scaled O3") +
-  geom_vline(xintercept = as.numeric(as.Date(c("2021-01-01", "2022-01-01", "2023-01-01"))), color = "grey")
+       y = "Values") +
+  scale_color_manual(labels = c("Ozone (10^-2 ppm)", "Pneumonia hospital visits"), 
+                     values = c("Ozone (10^-2 ppm)" = "#FFA500", "Pneumonia ER visits" = "#6495ED"), 
+                     guide = "legend")
 
 prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
-summary(prelag_model)
-ggplot(aes(x = scaled_o3, 
-           y = ili_pne_visits),
-       data = ccf_df) + 
+broom::tidy(prelag_model)
+ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) + 
   geom_point(color = "#FFA500") +
   geom_smooth(method = "lm", color = "blue") +
-  labs(title = "Pre-lag: Pneumonia hospital visits vs. Ozone (scaled)",
-       x = "Scaled ozone", 
-       y = "Pneumonia hospital visits")
+  labs(title = "Pre-lag: Pneumonia ER visits vs. Ozone",
+       x = expression(paste("Ozone (", 10^-2, " ppm)")), 
+       y = "Pneumonia hospital visits (count)")
 
- 
-
-
-lag_model = lm(ili_pne_visits ~ lagged_o3, data = ccf_df)
-summary(lag_model)
-ggplot(aes(x = lagged_o3, y = ili_pne_visits), data = ccf_df) + 
-  geom_point() +
-  geom_smooth(method = "lm")
-
+lag_model = lm(lagged_pne ~ scaled_o3, data = ccf_df)
+broom::tidy(lag_model)
+ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) + 
+  geom_point(color = "#FFA500") +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Post-lag: Pneumonia ER visits vs. Ozone",
+       x = expression(paste("Ozone (", 10^-2, " ppm)")), 
+       y = "Pneumonia hospital visits (count)")
 ```
-
-
-
-- talk about lag? observe seasonal changes
-
-
 
 
 
@@ -492,7 +483,7 @@ air_dis_df = read_csv("data/cleaned_data/air_quality_disease.csv") |>
 
 # Merge two datasets
 all_dis_df =
-  full_join(dis_df, air_dis_df, by = c("month", "day", "year", "zip")) |> 
+  left_join(air_dis_df, dis_df, by = c("month", "day", "year", "zip")) |> 
   select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, count_resp, count_asth, everything())
 
 # Realized many NAs, suspect zipcode and date NAs
@@ -504,22 +495,11 @@ checkdate_perzip_dis = dis_df |>
   group_by(zip) |> 
   summarize(count = n())
 
-# Found many NAs in air_quality_disease.csv - need revision
-
 # Load cleaned air quality dataset that has been merged with disease
 air_dis_df = read_csv("data/cleaned_data/air_quality_disease.csv") |> 
   rename(zip = zip_code) |> 
   mutate(day = as.numeric(day)) |> 
   select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, everything())
-
-# Realized many NAs, suspect zipcode and date NAs
-checkdate_perzip_airdis = air_dis_df |> 
-  group_by(zip) |> 
-  summarize(count = n())
-
-checkdate_perzip_dis = dis_df |> 
-  group_by(zip) |> 
-  summarize(count = n())
 
 # Found many NAs in air_quality_disease.csv - need revision
 ```
