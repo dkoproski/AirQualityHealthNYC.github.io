@@ -474,10 +474,6 @@ class="section level1">
 <pre class="r"><code>airqual_annual = read_csv(&quot;data/cleaned_data/uhf_airquality.csv&quot;) |&gt; 
   filter(str_detect(name, &quot;Fine&quot;) | str_detect(name, &quot;NO2&quot;) | str_detect(name, &quot;O3&quot;)) 
 
-airqual_annual = read_csv(&quot;data/cleaned_data/uhf_airquality.csv&quot;) |&gt; 
-  filter(str_detect(name, &quot;Fine&quot;)) 
-table(airqual_annual$time_period)
-
 #### Prepare dataset from daily data (Summer: 1June-31Aug, Winter 1Dec-28Feb)
 
 # Annual averages for each pollutant and each zip
@@ -685,51 +681,83 @@ poll_plot</code></pre>
 <p><img src="data_processing_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
 </div>
 </div>
-<div id="cross-correlation-analysis" class="section level1">
-<h1>Cross correlation analysis</h1>
+<div
+id="investigating-the-lagged-association-of-ozone-with-variables-related-to-respiratory-diseases"
+class="section level1">
+<h1>Investigating the lagged association of Ozone with variables related
+to respiratory diseases</h1>
+<div id="cross-correlation-analysis" class="section level2">
+<h2>Cross correlation analysis</h2>
 <pre class="r"><code>ccf_df = air_qual_dis |&gt; 
   filter(!is.na(o3_ppm) &amp; !is.na(ili_pne_visits)) |&gt; 
-  mutate(date_lag = date + days(117),
+  mutate(date_lag = date + days(125),
          scaled_o3 = o3_ppm * 100, 
-         lagged_o3 = lag(scaled_o3, n = 117)
+         lagged_pne = lag(ili_pne_visits, n = 125)
   )
-print(ccf(ccf_df$o3_ppm, ccf_df$ili_pne_admissions, lag.max=250))</code></pre>
+
+ccf_res = ccf(ccf_df$o3_ppm, ccf_df$ili_pne_visits, lag.max=250, plot = FALSE)
+plot(ccf_res, main = &quot;Analysing Lag between Ozone and Pneumonia ER visits (in days)&quot;)</code></pre>
 <p><img src="data_processing_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
 <pre class="r"><code># Visualize lag
 
 ccf_df |&gt; 
   ggplot() +
-  geom_point(aes(x = date_lag, y = scaled_o3, color = &quot;Ozone (10^-2 ppm)&quot;)) +
-  geom_point(aes(x = date, y = ili_pne_visits, color = &quot;Pneumonia hospital visits&quot;)) +
-  labs(title = &quot;Lagging Ozone variable by 117 days&quot;, 
+  geom_point(aes(x = date_lag, y = lagged_pne, color = &quot;Pneumonia ER visits&quot;)) +
+  geom_point(aes(x = date, y = scaled_o3, color = &quot;Ozone (10^-2 ppm)&quot;)) +
+  labs(title = &quot;Lagging Pneumonia ER visits by 125 days&quot;, 
        x = &quot;Date&quot;,
        y = &quot;Values&quot;) +
   scale_color_manual(labels = c(&quot;Ozone (10^-2 ppm)&quot;, &quot;Pneumonia hospital visits&quot;), 
-                     values = c(&quot;Ozone (10^-2 ppm)&quot; = &quot;blue&quot;, &quot;Pneumonia hospital visits&quot; = &quot;#FFA500&quot;), 
+                     values = c(&quot;Ozone (10^-2 ppm)&quot; = &quot;#FFA500&quot;, &quot;Pneumonia ER visits&quot; = &quot;#6495ED&quot;), 
                      guide = &quot;legend&quot;)</code></pre>
 <p><img src="data_processing_files/figure-html/unnamed-chunk-8-2.png" width="100%" /></p>
 <pre class="r"><code>prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
-summary(prelag_model)
+broom::tidy(prelag_model)
 ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) + 
   geom_point(color = &quot;#FFA500&quot;) +
   geom_smooth(method = &quot;lm&quot;, color = &quot;blue&quot;) +
-  labs(title = &quot;Pre-lag: Pneumonia hospital visits vs. Ozone&quot;,
+  labs(title = &quot;Pre-lag: Pneumonia ER visits vs. Ozone&quot;,
        x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
        y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
 <p><img src="data_processing_files/figure-html/unnamed-chunk-8-3.png" width="100%" /></p>
-<pre class="r"><code>lag_model = lm(ili_pne_visits ~ lagged_o3, data = ccf_df)
-summary(lag_model)
-ggplot(aes(x = lagged_o3, y = ili_pne_visits), data = ccf_df) + 
+<pre class="r"><code>lag_model = lm(lagged_pne ~ scaled_o3, data = ccf_df)
+broom::tidy(lag_model)
+ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) + 
   geom_point(color = &quot;#FFA500&quot;) +
   geom_smooth(method = &quot;lm&quot;, color = &quot;blue&quot;) +
-  labs(title = &quot;Post-lag: Pneumonia hospital visits vs. Ozone&quot;,
+  labs(title = &quot;Post-lag: Pneumonia ER visits vs. Ozone&quot;,
        x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
        y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
 <p><img src="data_processing_files/figure-html/unnamed-chunk-8-4.png" width="100%" /></p>
-<ul>
-<li>talk about lag? observe seasonal changes</li>
-</ul>
-<pre class="r"><code># EDA
+<pre><code>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```r
+# EDA
 
 ## Histograms
 ggplot(aes(x = date), data = air_qual_dis) +
@@ -799,7 +827,7 @@ air_dis_df = read_csv(&quot;data/cleaned_data/air_quality_disease.csv&quot;) |&g
 
 # Merge two datasets
 all_dis_df =
-  full_join(dis_df, air_dis_df, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;)) |&gt; 
+  left_join(air_dis_df, dis_df, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;)) |&gt; 
   select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, count_resp, count_asth, everything())
 
 # Realized many NAs, suspect zipcode and date NAs
@@ -811,24 +839,14 @@ checkdate_perzip_dis = dis_df |&gt;
   group_by(zip) |&gt; 
   summarize(count = n())
 
-# Found many NAs in air_quality_disease.csv - need revision
-
 # Load cleaned air quality dataset that has been merged with disease
 air_dis_df = read_csv(&quot;data/cleaned_data/air_quality_disease.csv&quot;) |&gt; 
   rename(zip = zip_code) |&gt; 
   mutate(day = as.numeric(day)) |&gt; 
   select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, everything())
 
-# Realized many NAs, suspect zipcode and date NAs
-checkdate_perzip_airdis = air_dis_df |&gt; 
-  group_by(zip) |&gt; 
-  summarize(count = n())
-
-checkdate_perzip_dis = dis_df |&gt; 
-  group_by(zip) |&gt; 
-  summarize(count = n())
-
 # Found many NAs in air_quality_disease.csv - need revision</code></pre>
+</div>
 </div>
 
 
