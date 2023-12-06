@@ -1,0 +1,34 @@
+---
+title: "prelim_disease_eda"
+author: "Lupe Antonio"
+date: "12/6/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+#loading previously joined data w extra disease data
+air_disease <- read_csv('data/cleaned_data/final_airqualdis.csv')
+
+
+#lots of NAs for most recently joined disease data
+```
+
+
+```{r}
+#loading other datasets to preview & troubleshoot
+pollutant_per_neighb <- read_csv(here::here('data/cleaned_data/pollutant_per_neighborhood.csv'))
+
+joined_resp <- read_csv(here::here('data/cleaned_data/joined_respiratory.csv'))
+```
+
+
+
+```{r}
+unique(joined_resp$zip)
+```
+
