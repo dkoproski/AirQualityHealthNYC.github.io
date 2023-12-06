@@ -46,22 +46,21 @@ Additionally, a geographic location dataset was used to .....
 ### Data Cleaning 
 
 
-### Exploratory Analyis and Visualizations
+### Exploratory Analysis and Visualizations
 
-An interactive histogram showing each air pollutant concentration overlaid by year was constructed to depict frequency distribution and central tendency. 
-Additionally, the spread, central tendency, and presence of outliers were shown in an interactive box plot based on air pollutant and year. A heat map of O3, PM2.5, and NO2 with a year selector was constructed  to monitor and understand the air quality in NYC. High concentrations of the selected pollutant were indicated by red and maroon, while lower concentrations were shown in green.  
-
+An interactive histogram showing each air pollutant concentration overlaid by year, from the years 2009-2021, was constructed to depict frequency distribution and central tendency. Additionally, the spread, central tendency, and presence of outliers were shown in an interactive box plot based on air pollutant and year. The distribution of each pollutant on a daily basis from the years 2020 to 2023 were also constructed. Furthermore, the distribution of each air pollutant were seen in box plots categories by county. A heat map of O3, PM2.5, and NO2 with a year selector was constructed  to monitor and understand the air quality in NYC. High concentrations of the selected pollutant were indicated by red and maroon, while lower concentrations were shown in green.  
 
 To visualize how air pollutants changed over time, time series plots were generated to examine the daily change of air pollutant by zip code. Trend  and seasonal patterns were determined from the time series plots were compared to each other. A similar analysis was performed for daily ER visit and disease counts. 
 
+### Statistical Analysis 
+
+Cross correlation analysis was used to examine the relationship between two time-series variables. From the cross-correlation plots, the positive and negative correlations determined the lag between O3 levels and and pneumonia ER visits. The lag was added as an additional predictor in the linear regression model.  
 
 
 
 ## **Results** 
 
 PM2.5 and NO2 concentrations continuously declined from 2009 to 2021, as evident on the layered histogram and box plot. PM2.5 showed a steady decrease in concentration, with the lowest median concentration exhibited in 2020. NO2 also displayed a decrease in concentration however it was less noticeable. O3 concentrations displayed a different trend. O3 concentrations initially increased from 2010 to 2016, but seemed to stabilize around 30 ppb with observed measurement decreases from 2017 to 2021.  
-
-
 
 Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Additionally, the layered PM2.5 map shows a greater amount of PM2.5 levels in lower Manhattan throughout the years. 
 
