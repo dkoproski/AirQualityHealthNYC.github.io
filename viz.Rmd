@@ -7,6 +7,10 @@ output:
     code_folding: hide
 ---
 
+# Maps
+
+Visualizations of the geographic distribution of air pollutants will help inform our later analyses by showing which locations/zip codes are impacted the most by air pollution. Three air pollutants are mapped on this page: Ozone (O3), PM2.5 (fine particles) and Nitrogen Dioxide (NO2). Ozone and Nitrogen dioxide are measured in parts per billion (PPB), while PM2.5 is measured in micrograms per meter cubed ($mcg/m^3$). While all years are not examined later, data is mapped for all years for the sake of completeness.
+
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(leaflet)
@@ -27,6 +31,7 @@ df_air_geo =
 
 ## 2009-2021: Ozone levels (O3)
 
+Based on the heatmap, it appears that ozone levels are generally at their highest in Lower Manhattan, particularly in 2016 and 2019. High O3 levels are also seen in coastal areas such as Breezy Point (11697). This makes sense since ozone forms at ground level when nitrogen oxides (such as NO2) react with sunlight. There does not appear to be any trend in ozone levels between 2009 and 2021 and levels seem to oscillate without any pattern. 
 
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract ozone data
@@ -95,6 +100,7 @@ m
 
 ## 2008-2021: Fine Particles PM2.5
 
+Similar to ozone, some of the highest levels of PM2.5 are seen in Lower Manhattan. Unlike O3, however, PM2.5 concentrations generally look to decrease from 2008-2021. This reflects similar trends seen in previous EDA performed on the data. That being said, there is some year-to-year variability and some clusters of zip codes exhibit high levels as late as 2021.
 
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract pm2.5 data
@@ -163,6 +169,7 @@ m
 
 ## 2008-2021: Nitrogen dioxide (NO2)
 
+From the map, NO2 levels seem to be at their highest throughout Manhattan. It appears that levels in Manhattan and all surrounding boroughs decrease between 2008 and 2021. 
 
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract NO2 data

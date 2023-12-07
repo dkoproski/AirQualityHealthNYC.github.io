@@ -14,9 +14,13 @@ library(plotly)
 options(readr.show_col_types = FALSE)
 ```
 
-# Air quality EDA
+# Air Pollutant EDA
 
-From the histogram and the boxplots below, it appears that PM2.5 concentrations have been steadily decreasing since 2010. The same trend is evident for NO2, but the decrease seems to be much more gradual relative to PM2.5. Finally, Ozone does not appear to be increasing or decreasing over the time period
+The Air Quality data is split into seasonal and yearly data, which gives us an idea of pollution in all of New York City's neighborhoods, and daily data, which is more precise with regards to time and location where the measurement was done, but is not available for all neighborhoods in New York City.
+
+## Seasonal and Yearly Data
+
+From the histogram and the boxplots below, it appears that PM2.5 concentrations have been steadily decreasing since 2010. The same trend is evident for NO2, but the decrease seems to be much more gradual relative to PM2.5. Finally, Ozone does not appear to be increasing or decreasing over the time period, but further analysis is needed to confirm this.
 
 ```{r, message = FALSE, echo = FALSE}
 df_histo_pm2.5 = 
@@ -44,7 +48,7 @@ df_histo_ozone =
 ```
 
 
-## Histogram of levels of air pollutants by year
+### Histogram of levels of NO2, O3 and PM2.5 by year
 
 ```{r}
 all_years = sort(unique(c(as.numeric(df_histo_pm2.5$year),
@@ -94,7 +98,7 @@ combined_fig = combined_fig |>
 combined_fig
 ```
 
-## Boxplots of levels of air pollutants by year 
+### Boxplots of levels of NO2, O3 and PM2.5 by year 
 
 ```{r}
 add_yearly_boxplots = function(data, years, name_prefix, visible) {
@@ -146,9 +150,106 @@ combined_boxplot_fig
 
 ```
 
-```{r}
+## Daily Data
 
+```{r message = FALSE, echo = FALSE}
+daily_air = read_csv(here::here("data/cleaned_data/alt_air_data.csv")) %>%
+  mutate(borough = case_when(
+    county == "New York" ~ "Manhattan",
+    county == "Bronx" ~ "Bronx",
+    county == "Kings" ~ "Brooklyn",
+    county == "Queens" ~ "Queens",
+    county == "Richmond" ~ "Staten Island"
+     ),
+    pollutant= case_when(
+    pollutant == "PM2.5" ~ "PM 2.5",
+    pollutant == "Ozone" ~ "O3",
+    T ~ pollutant )) %>% 
+  filter(pollutant != "CO") %>%
+  mutate(
+    pollutant = str_c(pollutant, " (", units, ")")
+  )
+  
 ```
+
+### Distributions of NO2, O3 and PM2.5 by borough
+
+```{r}
+daily_air %>%
+  ggplot() + geom_boxplot(aes(x = borough, y = value, fill = borough)) + 
+  labs(x = "Borough", y = "Measurement value", fill = "Borough") +
+  theme(axis.text.x  = element_text(angle=15)) +
+  facet_wrap(~pollutant, scales = 'free')
+```
+
+### Time series plots for select neighborhoods
+
+```{r}
+#this data maps measurement sites to neighborhoods
+
+sites_nghbors = read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
+```
+
+```{r message = FALSE, echo = FALSE}
+#Where Fresh Meadows is Queens and Willowbrook is in Staten Island
+#Hunts Point - Mott Haven is in Bronx
+
+#my neighborhoods on interest:
+
+neighborhoods = c("Washington Heights", "Union Square - Lower East Side",
+                  "Willowbrook", "Hunts Point - Mott Haven", "Fresh Meadows")
+
+store_data = vector("list", length = 5)
+
+for (i in 1:length(neighborhoods)) {
+  
+  n = neighborhoods[i]
+  
+  n_zips = sites_nghbors %>%
+  filter(geo_place_name == n) %>%
+  pull(zip_code)
+  
+  daily_data = daily_air %>%
+    filter(zip_code %in% n_zips) %>%
+    group_by(date, pollutant) %>%
+    summarize(mean_value = mean(value),
+              mean_scaled = mean(scaled_value)) %>%
+    mutate(neighborhood = n)
+  
+  store_data[[i]] = daily_data
+  
+}
+```
+
+```{r}
+daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
+  bind_rows(store_data[[3]]) %>%
+  bind_rows(store_data[[4]]) %>%
+  bind_rows(store_data[[5]]) %>%
+  mutate(date = as.Date(date, format = "%m/%d/%Y"))
+```
+
+```{r}
+daily_neighborhood_data %>%
+  filter(pollutant == "NO2") %>%
+  ggplot() + geom_line(aes(x = date, y = mean_value,
+                            group = neighborhood, color = neighborhood))
+```
+
+```{r}
+daily_neighborhood_data %>%
+  filter(pollutant == "") %>%
+  ggplot() + geom_line(aes(x = date, y = mean_value,
+                            group = neighborhood, color = neighborhood))
+```
+
+```{r}
+daily_neighborhood_data %>%
+  filter(pollutant == "PM2.5") %>%
+  ggplot() + geom_line(aes(x = date, y = mean_value,
+                            group = neighborhood, color = neighborhood))
+```
+
 
 # Disease EDA
 
