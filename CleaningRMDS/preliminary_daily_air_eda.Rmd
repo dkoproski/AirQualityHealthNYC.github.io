@@ -101,7 +101,6 @@ daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
 # Some time series stuff
 
 ```{r}
-
 daily_neighborhood_data %>%
   filter(pollutant == "NO2") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
@@ -123,14 +122,3 @@ daily_neighborhood_data %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
                             group = neighborhood, color = neighborhood))
 ```
-
-
-```{r}
-daily_air %>%
-  filter(pollutant == "PM2.5") %>%
-  group_by(site_name, aqs_parameter_desc) %>%
-  summarize(count = n())
-```
-
-
-
