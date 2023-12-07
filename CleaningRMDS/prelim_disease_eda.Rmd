@@ -8,6 +8,8 @@ output: html_document
 ```{r setup, include=FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(readr)
+library(janitor)
 ```
 
 ```{r}
@@ -46,13 +48,36 @@ pollutant_per_neighb <- read_csv(here::here('data/cleaned_data/pollutant_per_nei
 
 
 #cleaning second disease data
-joined_resp <- read_csv(here::here('data/cleaned_data/joined_respiratory.csv')) %>%
+joined_resp <- read_csv(here::here('data/cleaned_data/joined_respiratory.csv'),
+                        col_types = cols(
+                          `date` = col_date(format = '%m/%d/%y'))) %>%
+  separate(date, into = c('year', 'month', 'day')) %>%
   rename(zip_code = zip) %>%
   filter(!(zip_code == 'Citwide'),
          !(zip_code == '88888'),
          age_group == 'All age groups') %>%
-  
+  mutate(month = case_when(
+    month == '01' ~ 'January',
+    month == '02' ~ 'February',
+    month == '03' ~ 'March',
+    month == '04' ~ 'April',
+    month == '05' ~ 'May',
+    month == '06' ~ 'June',
+    month == '07' ~ 'July',
+    month == '08' ~ 'August',
+    month == '09' ~ 'September',
+    month == '10' ~ 'October',
+    month == '11' ~ 'November',
+    month == '12' ~ 'December'),
+    
+    year = as.integer(year))
 ```
+
+
+```{r}
+head(joined_resp)
+```
+
 
 
 ```{r}
