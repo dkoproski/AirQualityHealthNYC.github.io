@@ -10,28 +10,15 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(readr)
 library(janitor)
+library(ggplot2)
 ```
 
 ```{r}
-#loading solo disease 
-disease_solo <- read_csv(here::here('data/cleaned_data/disease_solo.csv'))
-
 #loading disease data
 disease_zip <- read_csv(here::here('data/cleaned_data/disease_zip.csv'))
 
 #loading alt/new air quality data
 air_quality <- read_csv(here::here('data/cleaned_data/alt_air_data.csv'))
-
-
-#loading older air quality data
-air_quality_zips <- read_csv(here::here('data/cleaned_data/air_quality_zips.csv'))
-
-
-
-
-
-#loading disease + air data
-air_quality_disease <- read_csv(here::here('data/cleaned_data/air_quality_disease.csv'))
 
 
 #loading previously joined data w extra disease data
@@ -43,10 +30,6 @@ air_disease <- read_csv('data/cleaned_data/final_airqualdis.csv')
 
 
 ```{r}
-#loading other datasets to preview & troubleshoot
-pollutant_per_neighb <- read_csv(here::here('data/cleaned_data/pollutant_per_neighborhood.csv'))
-
-
 #cleaning second disease data
 joined_resp <- read_csv(here::here('data/cleaned_data/joined_respiratory.csv'),
                         col_types = cols(
@@ -76,14 +59,55 @@ joined_resp <- read_csv(here::here('data/cleaned_data/joined_respiratory.csv'),
 
 
 ```{r}
-#joining both disease datasets
+#joining 2nd option (full_join)
+disease_data <- full_join(disease_zip, joined_resp, by = c('zip_code', 'year', 'month', 'day')) %>%
+  #deleting unness. columns
+  select(-extract_date, -age_group) %>%
+  #rearranging columns
+  select(year, month, day, zip_code, borough, neighborhood, total_ed_visits, ili_pne_visits, ili_pne_admissions, count_resp, count_asth)
+```
 
-left_joined <- left_join(disease_zip, joined_resp, by = c('zip_code', 'year', 'month', 'day'))
 
+Notes:
+
+Zipcodes in second disease that were not included in merging bc no data for it in first disease
+
+- 10271 (zero counts throughout all years) (299 rows)
+
+- 10278 (zero counts throughout) (879 rows)
+
+- 10279 (zero counts throughout) (124 rows)
+
+- 10464 (some dates missing)
+
+(Ended up keeping full joined data to preserve data, even though the majority that was in second but not in first had zeros for data. Additionally, keeping the NAs because don't want to alter to zeros because that may not be accurate data.)
+
+
+
+### Disease EDA
+
+```{r}
+disease_eda <- disease_data %>%
+  pivot_longer(cols = 'total_ed_visits':'count_asth',
+               names_to = 'illness_counts',
+               values_to = 'count')
 ```
 
 ```{r}
-full_joined <- full_join(disease_zip, joined_resp, by = c('zip_code', 'year', 'month', 'day'))
+#distribution of illness counts
+disease_eda %>%
+  ggplot(aes(x = count, fill = illness_counts)) +
+  geom_histogram() +
+  facet_wrap(~illness_counts, scales = 'free')
+```
+
+```{r}
+#distribution of illness counts by neighborhood
+disease_eda %>%
+  ggplot(aes(x = borough, y = count, fill = borough)) +
+  geom_boxplot() +
+  facet_wrap(~illness_counts, scales = 'free') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 
@@ -93,11 +117,5 @@ full_joined <- full_join(disease_zip, joined_resp, by = c('zip_code', 'year', 'm
 
 
 
-```{r}
-head(disease_zip)
-```
 
-```{r}
-head(joined_resp)
-```
 

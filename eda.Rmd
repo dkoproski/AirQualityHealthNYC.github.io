@@ -14,13 +14,13 @@ library(plotly)
 options(readr.show_col_types = FALSE)
 ```
 
-# Air quality EDA
+# Air Pollutant EDA
 
 The Air Quality data is split into seasonal and yearly data, which gives us an idea of pollution in all of New York City's neighborhoods, and daily data, which is more precise with regards to time and location where the measurement was done, but is not available for all neighborhoods in New York City.
 
 ## Seasonal and Yearly Data
 
-From the histogram and the boxplots below, it appears that PM2.5 concentrations have been steadily decreasing since 2010. The same trend is evident for NO2, but the decrease seems to be much more gradual relative to PM2.5. Finally, Ozone does not appear to be increasing or decreasing over the time period
+From the histogram and the boxplots below, it appears that PM2.5 concentrations have been steadily decreasing since 2010. The same trend is evident for NO2, but the decrease seems to be much more gradual relative to PM2.5. Finally, Ozone does not appear to be increasing or decreasing over the time period, but further analysis is needed to confirm this.
 
 ```{r, message = FALSE, echo = FALSE}
 df_histo_pm2.5 = 
@@ -48,7 +48,7 @@ df_histo_ozone =
 ```
 
 
-### Histogram of levels of air pollutants by year
+### Histogram of levels of NO2, O3 and PM2.5 by year
 
 ```{r}
 all_years = sort(unique(c(as.numeric(df_histo_pm2.5$year),
@@ -98,7 +98,7 @@ combined_fig = combined_fig |>
 combined_fig
 ```
 
-### Boxplots of levels of air pollutants by year 
+### Boxplots of levels of NO2, O3 and PM2.5 by year 
 
 ```{r}
 add_yearly_boxplots = function(data, years, name_prefix, visible) {
@@ -172,7 +172,7 @@ daily_air = read_csv(here::here("data/cleaned_data/alt_air_data.csv")) %>%
   
 ```
 
-### Distributions of pollutant measurements by borough
+### Distributions of NO2, O3 and PM2.5 by borough
 
 We see that at the borough-level, the daily measurements are similar for all pollutants. 
 
