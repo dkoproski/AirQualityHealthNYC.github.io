@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(readr)
 library(janitor)
+library(ggplot2)
 ```
 
 ```{r}
@@ -67,16 +68,6 @@ disease_data <- full_join(disease_zip, joined_resp, by = c('zip_code', 'year', '
 ```
 
 
-```{r}
-#data in full_joined that are not in left_join
-anti_full <- anti_join(full_joined, left_joined)
-```
-
-
-```{r}
-unique(anti_full$zip_code)
-```
-
 Notes:
 
 Zipcodes in second disease that were not included in merging bc no data for it in first disease
@@ -87,15 +78,42 @@ Zipcodes in second disease that were not included in merging bc no data for it i
 
 - 10279 (zero counts throughout) (124 rows)
 
-- 
+- 10464 (some dates missing)
 
-10464 (some dates missing)
-
-
+(Ended up keeping full joined data to preserve data, even though the majority that was in second but not in first had zeros for data. Additionally, keeping the NAs because don't want to alter to zeros because that may not be accurate data.)
 
 
 
+### Disease EDA
 
+```{r}
+disease_eda <- disease_data %>%
+  pivot_longer(cols = 'total_ed_visits':'count_asth',
+               names_to = 'illness_counts',
+               values_to = 'count')
+```
+
+```{r}
+#distribution of illness counts
+disease_eda %>%
+  ggplot(aes(x = count, fill = illness_counts)) +
+  geom_histogram() +
+  facet_wrap(~illness_counts, scales = 'free')
+```
+
+```{r}
+#distribution of illness counts by neighborhood
+disease_eda %>%
+  ggplot(aes(x = borough, y = count, fill = borough)) +
+  geom_boxplot() +
+  facet_wrap(~illness_counts, scales = 'free') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+```{r}
+
+```
 
 
 
