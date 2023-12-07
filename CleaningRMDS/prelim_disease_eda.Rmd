@@ -11,6 +11,27 @@ library(tidyverse)
 ```
 
 ```{r}
+#loading solo disease 
+disease_solo <- read_csv(here::here('data/cleaned_data/disease_solo.csv'))
+
+#loading disease data
+disease_zip <- read_csv(here::here('data/cleaned_data/disease_zip.csv'))
+
+#loading alt/new air quality data
+air_quality <- read_csv(here::here('data/cleaned_data/alt_air_data.csv'))
+
+
+#loading older air quality data
+air_quality_zips <- read_csv(here::here('data/cleaned_data/air_quality_zips.csv'))
+
+
+
+
+
+#loading disease + air data
+air_quality_disease <- read_csv(here::here('data/cleaned_data/air_quality_disease.csv'))
+
+
 #loading previously joined data w extra disease data
 air_disease <- read_csv('data/cleaned_data/final_airqualdis.csv')
 
@@ -23,12 +44,33 @@ air_disease <- read_csv('data/cleaned_data/final_airqualdis.csv')
 #loading other datasets to preview & troubleshoot
 pollutant_per_neighb <- read_csv(here::here('data/cleaned_data/pollutant_per_neighborhood.csv'))
 
-joined_resp <- read_csv(here::here('data/cleaned_data/joined_respiratory.csv'))
+
+#cleaning second disease data
+joined_resp <- read_csv(here::here('data/cleaned_data/joined_respiratory.csv')) %>%
+  rename(zip_code = zip) %>%
+  filter(!(zip_code == 'Citwide'),
+         !(zip_code == '88888'),
+         age_group == 'All age groups') %>%
+  
+```
+
+
+```{r}
+joined_resp %>%
+  filter(!(zip_code == 'Citwide'))
+```
+
+```{r}
+unique(joined_resp$zip_code)
 ```
 
 
 
 ```{r}
-unique(joined_resp$zip)
+#joining both disease datasets
+
+
+
 ```
+
 
