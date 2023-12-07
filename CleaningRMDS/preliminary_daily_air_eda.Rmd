@@ -48,16 +48,6 @@ daily_air %>%
 
 sites_nghbors = read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
 
-wash_heights = sites_nghbors %>%
-  filter(geo_place_name == "Washington Heights") %>%
-  pull(zip_code)
-
-daily_aq_wh = daily_air %>%
-  filter(zip_code %in% wash_heights) %>%
-  group_by(date, pollutant) %>%
-  summarize(mean_value = mean(value))
-
-
 ```
 
 ```{r}
