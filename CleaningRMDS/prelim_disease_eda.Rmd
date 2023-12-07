@@ -76,28 +76,98 @@ joined_resp <- read_csv(here::here('data/cleaned_data/joined_respiratory.csv'),
 
 
 ```{r}
-#joining both disease datasets
-
+#joining both disease datasets (left_join)
 left_joined <- left_join(disease_zip, joined_resp, by = c('zip_code', 'year', 'month', 'day'))
-
 ```
 
 ```{r}
+left_joined[!complete.cases(left_joined), ]
+```
+
+
+
+```{r}
+#joining 2nd option (full_join)
 full_joined <- full_join(disease_zip, joined_resp, by = c('zip_code', 'year', 'month', 'day'))
 ```
 
 
 ```{r}
+#exploring NAs in joined datasets
+anti_join(left_joined, full_joined, by = c('zip_code', 'year', 'month', 'day'))
+#left_join is ok.
+```
 
+```{r}
+#data in full_joined that are not in left_join
+anti_full <- anti_join(full_joined, left_joined)
+```
+
+```{r}
+#178 unique zip codes
+unique(disease_zip$zip_code)
+```
+
+```{r}
+unique(joined_resp$zip_code)
+```
+
+
+```{r}
+unique(anti_full$zip_code)
+```
+
+Notes:
+
+Zipcodes in second disease that were not included in merging bc no data for it in first disease
+
+- 10271 (zero counts throughout all years) (299 rows)
+
+- 10278 (zero counts throughout) (879 rows)
+
+- 10279 (zero counts throughout) (124 rows)
+
+- 
+
+
+
+10464
+
+
+```{r}
+joined_resp %>%
+  filter(zip_code == '10271')
+```
+
+
+```{r}
+joined_resp %>%
+  filter(zip_code == '10464')
+```
+
+
+```{r}
+disease_zip %>%
+  filter(zip_code == '10464')
+```
+
+
+```{r}
+anti_join(disease_zip, joined_resp) %>%
+  filter(zip_code == '10464')
+```
+
+
+```{r}
+anti_join(joined_resp, disease_zip, by = c('zip_code', 'month', 'day', 'year')) %>%
+  filter(zip_code == '10464')
 ```
 
 
 
 ```{r}
-head(disease_zip)
+anti_full %>%
+  filter(zip_code == '10464')
 ```
 
-```{r}
-head(joined_resp)
-```
 
