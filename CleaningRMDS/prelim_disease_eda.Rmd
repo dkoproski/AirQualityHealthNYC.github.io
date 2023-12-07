@@ -70,32 +70,34 @@ joined_resp <- read_csv(here::here('data/cleaned_data/joined_respiratory.csv'),
     month == '11' ~ 'November',
     month == '12' ~ 'December'),
     
-    year = as.integer(year))
+    year = as.integer(year),
+    zip_code = as.double(zip_code))
 ```
-
-
-```{r}
-head(joined_resp)
-```
-
-
-
-```{r}
-joined_resp %>%
-  filter(!(zip_code == 'Citwide'))
-```
-
-```{r}
-unique(joined_resp$zip_code)
-```
-
 
 
 ```{r}
 #joining both disease datasets
 
-
+left_joined <- left_join(disease_zip, joined_resp, by = c('zip_code', 'year', 'month', 'day'))
 
 ```
 
+```{r}
+full_joined <- full_join(disease_zip, joined_resp, by = c('zip_code', 'year', 'month', 'day'))
+```
+
+
+```{r}
+
+```
+
+
+
+```{r}
+head(disease_zip)
+```
+
+```{r}
+head(joined_resp)
+```
 
