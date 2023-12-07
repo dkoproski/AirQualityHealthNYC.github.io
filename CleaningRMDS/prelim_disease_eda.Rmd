@@ -13,7 +13,7 @@ library(janitor)
 library(ggplot2)
 ```
 
-```{r}
+```{r, message= FALSE}
 #loading disease data
 disease_zip <- read_csv(here::here('data/cleaned_data/disease_zip.csv'))
 
@@ -23,6 +23,10 @@ air_quality <- read_csv(here::here('data/cleaned_data/alt_air_data.csv'))
 
 #loading previously joined data w extra disease data
 air_disease <- read_csv('data/cleaned_data/final_airqualdis.csv')
+
+#loading zip code data
+zip_shapes <- read_csv(here::here('data/cleaned_shapes/zip_shapes.csv')) %>%
+  clean_names()
 
 
 #lots of NAs for most recently joined disease data
@@ -67,6 +71,11 @@ disease_data <- full_join(disease_zip, joined_resp, by = c('zip_code', 'year', '
   select(year, month, day, zip_code, borough, neighborhood, total_ed_visits, ili_pne_visits, ili_pne_admissions, count_resp, count_asth)
 ```
 
+```{r}
+#adding missing zip code
+disease_data <- left_join(disease_data, )
+```
+
 
 Notes:
 
@@ -90,14 +99,17 @@ Zipcodes in second disease that were not included in merging bc no data for it i
 disease_eda <- disease_data %>%
   pivot_longer(cols = 'total_ed_visits':'count_asth',
                names_to = 'illness_counts',
-               values_to = 'count')
+               values_to = 'count') %>%
+  mutate(month_num = match(month, month.name),
+         date = as.Date(paste(year, month_num, day, sep = '-'),
+                        format = '%Y-%m-%d'))
 ```
 
 ```{r}
 #distribution of illness counts
 disease_eda %>%
   ggplot(aes(x = count, fill = illness_counts)) +
-  geom_histogram() +
+  geom_histogram(bins = 15) + 
   facet_wrap(~illness_counts, scales = 'free')
 ```
 
@@ -111,11 +123,111 @@ disease_eda %>%
 ```
 
 
-```{r}
+### Observing Washington Heights and Union Square
 
+```{r, message = FALSE}
+#prepping for time series
+
+sites_neighb <- read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
+
+washington_heights <- sites_neighb %>%
+  filter(geo_place_name == 'Washington Heights') %>%
+  pull(zip_code)
+
+counts_wh <- disease_eda %>%
+  filter(zip_code %in% washington_heights) %>%
+  group_by(date, illness_counts) %>%
+  summarize(total_counts = sum(count))
+```
+
+```{r, message = FALSE}
+#neighborhoods of interest
+neighborhoods = c("Washington Heights", "Union Square - Lower East Side",
+                  "Willowbrook", "Hunts Point - Mott Haven", "Fresh Meadows")
+
+store_data = vector("list", length = 5)
+
+for (i in 1:length(neighborhoods)) {
+  
+  n = neighborhoods[i]
+  
+  n_zips = sites_neighb %>%
+  filter(geo_place_name == n) %>%
+  pull(zip_code)
+  
+  counts_data = disease_eda %>%
+    filter(zip_code %in% n_zips) %>%
+    group_by(date, illness_counts) %>%
+    summarize(total_counts = sum(count)) %>%
+    mutate(neighborhood = n)
+  
+  store_data[[i]] = counts_data}
+```
+
+```{r}
+#combining data above
+daily_ill_counts_neigh <- bind_rows(store_data[[1]], store_data[[2]]) %>%
+  bind_rows(store_data[[3]]) %>%
+  bind_rows(store_data[[4]]) %>%
+  bind_rows(store_data[[5]]) %>%
+  mutate(date = as.Date(date, format = '%Y-%m-%d'))
 ```
 
 
 
+```{r}
+#time series...
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'count_asth') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
 
 
+```{r}
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'count_resp') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
+
+
+```{r}
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'ili_pne_admissions') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
+
+
+```{r}
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'ili_pne_visits') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
+
+
+```{r}
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'total_ed_visits') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
+
+
+```{r}
+daily_ill_counts_neigh %>%
+  filter(illness_counts != 'total_ed_visits') %>%
+  pivot_wider(names_from = illness_counts, 
+              values_from = total_counts) %>%
+  mutate(totals = count_asth + count_resp) %>%
+  ggplot(aes(x = date, y = totals,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
