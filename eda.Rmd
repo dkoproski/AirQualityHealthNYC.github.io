@@ -174,6 +174,8 @@ daily_air = read_csv(here::here("data/cleaned_data/alt_air_data.csv")) %>%
 
 ### Distributions of NO2, O3 and PM2.5 by borough
 
+We see that at the borough-level, the daily measurements are similar for all pollutants. 
+
 ```{r}
 daily_air %>%
   ggplot() + geom_boxplot(aes(x = borough, y = value, fill = borough)) + 
@@ -183,6 +185,8 @@ daily_air %>%
 ```
 
 ### Time series plots for select neighborhoods
+
+In these time series plots, each line represents the mean measurement per day for measurements taken in that neighborhood. The neighborhoods follow similar trends: NO2 seems to peak sometime between winter and spring, while O3 peaks in the summers and PM 2.5 peaks in the winter.
 
 ```{r}
 #this data maps measurement sites to neighborhoods
@@ -231,23 +235,39 @@ daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
 
 ```{r}
 daily_neighborhood_data %>%
-  filter(pollutant == "NO2") %>%
+  filter(pollutant == "NO2 (ppb)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
-                            group = neighborhood, color = neighborhood))
+                            group = neighborhood, color = neighborhood)) +
+  scale_color_manual(values = c("red", "blue", 
+                                    "green","orange", 
+                                    "black")) +
+  labs(title = "NO2 measurements per neighborhood", x = "Date", 
+       y = "Mean measurement (ppb)", color = "Neighborhood")
+```
+
+
+```{r}
+daily_neighborhood_data %>%
+  filter(pollutant == "O3 (ppm)") %>%
+  ggplot() + geom_line(aes(x = date, y = mean_value,
+                            group = neighborhood, color = neighborhood)) +
+  scale_color_manual(values = c("red", "blue", 
+                                    "green","orange", 
+                                    "black")) +
+  labs(title = "O3 measurements per neighborhood", x = "Date", 
+       y = "Mean measurement (ppm)", color = "Neighborhood")
 ```
 
 ```{r}
 daily_neighborhood_data %>%
-  filter(pollutant == "") %>%
+  filter(pollutant == "PM 2.5 (ug/m3 LC)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
-                            group = neighborhood, color = neighborhood))
-```
-
-```{r}
-daily_neighborhood_data %>%
-  filter(pollutant == "PM2.5") %>%
-  ggplot() + geom_line(aes(x = date, y = mean_value,
-                            group = neighborhood, color = neighborhood))
+                            group = neighborhood, color = neighborhood)) +
+  scale_color_manual(values = c("red", "blue", 
+                                    "black",
+                                    "green","orange")) +
+  labs(title = "PM 2.5 measurements per neighborhood", x = "Date", 
+       y = "Mean measurement (ug/m3 LC)", color = "Neighborhood")
 ```
 
 
