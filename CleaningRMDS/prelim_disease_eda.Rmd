@@ -25,7 +25,7 @@ air_quality <- read_csv(here::here('data/cleaned_data/alt_air_data.csv'))
 air_disease <- read_csv('data/cleaned_data/final_airqualdis.csv')
 
 #loading zip code data
-zip_shapes <- read_csv(here::here('data/cleaned_shapes/zip_shapes.csv')) %>%
+zip_shapes <- read_csv(here::here('data/cleaned_shapes/nyc_zip_codes.csv')) %>%
   clean_names()
 
 
@@ -66,14 +66,47 @@ joined_resp <- read_csv(here::here('data/cleaned_data/joined_respiratory.csv'),
 #joining 2nd option (full_join)
 disease_data <- full_join(disease_zip, joined_resp, by = c('zip_code', 'year', 'month', 'day')) %>%
   #deleting unness. columns
-  select(-extract_date, -age_group) %>%
-  #rearranging columns
-  select(year, month, day, zip_code, borough, neighborhood, total_ed_visits, ili_pne_visits, ili_pne_admissions, count_resp, count_asth)
+  select(-extract_date, -age_group, -borough, -neighborhood)
 ```
 
 ```{r}
 #adding missing zip code
-disease_data <- left_join(disease_data, )
+disease_data <- left_join(disease_data, zip_shapes, by = 'zip_code')
+```
+
+
+```{r}
+na_borough <- disease_data %>%
+  filter(is.na(borough))
+#none of these zipcodes appear in zip_shapes (9 zipcodes)
+unique(na_borough$zip_code)
+#10271 - no data in first disease
+#10278 - no data in first disease
+#10279 - ''''
+#11003 - ''''
+#11040 - ''''
+```
+
+```{r}
+na_borough_disease1 <- disease_zip %>%
+  filter(is.na(borough))
+
+unique(na_borough_disease1$zip_code)
+```
+
+```{r}
+disease_zip %>%
+  filter(zip_code == '11040')
+```
+
+```{r}
+na_borough %>%
+  filter(zip_code == '10271')
+```
+
+```{r}
+disease_zip %>%
+  filter(neighborhood == 'Financial District')
 ```
 
 
