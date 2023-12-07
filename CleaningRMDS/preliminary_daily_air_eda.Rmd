@@ -125,6 +125,12 @@ daily_neighborhood_data %>%
 ```
 
 
+```{r}
+daily_air %>%
+  filter(pollutant == "PM2.5") %>%
+  group_by(site_name, aqs_parameter_desc) %>%
+  summarize(count = n())
+```
 
 
 
