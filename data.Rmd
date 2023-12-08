@@ -7,7 +7,7 @@ output:
     code_folding: hide
 ---
 
-This project uses publicly available data from multiple sources in its analysis.
+This project uses publicly available data from multiple sources in its analysis.We initially used one air quality dataset and an accompanying hospitalization dataset, but we later added a shape dataset for more robust location data, another air quality dataset with daily observations and another hospitalization dataset with more information on respiratory hospitalizations.
 
 ## New York City Air Quality Datasets
 
@@ -25,6 +25,5 @@ Since 2008, the City of New York has actively maintained a dataset of up to date
 
 The City of New York actively updates a public dataset containing the count of hospitalizations due to asthma, diarrhea, influenza-like illness, respiratory diseases and vomit for each zip code in NYC. Data collection began in 2016 and was last updated in early 2023. The data can be viewed [here](https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&PopulationSource=Syndromic) and subsets of the data can be selected and downloaded for use.
 
-## Geographic Location Dataset and Shape Files
 
 
