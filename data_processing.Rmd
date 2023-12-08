@@ -4,7 +4,7 @@ output:
   html_document:
     toc: true
     toc_float: true
-    code_folding: hide
+    code_folding: show
 ---
 
 ```{r setup, include=FALSE}
@@ -14,7 +14,7 @@ library(plotly)
 options(readr.show_col_types = FALSE)
 ```
 
-# Merging `joined_respiratory.csv` and `air_quality_disease.csv`
+# Disease dataset: merging hospitalization/emergency department data involving asthma counts, respiratory diseases and pneumonia
 
 ````{r, message = FALSE}
 # Load dataset with respiratory and asthma counts (missing some zipcodes)
@@ -42,9 +42,11 @@ dis_pneu_df = read_csv("data/raw_data/disease_hospital_admin.csv") |>
 
 all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c("month", "day", "year", "zip"))
+```
 
-# Now merge disease with air quality dataset
+# Air quality dataset
 
+```{r}
 air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |> 
   separate(date, into=c("month", "day", "year")) |>
   mutate(day = as.numeric(day),
@@ -56,12 +58,14 @@ air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |>
   select(year, month, day, zip, pollutant, value) |> 
   group_by(day, month, year, zip, pollutant) |> 
   summarize(value = mean(value))
+```
 
-### note: removed acceptable pm2.5... from https://www.epa.gov/aqs/aqs-memos-technical-note-reporting-pm25-continuous-monitoring-and-speciation-data-air-quality
+# Merging air quality data with disease data
 
-# Finally merge disease and air qual data together
+``` {r}
+# Finally merge disease and air_qual data together
 
-air_qual_dis = # with value
+air_qual_dis = 
   full_join(all_dis_df, air_qual_df, by = c("month", "day", "year", "zip")) |>  
   mutate(
     numeric_month = match(month, month.name),
@@ -77,14 +81,10 @@ air_qual_dis = # with value
          o3_ppm = Ozone,
          no2_ppb = NO2) |> 
   filter(!(year == '2022' & month == 'December')) 
-
-# measurement: ozone (daily_max_8_hour_ozone_concentration)
-# co (daily_max_8_hour_co_concentration)
-# pm2.5 (daily_mean_pm2_5_concentration)
-# no2 (daily_max_1_hour_no2_concentration)
 ```
 
-# Compare two air quality datasets (daily vs. seasonal/annual)
+
+# !!! do we still need this chunk below? it was to compare two air quality datasets (daily vs. seasonal/annual)
 
 ```{r, eval = F}
 airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |> 
@@ -134,111 +134,5 @@ airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |>
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-```{r, eval = F, message = FALSE}
-# EDA
-
-## Histograms
-ggplot(aes(x = date), data = air_qual_dis) +
-  geom_point(aes(y = co_ppm, color = "CO"), size = 1) +
-  geom_point(aes(y = o3_ppm, color = "O3"), size = 1) +
-  labs(x = "Date", y = "Pollutant Level", color = "Pollutant") +
-  scale_color_manual(values = c("PM2.5" = "blue", "CO" = "green", "O3" = "red", "NO2" = "purple")) +
-  theme_minimal()
-
-ggplot(aes(x = date), data = air_qual_dis) +
-  #geom_point(aes(y = pm25_ug_m3_lc, color = "PM2.5"), size = 1) +
-  #geom_point(aes(y = co_ppm, color = "CO"), size = 1) +
-  geom_point(aes(y = o3_ppm, color = "O3"), size = 1) +
-  #geom_point(aes(y = no2_ppb, color = "NO2"), size = 1) +
-  labs(x = "Date", y = "Pollutant Level", color = "Pollutant") +
-  scale_color_manual(values = c("PM2.5" = "blue", "CO" = "green", "O3" = "red", "NO2" = "purple")) +
-  theme_minimal()
-
-
-ggplot(aes(x = pm25_ug_m3_lc), data = air_qual_dis) + geom_histogram() 
-ggplot(aes(x = co_ppm), data = air_qual_dis) + geom_histogram() 
-ggplot(aes(x = o3_ppm), data = air_qual_dis) + geom_histogram() 
-ggplot(aes(x = no2_ppb), data = air_qual_dis) + geom_histogram() 
-ggplot(aes(x = sqrt(total_ed_visits)), data = air_qual_dis) + geom_histogram() 
-
-ggplot(aes(x = ili_pne_visits), data = air_qual_dis) + geom_histogram() 
-ggplot(aes(x = ili_pne_admissions), data = air_qual_dis) + geom_histogram() 
-
-MASS::boxcox(lm(total_ed_visits ~ 1, data = air_qual_dis))
-
-
-
-model1 = lm(count_resp ~ pm25_ug_m3_lc+co_ppm+o3_ppm+no2_ppb, data = air_qual_dis_aqi)
-summary(model1)
-model2 = lm(count_asth ~ pm25_ug_m3_lc+co_ppm+o3_ppm+no2_ppb, data = air_qual_dis_aqi)
-summary(model2)
-model3 = lm(total_ed_visits ~ pm25_ug_m3_lc+co_ppm+o3_ppm+no2_ppb, data = air_qual_dis_aqi)
-summary(model3)
-model4 = lm(ili_pne_visits ~ pm25_ug_m3_lc+co_ppm+o3_ppm+no2_ppb, data = air_qual_dis_aqi)
-summary(model4)
-model5 = lm(ili_pne_admissions ~ pm25_ug_m3_lc+co_ppm+o3_ppm+no2_ppb, data = air_qual_dis_aqi)
-summary(model5)
-base_model = lm(total_ed_visits ~ pm25_ug_m3_lc, data = air_qual_dis_aqi)
-
-model = base_model |> MASS::stepAIC(direction = "both", trace = 0)
-summary(model)
-
-model1 |> ggplot(aes(x = pm25_ug_m3_lc, y = total_ed_visits)) + geom_point()
-```
-
-
-```{r, eval = F, message = FALSE}
-# Old code
-library(tidyverse)
-
-# Load dataset with respiratory and asthma counts
-dis_df = read_csv("data/cleaned_data/joined_respiratory.csv") |> 
-  filter(zip != 88888 & zip != "Citwide" & age_group == "All age groups") |> 
-  mutate(date = as.Date(format(as.Date(date, "%m/%d/%y"))),
-         year = as.numeric(format(date, format = "%Y")),
-         month = month.name[as.numeric(format(date, format = "%m"))],
-         day = as.numeric(format(date, format = "%d")),
-         zip = as.numeric(zip)) |>
-  select(-date, -age_group)
-
-# Load cleaned air quality dataset that has been merged with disease
-air_dis_df = read_csv("data/cleaned_data/air_quality_disease.csv") |> 
-  rename(zip = zip_code) |> 
-  mutate(day = as.numeric(day)) |> 
-  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, everything())
-
-# Merge two datasets
-all_dis_df =
-  left_join(air_dis_df, dis_df, by = c("month", "day", "year", "zip")) |> 
-  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, count_resp, count_asth, everything())
-
-# Realized many NAs, suspect zipcode and date NAs
-checkdate_perzip_airdis = airqual_annual |> 
-  group_by(geo_place_name) |> 
-  summarize(count = n())
-
-checkdate_perzip_dis = dis_df |> 
-  group_by(zip) |> 
-  summarize(count = n())
-
-# Load cleaned air quality dataset that has been merged with disease
-air_dis_df = read_csv("data/cleaned_data/air_quality_disease.csv") |> 
-  rename(zip = zip_code) |> 
-  mutate(day = as.numeric(day)) |> 
-  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, everything())
-
-# Found many NAs in air_quality_disease.csv - need revision
-```
 
 
