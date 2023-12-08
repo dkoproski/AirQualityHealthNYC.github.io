@@ -104,7 +104,7 @@ df_air_geo =
 
 DF for Boxplots according to Borough
 ```{r message = FALSE}
-daily_air = read_csv(here::here("data/cleaned_data/alt_air_data.csv")) %>%
+daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
   mutate(borough = case_when(
     county == "New York" ~ "Manhattan",
     county == "Bronx" ~ "Bronx",
@@ -476,7 +476,7 @@ m
 Time series plots were created for daily air concentrations. Trend and seasonal patterns of CO, O3, and N02 showed oscillations throughout the year. Specifically, O3 showed the a greater difference and reached high levels during the summer month a opposed to NO2 which peaked in the winter. PM2.4 should a steady concentration trend and did not display seasonal patterns. Similarly, time series plot in regards to daily ER visit and disease counts were generated, showing that asthma and respiratory diseases did not have a seasonal pattern. However, pneumonia ER visits did peak during the winter months. 
 
 ```{r, out.width = '100%', message = F}
-air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |> 
+air_qual_df = read_csv("data/raw_data/alt_air_data.csv") |> 
   separate(date, into=c("month", "day", "year")) |>
   mutate(day = as.numeric(day),
          month = month.name[as.numeric(month)],
@@ -513,18 +513,34 @@ poll_plot
 ```
 
 ```{r, out.width = '100%', message = F, warning = F}
-all_dis_plot_df = read_csv("data/cleaned_data/disease_only.csv") |>
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
-  ) |> 
-  select(-day, -month, -year, -numeric_month, -total_ed_visits) |> 
+
+dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
+                       col_types = cols(
+                          `date` = col_date(format = '%m/%d/%y'))) |> 
+  rename(zip_code = zip) |> 
+  filter(zip_code != 88888 & zip_code != "Citwide" & age_group == "All age groups") |> 
+  mutate(zip_code = as.numeric(zip_code)) |>
+  select(date, zip_code, count_resp, count_asth)
+
+dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
+                       col_types = cols(
+                                     `date` = col_date(format = "%m/%d/%Y"),
+                                     `total_ed_visits` = col_integer(),
+                                     `ili_pne_visits` = col_integer(),
+                                     `ili_pne_admissions` = col_integer())) |> 
+  rename(zip_code = mod_zcta) |> 
+  select(date, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions)
+
+all_dis_df =
+  full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "date"))
+
+# Alter data to fit plot
+all_dis_plot_df = all_dis_df |>
   pivot_longer(cols = c("count_resp", "count_asth", "ili_pne_visits", "ili_pne_admissions"), 
                names_to = "variable",
                values_to = "count")
 
 dis_plot = all_dis_plot_df |> 
-  
   mutate(variable = case_when(
       variable =="count_resp" ~ "Respiratory diseases",
       variable =="count_asth" ~ "Asthma",

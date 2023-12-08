@@ -374,7 +374,7 @@ class="section level3">
 asthma counts, respiratory diseases and pneumonia</em></h3>
 <pre class="r"><code># Load dataset with respiratory and asthma counts (missing some zipcodes)
 
-dis_asth_df = read_csv(here::here(&quot;data/cleaned_data/joined_respiratory.csv&quot;),
+dis_asth_df = read_csv(here::here(&quot;data/raw_data/joined_respiratory.csv&quot;),
                        col_types = cols(
                           `date` = col_date(format = &#39;%m/%d/%y&#39;))) |&gt; 
   rename(zip_code = zip) |&gt; 
@@ -535,7 +535,7 @@ disease_air &lt;- full_join(daily_disease_neigh, air_neighb, by = c(&#39;date&#3
 </div>
 <div id="air-quality-dataset" class="section level1">
 <h1>Air quality dataset</h1>
-<pre class="r"><code>air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt; 
+<pre class="r"><code>air_qual_df = read_csv(&quot;data/raw_data/alt_air_data.csv&quot;) |&gt; 
   separate(date, into=c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;)) |&gt;
   mutate(day = as.numeric(day),
          month = month.name[as.numeric(month)],

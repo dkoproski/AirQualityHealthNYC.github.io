@@ -164,7 +164,7 @@ After restricting our analysis to roughly 2020 to 2022, we generate visualizatio
 This makes sense intuitively, as we would expect higher emissions from heating and transportation to gather in urban regions due to colder temperatures, leading to higher levels of Nitrogen Dioxide and Carbon Monoxide. In fact, [epidemics of CO poisoning](https://pubmed.ncbi.nlm.nih.gov/9950394/) commonly occurs during winter months and sources include smoke from fires, fumes from heating systems burning fuels, and exhaust fumes from motor vehicles. On the other hand, according to the [American Lung Association](https://www.lung.org/clean-air/outdoors/what-makes-air-unhealthy/ozone#), high levels of Ozone are more likely to form in warmer temperatures, which is why harmful ozone levels primarily occur in the summer in most of the US because climate change is driving warmer temperatures.
 
 ```{r, out.width = '100%', message = F}
-air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |> 
+air_qual_df = read_csv("data/raw_data/alt_air_data.csv") |> 
   separate(date, into=c("month", "day", "year")) |>
   mutate(day = as.numeric(day),
          month = month.name[as.numeric(month)],
@@ -201,7 +201,7 @@ poll_plot
 ```
 
 ```{r message = FALSE, echo = FALSE}
-daily_air = read_csv(here::here("data/cleaned_data/alt_air_data.csv")) %>%
+daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
   mutate(borough = case_when(
     county == "New York" ~ "Manhattan",
     county == "Bronx" ~ "Bronx",
@@ -330,7 +330,7 @@ Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we
 
 # Load datasets we need for disease EDA
 
-dis_asth_df = read_csv(here::here("data/cleaned_data/joined_respiratory.csv"),
+dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
                        col_types = cols(
                           `date` = col_date(format = '%m/%d/%y'))) |> 
   rename(zip_code = zip) |> 
