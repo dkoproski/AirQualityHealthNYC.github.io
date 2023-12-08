@@ -17,16 +17,15 @@ library(ggplot2)
 #loading disease data
 disease_zip <- read_csv(here::here('data/cleaned_data/disease_zip.csv'))
 
-#loading alt/new air quality data
-air_quality <- read_csv(here::here('data/cleaned_data/alt_air_data.csv'))
-
-
 #loading previously joined data w extra disease data
 air_disease <- read_csv('data/cleaned_data/final_airqualdis.csv')
 
 #loading zip code data
 zip_shapes <- read_csv(here::here('data/cleaned_shapes/nyc_zip_codes.csv')) %>%
   clean_names()
+
+#loading new air neigh data
+air_neighb <- read_csv(here::here('data/cleaned_data/air_neighborhood.csv'))
 
 
 #lots of NAs for most recently joined disease data
@@ -79,18 +78,23 @@ disease_data <- left_join(disease_data, zip_shapes, by = 'zip_code') %>%
       zip_code == '10282' ~ 'Lower Manhattan',
       zip_code == '10271' ~ 'Lower Manhattan',
       zip_code == '10278' ~ 'Lower Manhattan',
-      zip_code == '10279' ~ 'Lower Manhattan'
+      zip_code == '10279' ~ 'Lower Manhattan',
       #zip_code == '11003' ~ 10000 (deal w these)
       #zip_code == '11040'
-      ),
-    
+      TRUE ~ neighborhood),
+  
     borough = case_when(
       zip_code == '10069' ~ 'Manhattan',
       zip_code == '11109' ~ 'Queens',
       zip_code == '10282' ~ 'Manhattan',
       zip_code == '10271' ~ 'Manhattan',
       zip_code == '10278' ~ 'Manhattan',
-      zip_code == '10279' ~ 'Manhattan'))
+      zip_code == '10279' ~ 'Manhattan',
+      TRUE ~ borough)) %>%
+  
+  filter(!(zip_code == '10000'),
+         !(zip_code == '11003'),
+         !(zip_code == '11040'))
 ```
 
 
@@ -142,10 +146,6 @@ na_borough %>%
   filter(zip_code == '10271')
 ```
 
-```{r}
-disease_zip %>%
-  filter(neighborhood == 'Financial District')
-```
 
 
 Notes:
@@ -245,7 +245,6 @@ daily_ill_counts_neigh <- bind_rows(store_data[[1]], store_data[[2]]) %>%
 ```
 
 
-
 ```{r}
 #time series...
 daily_ill_counts_neigh %>%
@@ -253,6 +252,7 @@ daily_ill_counts_neigh %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
+#lots of zeros
 ```
 
 
@@ -262,15 +262,7 @@ daily_ill_counts_neigh %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
-```
-
-
-```{r}
-daily_ill_counts_neigh %>%
-  filter(illness_counts == 'ili_pne_admissions') %>%
-  ggplot(aes(x = date, y = total_counts,
-             group = neighborhood, color = neighborhood)) +
-  geom_line()
+#lots of zeros
 ```
 
 
@@ -302,3 +294,28 @@ daily_ill_counts_neigh %>%
              group = neighborhood, color = neighborhood)) +
   geom_line()
 ```
+
+
+### Joining Disease w Air Quality
+
+```{r}
+#focusing on dates between March 1, 2020 and November 2022
+disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
+  filter(date >= '2020-03-01' & date < '2022-12-01')
+```
+
+```{r}
+disease_air[!complete.cases(disease_air), ]
+#union sq - no data from march to sept 2020
+#wash heigh - no data for may 12 2020, june 17/18 2020
+
+```
+
+
+
+
+
+
+
+
+
