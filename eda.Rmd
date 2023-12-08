@@ -21,7 +21,7 @@ The Air Quality data is split into two parts. One consists of seasonal and yearl
 
 ## **Seasonal and Yearly Data**
 
-We began by examining the seasonal/yearly data to get a general idea of NYC's air quality trends between 2010-2021. From the histogram and the boxplots below, it appears that PM2.5 concentrations have been steadily decreasing since 2010. The same trend is evident for NO2, but the decrease seems to be much more gradual relative to PM2.5. Finally, Ozone does not appear to be increasing or decreasing over the time period, but further analysis is needed to confirm this.
+We began by examining the seasonal/yearly data to get a general idea of NYC's air quality trends between 2010-2021. From the histogram and the boxplots below, it appears that PM2.5 concentrations have been steadily decreasing since 2010. The same trend is evident for NO2, but the decrease seems to be much more gradual relative to PM2.5. Finally, Ozone does not appear to be increasing or decreasing over the time period, but further analysis is needed to confirm this trend.
 
 ```{r, message = FALSE, echo = FALSE}
 
@@ -375,4 +375,3 @@ dis_plot = all_dis_plot_df |>
 dis_plot
 ```
 
-### Boxplots of respiratory related hospitalizations
