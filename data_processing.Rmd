@@ -16,6 +16,45 @@ library(readr)
 options(readr.show_col_types = FALSE)
 ```
 
+# Data cleaning done on neighborhood-level air quality dataset
+
+This dataset has neighborhood-level air quality data. It has 6300 rows and 16 columns.
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(sf)
+library(sfheaders)
+
+df_air = read_csv(here::here("data/raw_data/air_quality.csv")) %>%
+  janitor::clean_names() %>%
+  select(-message) %>%
+  mutate(id = as.character(geo_join_id)) %>%
+  filter(geo_type_name == "UHF42")
+
+#shapefiles aren't in the repository due to their size
+air_shapes = read_sf(dsn = "raw_shapes/", layer = "UHF42") %>%
+  filter(id != "0") %>%
+  st_transform(crs= st_crs(zip_shapes)) %>%
+  rename(geo_join_id = id) %>%
+  mutate(geo_join_id = as.numeric(geo_join_id))
+
+df_air = df_air %>%
+  left_join(air_shapes) %>%
+   mutate(x_center = map_dbl(geometry, ~st_point_on_surface(.x)[[1]]),
+         y_center = map_dbl(geometry, ~st_point_on_surface(.x)[[2]]),
+         intplon10 = x_center, intplat10 = y_center) #I do this so that the 
+        #zip_code shape files and UHF air quality shapefiles have the same 
+        #variable names for the point in the center of polygons
+        #Otherwise, code done with zip_code shapefiles would need to be
+        #edited to account for these new variable names
+
+df_air %>%
+  select(-geometry) %>% 
+  write_csv(here::here("data/cleaned_data/uhf_airquality.csv"))
+```
+
+
+
 # Disease dataset
 
 ### *Merging hospitalization/emergency department data involving asthma counts, respiratory diseases and pneumonia*
