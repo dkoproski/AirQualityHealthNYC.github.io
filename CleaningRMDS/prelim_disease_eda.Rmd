@@ -97,7 +97,7 @@ disease_data <- left_join(disease_data, zip_shapes, by = 'zip_code') %>%
          !(zip_code == '11040'))
 ```
 
-
+code below used for checking zip codes w NA's in borough and neighb.
 ```{r}
 #zip techn doesnt exist within nyc
 disease_data %>%
@@ -115,7 +115,6 @@ disease_data %>%
 disease_data %>%
   filter(zip_code == '11040')
 ```
-
 
 ```{r}
 na_borough <- disease_data %>%
@@ -135,18 +134,6 @@ na_borough_disease1 <- disease_zip %>%
 
 unique(na_borough_disease1$zip_code)
 ```
-
-```{r}
-disease_zip %>%
-  filter(zip_code == '11040')
-```
-
-```{r}
-na_borough %>%
-  filter(zip_code == '10271')
-```
-
-
 
 Notes:
 
@@ -173,7 +160,14 @@ disease_eda <- disease_data %>%
                values_to = 'count') %>%
   mutate(month_num = match(month, month.name),
          date = as.Date(paste(year, month_num, day, sep = '-'),
-                        format = '%Y-%m-%d'))
+                        format = '%Y-%m-%d'),
+         
+         illness_counts = case_when(
+           illness_counts == 'total_ed_visits' ~ 'ED visits (overall)',
+           illness_counts == 'ili_pne_visits' ~ 'Pneumonia (ER visits)',
+           illness_counts == 'ili_pne_admissions' ~ 'Pneumonia (ER admissions)',
+           illness_counts == 'count_resp' ~ 'Respiratory diseases',
+           illness_counts == 'count_asth' ~ 'Asthma'))
 ```
 
 ```{r}
@@ -248,7 +242,7 @@ daily_ill_counts_neigh <- bind_rows(store_data[[1]], store_data[[2]]) %>%
 ```{r}
 #time series...
 daily_ill_counts_neigh %>%
-  filter(illness_counts == 'count_asth') %>%
+  filter(illness_counts == 'Asthma') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
@@ -258,7 +252,7 @@ daily_ill_counts_neigh %>%
 
 ```{r}
 daily_ill_counts_neigh %>%
-  filter(illness_counts == 'count_resp') %>%
+  filter(illness_counts == 'Respiratory diseases') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
@@ -268,7 +262,19 @@ daily_ill_counts_neigh %>%
 
 ```{r}
 daily_ill_counts_neigh %>%
-  filter(illness_counts == 'ili_pne_visits') %>%
+  filter(illness_counts == 'Pneumonia (ER visits)') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+
+#decide against pneumonia (ER admissions) bc visits would be higher
+#more likely to have more zeros in admissions, and EDA showed it. 
+```
+
+
+```{r}
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'ED visits (overall)') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
@@ -277,19 +283,10 @@ daily_ill_counts_neigh %>%
 
 ```{r}
 daily_ill_counts_neigh %>%
-  filter(illness_counts == 'total_ed_visits') %>%
-  ggplot(aes(x = date, y = total_counts,
-             group = neighborhood, color = neighborhood)) +
-  geom_line()
-```
-
-
-```{r}
-daily_ill_counts_neigh %>%
-  filter(illness_counts != 'total_ed_visits') %>%
+  filter(illness_counts != 'ED visits (overall)') %>%
   pivot_wider(names_from = illness_counts, 
               values_from = total_counts) %>%
-  mutate(totals = count_asth + count_resp) %>%
+  mutate(totals = 'Asthma' + 'Respiratory diseases') %>%
   ggplot(aes(x = date, y = totals,
              group = neighborhood, color = neighborhood)) +
   geom_line()
@@ -317,7 +314,7 @@ daily_ill_counts_neigh = daily_ill_counts_neigh %>%
 air_neighb = air_neighb %>%
   pivot_wider(names_from = pollutant, values_from = mean_value)
 
-new_disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
+disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
   filter(date >= '2020-03-01' & date < '2022-12-01') %>%
   mutate(year = as.factor(format(date, format = '%Y')),
          month = month.name[as.numeric(format(date, format = "%m"))],
@@ -329,7 +326,6 @@ new_disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', 
            month %in% c('December', 'January', 'February') ~ 'Winter',
            month %in% c('March', 'April', 'May') ~ 'Spring'))
   
-
 
 #Ozone & PM2.5 - Wash & Willow
 #All pollutants - Fresh Meadows & Hunts Pt

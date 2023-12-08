@@ -13,7 +13,6 @@
 
 <title>Data Processing</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -367,37 +366,163 @@ div.tocify {
 
 <div id="disease-dataset" class="section level1">
 <h1>Disease dataset</h1>
-<div
-id="merging-hospitalizationemergency-department-data-involving-asthma-counts-respiratory-diseases-and-pneumonia"
-class="section level3">
-<h3><em>Merging hospitalization/emergency department data involving
-asthma counts, respiratory diseases and pneumonia</em></h3>
+<div id="merging-hospitalizationemergency-department-data-involving-asthma-counts-respiratory-diseases-and-pneumonia" class="section level3">
+<h3><em>Merging hospitalization/emergency department data involving asthma counts, respiratory diseases and pneumonia</em></h3>
 <pre class="r"><code># Load dataset with respiratory and asthma counts (missing some zipcodes)
 
-dis_asth_df = read_csv(&quot;data/cleaned_data/joined_respiratory.csv&quot;) |&gt; 
+dis_asth_df = read_csv(here::here(&quot;data/cleaned_data/joined_respiratory.csv&quot;),
+                       col_types = cols(
+                          `date` = col_date(format = &#39;%m/%d/%y&#39;))) |&gt; 
   filter(zip != 88888 &amp; zip != &quot;Citwide&quot; &amp; age_group == &quot;All age groups&quot;) |&gt; 
-  mutate(date = as.Date(format(as.Date(date, &quot;%m/%d/%y&quot;))),
-         year = as.numeric(format(date, format = &quot;%Y&quot;)),
+  mutate(year = as.numeric(format(date, format = &quot;%Y&quot;)),
          month = month.name[as.numeric(format(date, format = &quot;%m&quot;))],
          day = as.numeric(format(date, format = &quot;%d&quot;)),
          zip = as.numeric(zip)) |&gt;
-  select(year, month, day, zip, count_resp, count_asth) 
+  rename(zip_code = zip) |&gt;
+  select(year, month, day, zip_code, count_resp, count_asth) 
 
 # Load dataset with pneumonia data
 
-dis_pneu_df = read_csv(&quot;data/raw_data/disease_hospital_admin.csv&quot;) |&gt; 
-  separate(date, into=c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;)) |&gt; 
+dis_pneu_df = read_csv(here::here(&quot;data/raw_data/disease_hospital_admin.csv&quot;),
+                       col_types = cols(
+                                     `date` = col_date(format = &quot;%m/%d/%Y&quot;),
+                                     `total_ed_visits` = col_integer(),
+                                     `ili_pne_visits` = col_integer(),
+                                     `ili_pne_admissions` = col_integer())) |&gt; 
+  separate(date, into=c(&quot;year&quot;, &quot;month&quot;, &quot;day&quot;)) |&gt; 
   mutate(day = as.numeric(day),
          month = month.name[as.numeric(month)],
          year = as.numeric(year)) |&gt; 
-  rename(zip = mod_zcta) |&gt; 
-  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions)
+  rename(zip_code = mod_zcta) |&gt; 
+  select(year, month, day, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions)
 
 # Merge two disease datasets
 
 all_dis_df =
-  full_join(dis_asth_df, dis_pneu_df, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;))</code></pre>
+  full_join(dis_asth_df, dis_pneu_df, by = c(&quot;zip_code&quot;, &quot;year&quot;, &#39;month&#39;, &#39;day&#39;))</code></pre>
 </div>
+<div id="merging-hospitalizationemergency-department-data-with-zip-code-data-containing-neighborhood-and-borough-information" class="section level3">
+<h3><em>Merging hospitalization/emergency department data with zip code data containing neighborhood and borough information</em></h3>
+<pre class="r"><code>#loading zip code data
+zip_shapes &lt;- read_csv(here::here(&#39;data/cleaned_shapes/nyc_zip_codes.csv&#39;)) %&gt;%
+  clean_names()
+
+# merging disease with zip code data to add neigh &amp; borough data
+
+all_dis_df &lt;- left_join(all_dis_df, zip_shapes, by = &#39;zip_code&#39;) %&gt;%
+  mutate(
+    #these zip codes needed manual inputs
+    #bc not in zip_shapes file
+    neighborhood = case_when(
+      zip_code == &#39;10069&#39; ~ &#39;Upper West Side&#39;,
+      zip_code == &#39;11109&#39; ~ &#39;Northwest Queens&#39;,
+      zip_code == &#39;10282&#39; ~ &#39;Lower Manhattan&#39;,
+      zip_code == &#39;10271&#39; ~ &#39;Lower Manhattan&#39;,
+      zip_code == &#39;10278&#39; ~ &#39;Lower Manhattan&#39;,
+      zip_code == &#39;10279&#39; ~ &#39;Lower Manhattan&#39;,
+      #zip_code == &#39;11003&#39; ~ 10000 (deal w these)
+      #zip_code == &#39;11040&#39;
+      TRUE ~ neighborhood),
+    
+    borough = case_when(
+      zip_code == &#39;10069&#39; ~ &#39;Manhattan&#39;,
+      zip_code == &#39;11109&#39; ~ &#39;Queens&#39;,
+      zip_code == &#39;10282&#39; ~ &#39;Manhattan&#39;,
+      zip_code == &#39;10271&#39; ~ &#39;Manhattan&#39;,
+      zip_code == &#39;10278&#39; ~ &#39;Manhattan&#39;,
+      zip_code == &#39;10279&#39; ~ &#39;Manhattan&#39;,
+      TRUE ~ borough)) %&gt;%
+  
+  #removing these zip codes bc
+  #not apart of the 5 boroughs
+  filter(!(zip_code == &#39;10000&#39;),
+         !(zip_code == &#39;11003&#39;),
+         !(zip_code == &#39;11040&#39;))</code></pre>
+</div>
+</div>
+<div id="disease-eda-dataset" class="section level1">
+<h1>Disease EDA dataset</h1>
+<pre class="r"><code>disease_eda &lt;- all_dis_df %&gt;%
+  pivot_longer(cols = &#39;count_resp&#39;:&#39;ili_pne_admissions&#39;,
+               names_to = &#39;illness_counts&#39;,
+               values_to = &#39;count&#39;) %&gt;%
+  mutate(month_num = match(month, month.name),
+         date = as.Date(paste(year, month_num, day, sep = &#39;-&#39;),
+                        format = &#39;%Y-%m-%d&#39;),
+         
+         illness_counts = case_when(
+           illness_counts == &#39;total_ed_visits&#39; ~ &#39;ED visits (overall)&#39;,
+           illness_counts == &#39;ili_pne_visits&#39; ~ &#39;Pneumonia (ER visits)&#39;,
+           illness_counts == &#39;ili_pne_admissions&#39; ~ &#39;Pneumonia (ER admissions)&#39;,
+           illness_counts == &#39;count_resp&#39; ~ &#39;Respiratory diseases&#39;,
+           illness_counts == &#39;count_asth&#39; ~ &#39;Asthma&#39;))</code></pre>
+</div>
+<div id="observing-specific-neighborhoods" class="section level1">
+<h1>Observing specific neighborhoods</h1>
+<div id="creating-neighborhood-level-dataset-for-disease-counts" class="section level3">
+<h3><em>Creating neighborhood-level dataset for disease counts</em></h3>
+<pre class="r"><code>#loading neighborhood sites data
+sites_neighb &lt;- read_csv(here::here(&quot;data/cleaned_data/pollutant_per_neighborhood.csv&quot;))
+
+#neighborhoods of interest
+neighborhoods = c(&quot;Washington Heights&quot;, &quot;Union Square - Lower East Side&quot;,
+                  &quot;Willowbrook&quot;, &quot;Hunts Point - Mott Haven&quot;, &quot;Fresh Meadows&quot;)
+
+store_data = vector(&quot;list&quot;, length = 5)
+
+for (i in 1:length(neighborhoods)) {
+  
+  n = neighborhoods[i]
+  
+  n_zips = sites_neighb %&gt;%
+  filter(geo_place_name == n) %&gt;%
+  pull(zip_code)
+  
+  counts_data = disease_eda %&gt;%
+    filter(zip_code %in% n_zips) %&gt;%
+    group_by(date, illness_counts) %&gt;%
+    summarize(total_counts = sum(count)) %&gt;%
+    mutate(neighborhood = n)
+  
+  store_data[[i]] = counts_data}
+
+#combining data above
+daily_disease_neigh &lt;- bind_rows(store_data[[1]], store_data[[2]]) %&gt;%
+  bind_rows(store_data[[3]]) %&gt;%
+  bind_rows(store_data[[4]]) %&gt;%
+  bind_rows(store_data[[5]]) %&gt;%
+  mutate(date = as.Date(date, format = &#39;%Y-%m-%d&#39;))</code></pre>
+</div>
+</div>
+<div id="air-quality-data" class="section level1">
+<h1>Air quality data</h1>
+</div>
+<div id="merging-air-quality-data-with-disease-data" class="section level1">
+<h1>Merging air quality data with disease data</h1>
+<pre class="r"><code>#altering format
+daily_disease_neigh = daily_disease_neigh %&gt;%
+  pivot_wider(names_from = illness_counts, values_from = total_counts)
+
+#loading fixed air quality data
+air_neighb &lt;- read_csv(here::here(&#39;data/cleaned_data/air_neighborhood.csv&#39;))
+
+#altering format
+air_neighb = air_neighb %&gt;%
+  pivot_wider(names_from = pollutant, values_from = mean_value)
+
+#merging air &amp; disease
+disease_air &lt;- full_join(daily_disease_neigh, air_neighb, by = c(&#39;date&#39;, &quot;neighborhood&quot;)) %&gt;%
+  filter(date &gt;= &#39;2020-03-01&#39; &amp; date &lt; &#39;2022-12-01&#39;) %&gt;%
+  mutate(year = as.factor(format(date, format = &#39;%Y&#39;)),
+         month = month.name[as.numeric(format(date, format = &quot;%m&quot;))],
+         day = as.numeric(format(date, format = &quot;%d&quot;)),
+         #adding seasons
+         season = case_when(
+           month %in% c(&#39;June&#39;, &#39;July&#39;, &#39;August&#39;) ~ &#39;Summer&#39;,
+           month %in% c(&#39;September&#39;, &#39;October&#39;, &#39;November&#39;) ~ &#39;Fall&#39;,
+           month %in% c(&#39;December&#39;, &#39;January&#39;, &#39;February&#39;) ~ &#39;Winter&#39;,
+           month %in% c(&#39;March&#39;, &#39;April&#39;, &#39;May&#39;) ~ &#39;Spring&#39;))</code></pre>
+<p>Old code below:..</p>
 </div>
 <div id="air-quality-dataset" class="section level1">
 <h1>Air quality dataset</h1>
@@ -413,8 +538,7 @@ all_dis_df =
   group_by(day, month, year, zip, pollutant) |&gt; 
   summarize(value = mean(value))</code></pre>
 </div>
-<div id="merging-air-quality-data-with-disease-data"
-class="section level1">
+<div id="merging-air-quality-data-with-disease-data-1" class="section level1">
 <h1>Merging air quality data with disease data</h1>
 <pre class="r"><code># Finally merge disease and air_qual data together
 
@@ -435,11 +559,8 @@ air_qual_dis =
          no2_ppb = NO2) |&gt; 
   filter(!(year == &#39;2022&#39; &amp; month == &#39;December&#39;)) </code></pre>
 </div>
-<div
-id="do-we-still-need-this-chunk-below-it-was-to-compare-two-air-quality-datasets-daily-vs.-seasonalannual"
-class="section level1">
-<h1>!!! do we still need this chunk below? it was to compare two air
-quality datasets (daily vs. seasonal/annual)</h1>
+<div id="do-we-still-need-this-chunk-below-it-was-to-compare-two-air-quality-datasets-daily-vs.seasonalannual" class="section level1">
+<h1>!!! do we still need this chunk below? it was to compare two air quality datasets (daily vs. seasonal/annual)</h1>
 <pre class="r"><code>airqual_annual = read_csv(&quot;data/cleaned_data/uhf_airquality.csv&quot;) |&gt; 
   filter(str_detect(name, &quot;Fine&quot;) | str_detect(name, &quot;NO2&quot;) | str_detect(name, &quot;O3&quot;)) 
 
