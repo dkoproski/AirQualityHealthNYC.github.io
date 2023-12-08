@@ -1,5 +1,5 @@
 ---
-title: "Exploratory Analysis and Visualizations"
+title: "Exploratory Data Analysis and Visualizations"
 output: 
   html_document:
     toc: true
@@ -14,15 +14,18 @@ library(plotly)
 options(readr.show_col_types = FALSE)
 ```
 
-# Air Pollutant EDA
+# **Air Pollutants**
 
-The Air Quality data is split into seasonal and yearly data, which gives us an idea of pollution in all of New York City's neighborhoods, and daily data, which is more precise with regards to time and location where the measurement was done, but is not available for all neighborhoods in New York City.
+The Air Quality data is split into two parts. One consists of seasonal and yearly data, which gives us an idea of pollution in all of New York City's neighborhoods from 2010-2022, while the other involves daily data, which is more precise with regards to time and location where the measurement was done, but is not available for all neighborhoods in New York City and only spans from 2021-2022.
 
-## Seasonal and Yearly Data
+## *Seasonal and Yearly Data*
 
 From the histogram and the boxplots below, it appears that PM2.5 concentrations have been steadily decreasing since 2010. The same trend is evident for NO2, but the decrease seems to be much more gradual relative to PM2.5. Finally, Ozone does not appear to be increasing or decreasing over the time period, but further analysis is needed to confirm this.
 
 ```{r, message = FALSE, echo = FALSE}
+
+# Load datasets for interactive histogram and boxplot
+
 df_histo_pm2.5 = 
   read_csv("data/cleaned_data/uhf_airquality.csv") |> 
   filter(str_detect(time_period, "Annual Average")) |> 
@@ -46,7 +49,6 @@ df_histo_ozone =
   select(year, data_value) |> 
   filter(year != 2009)
 ```
-
 
 ### Histogram of levels of NO2, O3 and PM2.5 by year
 
@@ -150,15 +152,15 @@ combined_boxplot_fig
 
 ```
 
-## Daily Data
+## *Daily Data*
 
-In this data, we have 19,503 rows, where each row is a date-measurement site-pollutant combination.
+In this data, we have 18,452 rows, where each row is a date-measurement site-pollutant combination.
 
-## How do pollutant variables change over time?
+### How do pollutant variables change over time?
 
-After restricting our analysis to roughly 2020 to 2022, we generate visualizations of the distributions of certain pollutants of interest. Throughout the year, we see oscillations in the levels of Ozone and Nitrogen Dioxide throughout the year with the former reaching its highest levels in the summer months and the latter peaking in the winter. Carbon Monoxide also exhibits oscillations, but to a much lower degree and PM2.5 does not appear to exhibit a seasonal pattern.
+After restricting our analysis to roughly 2020 to 2022, we generate visualizations of the distributions of certain pollutants of interest. Throughout the year, we see oscillations in the levels of Ozone and Nitrogen Dioxide throughout the year, with the former reaching its highest levels in the summer months and the latter peaking in the winter. Carbon Monoxide also exhibits oscillations, but to a much lower degree and PM2.5 does not appear to exhibit a seasonal pattern.
 
-```{r, out.width = '100%'}
+```{r, out.width = '100%', message = F}
 air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |> 
   separate(date, into=c("month", "day", "year")) |>
   mutate(day = as.numeric(day),
@@ -189,7 +191,7 @@ poll_plot = air_qual_df |>
   geom_point() +
   geom_smooth(color = "blue") +
   facet_wrap(~ pollutant, ncol = 2, scales="free_y") +
-  ggtitle("Daily average of each pollutant by zip") + 
+  ggtitle("Daily average of each pollutant by zip code") + 
   scale_color_discrete()
 
 poll_plot
