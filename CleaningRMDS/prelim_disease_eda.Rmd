@@ -71,7 +71,45 @@ disease_data <- full_join(disease_zip, joined_resp, by = c('zip_code', 'year', '
 
 ```{r}
 #adding missing zip code
-disease_data <- left_join(disease_data, zip_shapes, by = 'zip_code')
+disease_data <- left_join(disease_data, zip_shapes, by = 'zip_code') %>%
+  mutate(
+    neighborhood = case_when(
+      zip_code == '10069' ~ 'Upper West Side',
+      zip_code == '11109' ~ 'Northwest Queens',
+      zip_code == '10282' ~ 'Lower Manhattan',
+      zip_code == '10271' ~ 'Lower Manhattan',
+      zip_code == '10278' ~ 'Lower Manhattan',
+      zip_code == '10279' ~ 'Lower Manhattan'
+      #zip_code == '11003' ~ 10000 (deal w these)
+      #zip_code == '11040'
+      ),
+    
+    borough = case_when(
+      zip_code == '10069' ~ 'Manhattan',
+      zip_code == '11109' ~ 'Queens',
+      zip_code == '10282' ~ 'Manhattan',
+      zip_code == '10271' ~ 'Manhattan',
+      zip_code == '10278' ~ 'Manhattan',
+      zip_code == '10279' ~ 'Manhattan'))
+```
+
+
+```{r}
+#zip techn doesnt exist within nyc
+disease_data %>%
+  filter(zip_code == '10000')
+```
+
+```{r}
+#not apart of queens borough
+disease_data %>%
+  filter(zip_code == '11003')
+```
+
+```{r}
+#not apart of queen borough
+disease_data %>%
+  filter(zip_code == '11040')
 ```
 
 
