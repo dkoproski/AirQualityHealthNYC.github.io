@@ -201,7 +201,7 @@ Old code below:..
 # Air quality dataset
 
 ```{r, eval = F}
-air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |> 
+air_qual_df = read_csv("data/raw_data/alt_air_data.csv") |> 
   separate(date, into=c("month", "day", "year")) |>
   mutate(day = as.numeric(day),
          month = month.name[as.numeric(month)],
