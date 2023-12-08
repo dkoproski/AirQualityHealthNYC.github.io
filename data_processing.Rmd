@@ -14,7 +14,9 @@ library(plotly)
 options(readr.show_col_types = FALSE)
 ```
 
-# Disease dataset: merging hospitalization/emergency department data involving asthma counts, respiratory diseases and pneumonia
+# Disease dataset
+
+### *Merging hospitalization/emergency department data involving asthma counts, respiratory diseases and pneumonia*
 
 ````{r, message = FALSE}
 # Load dataset with respiratory and asthma counts (missing some zipcodes)

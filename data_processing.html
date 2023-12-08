@@ -365,11 +365,13 @@ div.tocify {
 </div>
 
 
+<div id="disease-dataset" class="section level1">
+<h1>Disease dataset</h1>
 <div
-id="disease-dataset-merging-hospitalizationemergency-department-data-involving-asthma-counts-respiratory-diseases-and-pneumonia"
-class="section level1">
-<h1>Disease dataset: merging hospitalization/emergency department data
-involving asthma counts, respiratory diseases and pneumonia</h1>
+id="merging-hospitalizationemergency-department-data-involving-asthma-counts-respiratory-diseases-and-pneumonia"
+class="section level3">
+<h3><em>Merging hospitalization/emergency department data involving
+asthma counts, respiratory diseases and pneumonia</em></h3>
 <pre class="r"><code># Load dataset with respiratory and asthma counts (missing some zipcodes)
 
 dis_asth_df = read_csv(&quot;data/cleaned_data/joined_respiratory.csv&quot;) |&gt; 
@@ -395,6 +397,7 @@ dis_pneu_df = read_csv(&quot;data/raw_data/disease_hospital_admin.csv&quot;) |&g
 
 all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;))</code></pre>
+</div>
 </div>
 <div id="air-quality-dataset" class="section level1">
 <h1>Air quality dataset</h1>
