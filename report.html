@@ -511,54 +511,74 @@ class="section level3">
 <h3>Exploratory Analysis and Visualizations</h3>
 <p>O3, PM2.5, and NO2 were the air pollutants chosen for our descriptive
 and statistical analysis.</p>
-<p>#histogram/boxplot seasonal air quality from 2009-2021 An interactive
-histogram showing each air pollutant concentration overlaid by year,
-from the years 2009-2021, was constructed to depict frequency
-distribution and central tendency. Additionally, the spread, central
-tendency, and presence of outliers were shown in an interactive box plot
-based on air pollutant and year. PM2.5 and NO2 concentrations
+<div id="histogram-and-boxplot-of-air-quality-from-2010-2021"
+class="section level4">
+<h4>Histogram and boxplot of air quality from 2010-2021</h4>
+<p>An interactive histogram showing each air pollutant concentration
+overlaid by year, from the years 2009-2021, was constructed to depict
+frequency distribution and central tendency. Additionally, the spread,
+central tendency, and presence of outliers were shown in an interactive
+box plot based on air pollutant and year. PM2.5 and NO2 concentrations
 continuously declined from 2009 to 2021, as evident on the layered
 histogram and box plots. PM2.5 showed a steady decrease in
 concentration, with the lowest median concentration exhibited in 2020.O3
 concentrations initially increased from 2010 to 2016, but seemed to
 stabilize around 30 ppb with observed measurement decreases from 2017 to
 2021</p>
-<p>#heatmaps of seasonal air quality from 2009-2021 A heat map of the
-air pollutants with a year selector was constructed to monitor and
-understand the air quality in NYC. High concentrations of the selected
-pollutant were indicated by red and maroon, while lower concentrations
-were shown in green. The heat map revealed distinct spatial and temporal
-patterns of O3. Lower Manhattan showed a steady increase of O3 levels
-from 2009 to 2021. Outer boroughs such as Brooklyn showed consistent
-concentrations of O3 from 2009 to 2021.Comparing 2009 to 2021, the
-levels in each area show a decline in PM2.5 levels. Additionally, the
-layered PM2.5 map shows a greater amount of PM2.5 levels in lower
-Manhattan throughout the years.NO2 also displayed a decrease in
-concentration however it was less noticeable. O3 concentrations
-displayed a different trend.</p>
-<p>#time series daily counts air qual and daily of disease Time series
-plot in regards to daily ER visit and disease counts were generated,
-showing that asthma and respiratory diseases did not have a seasonal
-pattern. However, pneumonia ER visits did peak during the winter months.
-Similarly, time series plots were created for daily air concentrations.
-Trend and seasonal patterns of CO, O3, and N02 showed oscillations
-throughout the year. Specifically, O3 showed the a greater difference
-and reached high levels during the summer month a opposed to NO2 which
-peaked in the winter. PM2.4 should a steady concentration trend and did
-not display seasonal patterns.</p>
-<p>#boxplot of daily air pollutants by borough The frequency
-distribution of daily air pollutant concentrations in regard to borough
-was shown in boxplots. NO2 and PM2.5 showed consistent daily medians
-throughout each borough. O3 showed a slightly elevated daily
-concentration median in Staten Island compared to other boroughs.</p>
-<p>#time series on daily air pollutant by neighborhood In the context of
-these time series plots, the daily mean measurement of each pollutant,
-categorized by neighborhoods, was derived and depicted as a distinctive
-line. Coherent patterns were observed for each pollutant in these
-neighborhoods. NO2 displayed its pinnacle reach during the winter and
-spring transitions, where as O3 sowed its highest vales in the summer
-months. These visual representation shows and highlights the nuanced
-temporal fluctuation between the pollutants.</p>
+</div>
+<div id="heatmaps-of-air-quality-from-2010-2021" class="section level4">
+<h4>Heatmaps of air quality from 2010-2021</h4>
+<p>A heat map of the air pollutants with a year selector was constructed
+to monitor and understand the air quality in NYC. High concentrations of
+the selected pollutant were indicated by red and maroon, while lower
+concentrations were shown in green. The heat map revealed distinct
+spatial and temporal patterns of O3. Lower Manhattan showed a steady
+increase of O3 levels from 2009 to 2021. Outer boroughs such as Brooklyn
+showed consistent concentrations of O3 from 2009 to 2021.Comparing 2009
+to 2021, the levels in each area show a decline in PM2.5 levels.
+Additionally, the layered PM2.5 map shows a greater amount of PM2.5
+levels in lower Manhattan throughout the years.NO2 also displayed a
+decrease in concentration however it was less noticeable. O3
+concentrations displayed a different trend.</p>
+</div>
+<div
+id="time-series-plots-on-daily-counts-of-air-pollutants-and-daily-disease-visits"
+class="section level4">
+<h4>Time series plots on daily counts of air pollutants and daily
+disease visits</h4>
+<p>Time series plot in regards to daily ER visit and disease counts were
+generated, showing that asthma and respiratory diseases did not have a
+seasonal pattern. However, pneumonia ER visits did peak during the
+winter months. Similarly, time series plots were created for daily air
+concentrations. Trend and seasonal patterns of CO, O3, and N02 showed
+oscillations throughout the year. Specifically, O3 showed the a greater
+difference and reached high levels during the summer month a opposed to
+NO2 which peaked in the winter. PM2.4 should a steady concentration
+trend and did not display seasonal patterns.</p>
+</div>
+<div id="boxplots-of-daily-air-pollutants-by-borough"
+class="section level4">
+<h4>Boxplots of daily air pollutants by borough</h4>
+<p>The frequency distribution of daily air pollutant concentrations in
+regard to borough was shown in boxplots. NO2 and PM2.5 showed consistent
+daily medians throughout each borough. O3 showed a slightly elevated
+daily concentration median in Staten Island compared to other
+boroughs.</p>
+</div>
+<div id="time-series-plots-on-daily-air-pollutants-by-neighborhood"
+class="section level4">
+<h4>Time series plots on daily air pollutants by neighborhood</h4>
+<p>In the context of these time series plots, the daily mean measurement
+of each pollutant, categorized by neighborhoods, was derived and
+depicted as a distinctive line. Coherent patterns were observed for each
+pollutant in these neighborhoods. NO2 displayed its pinnacle reach
+during the winter and spring transitions, where as O3 sowed its highest
+vales in the summer months. These visual representation shows and
+highlights the nuanced temporal fluctuation between the pollutants.</p>
+</div>
+<div id="eda-daily-disease-visits" class="section level4">
+<h4>EDA DAILY DISEASE VISITS</h4>
+</div>
 </div>
 </div>
 <div id="statistical-results" class="section level2">
@@ -567,7 +587,10 @@ temporal fluctuation between the pollutants.</p>
 between O3 and pneumonia ER visits. From the cross-correlation plots,
 the positive and negative correlations determined the lag between O3
 levels and and pneumonia ER visits was about 117 days. The lag was added
-as an additional predictor in the linear regression model.</p>
+as an additional predictor in the linear regression model. There was a
+negative correlation in pneumonia ER visits and O3 regression model
+before the lag was added. However, after adding the lag, a positive
+correlation emerged between pneumonia ER visits and O3.</p>
 </div>
 <div id="discussion-and-conclusions" class="section level2">
 <h2><strong>Discussion and Conclusions</strong></h2>
