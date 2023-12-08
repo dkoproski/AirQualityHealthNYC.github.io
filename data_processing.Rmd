@@ -53,6 +53,47 @@ all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "year", 'month', 'day'))
 ```
 
+### *Merging hospitalization/emergency department data with zip code data containing neighborhood and borough information*
+
+```{r, message = FALSE}
+#loading zip code data
+zip_shapes <- read_csv(here::here('data/cleaned_shapes/nyc_zip_codes.csv')) %>%
+  clean_names()
+
+# merging disease with zip code data to add neigh & borough data
+
+all_dis_df <- left_join(all_dis_df, zip_shapes, by = 'zip_code') %>%
+  mutate(
+    #these zip codes needed manual inputs
+    #bc not in zip_shapes file
+    neighborhood = case_when(
+      zip_code == '10069' ~ 'Upper West Side',
+      zip_code == '11109' ~ 'Northwest Queens',
+      zip_code == '10282' ~ 'Lower Manhattan',
+      zip_code == '10271' ~ 'Lower Manhattan',
+      zip_code == '10278' ~ 'Lower Manhattan',
+      zip_code == '10279' ~ 'Lower Manhattan',
+      #zip_code == '11003' ~ 10000 (deal w these)
+      #zip_code == '11040'
+      TRUE ~ neighborhood),
+    
+    borough = case_when(
+      zip_code == '10069' ~ 'Manhattan',
+      zip_code == '11109' ~ 'Queens',
+      zip_code == '10282' ~ 'Manhattan',
+      zip_code == '10271' ~ 'Manhattan',
+      zip_code == '10278' ~ 'Manhattan',
+      zip_code == '10279' ~ 'Manhattan',
+      TRUE ~ borough)) %>%
+  
+  #removing these zip codes bc
+  #not apart of the 5 boroughs
+  filter(!(zip_code == '10000'),
+         !(zip_code == '11003'),
+         !(zip_code == '11040'))
+```
+
+
 # Air quality dataset
 
 ```{r}
