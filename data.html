@@ -33,7 +33,6 @@
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
-<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
@@ -220,9 +219,6 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
-<style type="text/css">
-.code-folding-btn { margin-bottom: 4px; }
-</style>
 
 
 
@@ -350,14 +346,6 @@ div.tocify {
 
 <div id="header">
 
-<div class="btn-group pull-right float-right">
-<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
-<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
-<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
-<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
-</ul>
-</div>
-
 
 
 <h1 class="title toc-ignore">Data Sources</h1>
@@ -366,14 +354,13 @@ div.tocify {
 
 
 <p>This project uses publicly available data from multiple sources in
-its analysis.</p>
+its analysis.We initially used one air quality dataset and an
+accompanying hospitalization dataset, but we later added a shape dataset
+for more robust location data, another air quality dataset with daily
+observations and another hospitalization dataset with more information
+on respiratory hospitalizations.</p>
 <div id="new-york-city-air-quality-datasets" class="section level2">
 <h2>New York City Air Quality Datasets</h2>
-<div
-id="new-york-city-air-quality-surveillance-data-by-the-department-of-health-and-mental-hygiene"
-class="section level3">
-<h3>New York City air quality surveillance data by the Department of
-Health and Mental Hygiene</h3>
 <p>Since 2008, the City of New York has actively maintained a dataset of
 up to date air quality information across most neighborhoods in the
 city. Accessible <a
@@ -381,29 +368,36 @@ href="https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r">here</a>,
 the raw data has measurements of certain air pollutants including
 nitrogen dioxide (NO2), ozone (O3) and fine particles (PM2.5). The
 dataset also contains some general information about vehicle traffic,
-air-pollutant related hospitalizations and more.</p>
-</div>
-</div>
-<div id="second-data-with-daily-observations" class="section level2">
-<h2>Second (data with daily observations)</h2>
+air-pollutant related hospitalizations and more. We later added a
+dataset containing information on New York air quality at the daily
+level which is accessible <a
+href="https://www.epa.gov/outdoor-air-quality-data/download-daily-data">here</a>.
+This data has daily observations for a limited number of locations,
+making it ideal for a focused analysis on single zip
+codes/neighborhoods. Shapefiles, available <a
+href="https://github.com/nycehs/NYC_geography/tree/master/UHF_42_DOHMH_2009">here</a>,
+were used to plot values into maps, and to join this data with the
+dataset with daily observations.</p>
 </div>
 <div id="disease-datasets" class="section level2">
 <h2>Disease Datasets</h2>
-<div id="asthma-and-respiratory-hospitalizations-data"
-class="section level3">
-<h3>Asthma and respiratory hospitalizations data</h3>
-<p>The City of New York actively updates a public dataset containing the
-count of hospitalizations due to asthma, diarrhea, influenza-like
-illness, respiratory diseases and vomit for each zip code in NYC. Data
-collection began in 2016 and was last updated in early 2023. The data
-can be viewed <a
+<p>(first disease dataset info here) The City of New York actively
+updates a public dataset containing the count of hospitalizations due to
+asthma, diarrhea, influenza-like illness, respiratory diseases and vomit
+for each zip code in NYC. Data collection began in 2016 and was last
+updated in early 2023. The data can be viewed <a
 href="https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&amp;PopulationSource=Syndromic">here</a>
 and subsets of the data can be selected and downloaded for use.</p>
 </div>
-</div>
-<div id="geographic-location-dataset-and-shape-files"
-class="section level2">
-<h2>Geographic Location Dataset and Shape Files</h2>
+<div id="zip-code-datasets" class="section level2">
+<h2>Zip Code Datasets</h2>
+<p>Sometimes, we needed additional information about the zip codes:
+where the center of a zip code was, what neighborhood a zip code
+belonged to, and mapping projection information, among other things.
+Information on zip codes was found <a
+href="https://github.com/erikgregorywebb/nyc-housing/blob/master/Data/nyc-zip-codes.csv">here</a>,
+while zip code shapefiles were found <a
+href="https://catalog.data.gov/dataset/tiger-line-shapefile-2019-2010-nation-u-s-2010-census-5-digit-zip-code-tabulation-area-zcta5-na">here</a>.</p>
 </div>
 
 
@@ -441,11 +435,6 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
-<script>
-$(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
-});
-</script>
 
 <script>
 $(document).ready(function ()  {
