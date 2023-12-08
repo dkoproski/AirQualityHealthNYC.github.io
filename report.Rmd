@@ -10,6 +10,8 @@ output:
 library(tidyverse)
 library(leaflet)
 library(plotly)
+library(glue)
+library(leaflet.extras)
 options(readr.show_col_types = FALSE)
 ```
 
@@ -57,6 +59,7 @@ Two air quality and two disease data sets were obtained for analysis. [AIR QUALI
 Two disease data sets. [1] and [2]
 
 
+DF for Iteractive Histogram and Boxplot
 ```{r, message = FALSE, echo = FALSE}
 
 # Load datasets for interactive histogram and boxplot
@@ -85,6 +88,19 @@ df_histo_ozone =
   filter(year != 2009)
 ```
 
+
+DF for interactive Heatmaps
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+
+air_df = read_csv("data/cleaned_data/air_quality_zips.csv")
+df_air_geo = 
+  read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
+  select(zip, intptlat10, intptlon10) |> 
+  left_join(read_csv("data/cleaned_data/air_quality_zips.csv"), by = "zip") |> 
+  mutate(lat = intptlat10,
+         lon = intptlon10) |> 
+  select(-intptlat10, -intptlon10)
+```
 ### Exploratory Analysis and Visualizations
 
 O3, PM2.5, and NO2 were the air pollutants chosen for our descriptive and statistical analysis. 
@@ -192,6 +208,202 @@ combined_boxplot_fig
 
 #### Heatmaps of air quality from 2010-2021
 A heat map of the air pollutants with a year selector was constructed to monitor and understand the air quality in NYC. High concentrations of the selected pollutant were indicated by red and maroon, while lower concentrations were shown in green. The PM2.5 heat map showed a greater amount of PM2.5 levels in Lower Manhattan throughout the years. Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Outer boroughs such as Brooklyn showed consistently high concentrations of O3 levels from 2009 to 2021. NO2 displayed a decrease in concentration however it was less noticeable. 
+
+**2009-2021: Ozone (O3) Levels**
+```{r, out.width = '100%', message = FALSE, warning = FALSE}
+# Extract ozone data
+o3_data = df_air_geo |> 
+  filter(str_detect(name, "Ozone") & str_detect(name, "\\(")) |> 
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         year = year(start_date),
+         name = str_remove(name, "(due to).*")) |> 
+  select(zip, name, measure, measure_info, year, data_value, lat, lon) |> 
+  group_by(zip, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value)) 
+
+# Create yearly dataframes
+yearly_data_frames <- list()
+for (k in 2009:2021) {
+  year_data = o3_data |> 
+    filter(year == k)
+  df_name = paste0("o3_", k)
+  assign(df_name, year_data)
+  yearly_data_frames[[as.character(k)]] = year_data
+}
+
+# Create map
+
+palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000", "#660000")
+legend <- c("15-20", "20-25", "25-30", "30-35", "35-40", ">40")
+
+m = leaflet() |> addTiles()
+
+year_i = unique(o3_data$year)
+for(year in year_i) {
+  
+  
+  yeardata = o3_data[o3_data$year == year,]
+  
+  
+  label_text <- glue(
+    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Year: </b> {yeardata$year}<br/>",
+    "<b>Zip mean: </b> {yeardata$zipmean} ppb<br/>") |> 
+    lapply(htmltools::HTML)
+  
+  
+  m = m |>
+    addCircleMarkers(data = yeardata, lng = ~lon, lat = ~lat, radius = .5, opacity = 0.8, 
+                     color = ~ifelse(between(zipmean, 15, 20), "#39FF14", 
+                                     ifelse(between(zipmean, 20.1, 25), "#FFFF33", 
+                                            ifelse(between(zipmean, 25.1, 30),"#FF7F00",
+                                                   ifelse(between(zipmean, 30.1, 35), "#E31A1C",
+                                                          ifelse(between(zipmean, 35.1, 40), "#9F0000", "#660000"))))),
+                     label = label_text, group = as.character(year))
+}
+
+m = m |> 
+  addHeatmap(data = yeardata,lng = ~lon, lat = ~lat, 
+             intensity = 2, blur = 5, max = 4, radius = 10, 
+             group = "Heatmap Overlay") |> 
+  addLegend(labels = legend, colors = palette, title = "Ozone levels (parts per billion)") |> 
+  addLayersControl(overlayGroups = "Heatmap Overlay",
+                   baseGroups = year_i,
+                   options = layersControlOptions(collapsed = FALSE)) 
+
+m
+```
+
+**2008-2021: Fine Particles PM2.5**
+```{r, out.width = '100%', message = FALSE, warning = FALSE}
+# Extract pm2.5 data
+pm25_data = df_air_geo |> 
+  filter(str_detect(name, "Fine")) |> 
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         year = year(start_date),
+         name = str_remove(name, "(due to).*")) |> 
+  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
+  group_by(zip, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value))
+
+# Create yearly dataframes
+yearly_data_frames <- list()
+for (k in 2008:2021) {
+  year_data = pm25_data |> 
+    filter(year == k)
+  df_name = paste0("pm25_", k)
+  assign(df_name, year_data)
+  yearly_data_frames[[as.character(k)]] = year_data
+}
+
+# Create map
+
+palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000", "#660000")
+legend <- c("5-7", "7-9", "9-11", "11-13", "13-15", ">15")
+
+m = leaflet() |> addTiles()
+
+year_i = unique(pm25_data$year)
+for(year in year_i) {
+  
+  
+  yeardata = pm25_data[pm25_data$year == year,]
+  
+  
+  label_text <- glue(
+    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Year: </b> {yeardata$year}<br/>",
+    "<b>Zip mean: </b> {round(yeardata$zipmean,3)} mcg/m3<br/>") |> 
+    lapply(htmltools::HTML)
+  
+  
+  m = m |>
+    addCircleMarkers(data = yeardata, lng = ~lon, lat = ~lat, radius = .5, opacity = 0.8, 
+                     color = ~ifelse(between(zipmean, 5, 7), "#39FF14", 
+                                     ifelse(between(zipmean, 7.1, 9), "#FFFF33", 
+                                            ifelse(between(zipmean, 9.1, 11),"#FF7F00",
+                                                   ifelse(between(zipmean, 11.1, 13), "#E31A1C",
+                                                          ifelse(between(zipmean, 13.1, 15), "#9F0000", "#660000"))))),
+                     label = label_text, group = as.character(year))
+}
+
+m = m |> 
+  addHeatmap(data = yeardata,lng = ~lon, lat = ~lat, 
+             intensity = 2, blur = 5, max = 4, radius = 10, 
+             group = "Heatmap Overlay") |> 
+  addLegend(labels = legend, colors = palette, title = "PM2.5 levels (mcg/m3)") |> 
+  addLayersControl(overlayGroups = "Heatmap Overlay",
+                   baseGroups = year_i,
+                   options = layersControlOptions(collapsed = FALSE)) 
+
+m
+```
+
+**2008-2021: Nitrogen dioxide (NO2)**
+```{r, out.width = '100%', message = FALSE, warning = FALSE}
+# Extract NO2 data
+no2_data = df_air_geo |> 
+  filter(str_detect(name, "Nitrogen")) |> 
+  mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
+         year = year(start_date),
+         name = str_remove(name, "(due to).*")) |> 
+  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
+  group_by(zip, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value))
+
+# Create yearly dataframes
+yearly_data_frames <- list()
+for (k in 2008:2021) {
+  year_data = no2_data |> 
+    filter(year == k)
+  df_name = paste0("no2_", k)
+  assign(df_name, year_data)
+  yearly_data_frames[[as.character(k)]] = year_data
+}
+
+# Create map
+
+palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000", "#660000")
+legend <- c("8-15", "15-22", "22-29", "29-36", "36-43", "43-50")
+
+m = leaflet() |> addTiles()
+
+year_i = unique(no2_data$year)
+for(year in year_i) {
+  
+  
+  yeardata = no2_data[no2_data$year == year,]
+  
+  
+  label_text <- glue(
+    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Year: </b> {yeardata$year}<br/>",
+    "<b>Zip mean: </b> {round(yeardata$zipmean,3)} ppb<br/>") |> 
+    lapply(htmltools::HTML)
+  
+  
+  m = m |>
+    addCircleMarkers(data = yeardata, lng = ~lon, lat = ~lat, radius = .5, opacity = 0.8, 
+                     color = ~ifelse(between(zipmean, 8, 15), "#39FF14", 
+                                     ifelse(between(zipmean, 15.1, 22), "#FFFF33", 
+                                            ifelse(between(zipmean, 22.1, 29),"#FF7F00",
+                                                   ifelse(between(zipmean, 29.1, 36), "#E31A1C",
+                                                          ifelse(between(zipmean, 36.1, 43), "#9F0000", "#660000"))))),
+                     label = label_text, group = as.character(year))
+}
+
+m = m |> 
+  addHeatmap(data = yeardata,lng = ~lon, lat = ~lat, 
+             intensity = 2, blur = 5, max = 4, radius = 10, 
+             group = "Heatmap Overlay") |> 
+  addLegend(labels = legend, colors = palette, title = "NO2 levels (parts per billion)") |> 
+  addLayersControl(overlayGroups = "Heatmap Overlay",
+                   baseGroups = year_i,
+                   options = layersControlOptions(collapsed = FALSE)) 
+
+m
+```
+
 
 #### Time series plots on daily counts of air pollutants and daily disease visits
 Time series plot in regards to daily ER visit and disease counts were generated, showing that asthma and respiratory diseases did not have a seasonal pattern. However, pneumonia ER visits did peak during the winter months. Similarly, time series plots were created for daily air concentrations. Trend and seasonal patterns of CO, O3, and N02 showed oscillations throughout the year. Specifically, O3 showed the a greater difference and reached high levels during the summer month a opposed to NO2 which peaked in the winter. PM2.4 should a steady concentration trend and did not display seasonal patterns. 
