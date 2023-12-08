@@ -4,26 +4,18 @@ output:
   html_document:
     toc: true
     toc_float: true
-    code_folding: hide
 ---
 
 This project uses publicly available data from multiple sources in its analysis.We initially used one air quality dataset and an accompanying hospitalization dataset, but we later added a shape dataset for more robust location data, another air quality dataset with daily observations and another hospitalization dataset with more information on respiratory hospitalizations.
 
 ## New York City Air Quality Datasets
 
-### New York City air quality surveillance data by the Department of Health and Mental Hygiene
-
-Since 2008, the City of New York has actively maintained a dataset of up to date air quality information across most neighborhoods in the city. Accessible [here](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r), the raw data has measurements of certain air pollutants including nitrogen dioxide (NO2), ozone (O3) and fine particles (PM2.5). The dataset also contains some general information about vehicle traffic, air-pollutant related hospitalizations and more. Shapefiles, available [here](https://github.com/nycehs/NYC_geography/tree/master/UHF_42_DOHMH_2009), were used to plot values into maps, and to join this data with the dataset with daily observations.
-
-## Second (data with daily observations)
-
+Since 2008, the City of New York has actively maintained a dataset of up to date air quality information across most neighborhoods in the city. Accessible [here](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r), the raw data has measurements of certain air pollutants including nitrogen dioxide (NO2), ozone (O3) and fine particles (PM2.5). The dataset also contains some general information about vehicle traffic, air-pollutant related hospitalizations and more. We later added a dataset containing information on New York air quality at the daily level which is accessible [here](https://www.epa.gov/outdoor-air-quality-data/download-daily-data). This data has daily observations for a limited number of locations, making it ideal for a focused analysis on single zip codes/neighborhoods. Shapefiles, available [here](https://github.com/nycehs/NYC_geography/tree/master/UHF_42_DOHMH_2009), were used to plot values into maps, and to join this data with the dataset with daily observations.
 
 
 ## Disease Datasets
-
-### Asthma and respiratory hospitalizations data
-
-The City of New York actively updates a public dataset containing the count of hospitalizations due to asthma, diarrhea, influenza-like illness, respiratory diseases and vomit for each zip code in NYC. Data collection began in 2016 and was last updated in early 2023. The data can be viewed [here](https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&PopulationSource=Syndromic) and subsets of the data can be selected and downloaded for use.
+(first disease dataset info here)
+The City of New York actively updates a public dataset containing the count of hospitalizations due to asthma, diarrhea, influenza-like illness, respiratory diseases and vomit for each zip code in NYC. Data collection began in 2016 and was last updated in early 2023. The data can be viewed [here](https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&PopulationSource=Syndromic) and subsets of the data can be selected and downloaded for use. 
 
 
 
