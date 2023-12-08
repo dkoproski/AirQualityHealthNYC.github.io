@@ -319,7 +319,7 @@ air_neighb = air_neighb %>%
 
 new_disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
   filter(date >= '2020-03-01' & date < '2022-12-01') %>%
-  mutate(year = as.numeric(format(date, format = '%Y')),
+  mutate(year = as.factor(format(date, format = '%Y')),
          month = month.name[as.numeric(format(date, format = "%m"))],
          day = as.numeric(format(date, format = "%d")),
          #adding seasons
@@ -335,7 +335,6 @@ new_disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', 
 #All pollutants - Fresh Meadows & Hunts Pt
 #PM2.5 - Union Square
 ```
-
 
 
 ### Regression
