@@ -11,6 +11,8 @@ output:
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(tidyverse)
 library(plotly)
+library(janitor)
+library(readr)
 options(readr.show_col_types = FALSE)
 ```
 
@@ -198,7 +200,7 @@ Old code below:..
 
 # Air quality dataset
 
-```{r}
+```{r, eval = F}
 air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |> 
   separate(date, into=c("month", "day", "year")) |>
   mutate(day = as.numeric(day),
@@ -214,7 +216,7 @@ air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |>
 
 # Merging air quality data with disease data
 
-``` {r}
+``` {r, eval = F}
 # Finally merge disease and air_qual data together
 
 air_qual_dis = 
