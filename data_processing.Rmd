@@ -51,10 +51,9 @@ air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |>
          month = month.name[as.numeric(month)],
          year = as.numeric(year)) |> 
   filter(!(year == '2020' & month == 'January'),
-         !(year == '2020' & month == 'February'),
-         !(aqs_parameter_desc == "Acceptable PM2.5 AQI & Speciation Mass")) |>
+         !(year == '2020' & month == 'February')) |> 
   rename(zip = zip_code) |> 
-  select(year, month, day, zip, daily_aqi_value, pollutant, value) |> 
+  select(year, month, day, zip, pollutant, value) |> 
   group_by(day, month, year, zip, pollutant) |> 
   summarize(value = mean(value))
 

@@ -403,10 +403,9 @@ air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt;
          month = month.name[as.numeric(month)],
          year = as.numeric(year)) |&gt; 
   filter(!(year == &#39;2020&#39; &amp; month == &#39;January&#39;),
-         !(year == &#39;2020&#39; &amp; month == &#39;February&#39;),
-         !(aqs_parameter_desc == &quot;Acceptable PM2.5 AQI &amp; Speciation Mass&quot;)) |&gt;
+         !(year == &#39;2020&#39; &amp; month == &#39;February&#39;)) |&gt; 
   rename(zip = zip_code) |&gt; 
-  select(year, month, day, zip, daily_aqi_value, pollutant, value) |&gt; 
+  select(year, month, day, zip, pollutant, value) |&gt; 
   group_by(day, month, year, zip, pollutant) |&gt; 
   summarize(value = mean(value))
 
@@ -656,6 +655,13 @@ dis_plot</code></pre>
 <div id="how-do-pollutant-variables-change-over-time"
 class="section level2">
 <h2>How do pollutant variables change over time?</h2>
+<p>After restricting our analysis to roughly 2020 to 2022, we generate
+visualizations of the distributions of certain pollutants of interest.
+Throughout the year, we see oscillations in the levels of Ozone and
+Nitrogen Dioxide throughout the year with the former reaching its
+highest levels in the summer months and the latter peaking in the
+winter. Carbon Monoxide also exhibits oscillations, but to a much lower
+degree and PM2.5 does not appear to exhibit a seasonal pattern.</p>
 <pre class="r"><code>poll_plot = air_qual_df |&gt; 
   mutate(
     numeric_month = match(month, month.name),
