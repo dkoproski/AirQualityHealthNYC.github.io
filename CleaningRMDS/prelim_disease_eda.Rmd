@@ -305,6 +305,12 @@ disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "nei
 ```
 
 ```{r}
+disease_air[!complete.cases(disease_air), ]
+#union sq - no data from march to sept 2020
+#wash heigh - no data for may 12 2020, june 17/18 2020
+```
+
+```{r}
 daily_ill_counts_neigh = daily_ill_counts_neigh %>%
   pivot_wider(names_from = illness_counts, values_from = total_counts)
 
@@ -312,16 +318,32 @@ air_neighb = air_neighb %>%
   pivot_wider(names_from = pollutant, values_from = mean_value)
 
 new_disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
-  filter(date >= '2020-03-01' & date < '2022-12-01')
+  filter(date >= '2020-03-01' & date < '2022-12-01') %>%
+  mutate(year = as.numeric(format(date, format = '%Y')),
+         month = month.name[as.numeric(format(date, format = "%m"))],
+         day = as.numeric(format(date, format = "%d")),
+         #adding seasons
+         season = case_when(
+           month %in% c('June', 'July', 'August') ~ 'Summer',
+           month %in% c('September', 'October', 'November') ~ 'Fall',
+           month %in% c('December', 'January', 'February') ~ 'Winter',
+           month %in% c('March', 'April', 'May') ~ 'Spring'))
+  
+
+
+#Ozone & PM2.5 - Wash & Willow
+#All pollutants - Fresh Meadows & Hunts Pt
+#PM2.5 - Union Square
 ```
 
+
+
+### Regression
 
 ```{r}
-disease_air[!complete.cases(disease_air), ]
-#union sq - no data from march to sept 2020
-#wash heigh - no data for may 12 2020, june 17/18 2020
 
 ```
+
 
 
 
