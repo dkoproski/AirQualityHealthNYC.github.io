@@ -18,7 +18,7 @@ library(ggplot2)
 disease_zip <- read_csv(here::here('data/cleaned_data/disease_zip.csv'))
 
 #loading previously joined data w extra disease data
-air_disease <- read_csv('data/cleaned_data/final_airqualdis.csv')
+air_disease <- read_csv(here::here('data/cleaned_data/final_airqualdis.csv'))
 
 #loading zip code data
 zip_shapes <- read_csv(here::here('data/cleaned_shapes/nyc_zip_codes.csv')) %>%
@@ -303,6 +303,18 @@ daily_ill_counts_neigh %>%
 disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
   filter(date >= '2020-03-01' & date < '2022-12-01')
 ```
+
+```{r}
+daily_ill_counts_neigh = daily_ill_counts_neigh %>%
+  pivot_wider(names_from = illness_counts, values_from = total_counts)
+
+air_neighb = air_neighb %>%
+  pivot_wider(names_from = pollutant, values_from = mean_value)
+
+new_disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
+  filter(date >= '2020-03-01' & date < '2022-12-01')
+```
+
 
 ```{r}
 disease_air[!complete.cases(disease_air), ]
