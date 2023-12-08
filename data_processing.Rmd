@@ -18,7 +18,7 @@ options(readr.show_col_types = FALSE)
 
 ### *Merging hospitalization/emergency department data involving asthma counts, respiratory diseases and pneumonia*
 
-````{r, message = FALSE}
+```{r, message = FALSE}
 # Load dataset with respiratory and asthma counts (missing some zipcodes)
 
 dis_asth_df = read_csv("data/cleaned_data/joined_respiratory.csv") |> 
