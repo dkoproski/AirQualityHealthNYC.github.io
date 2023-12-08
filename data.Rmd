@@ -13,9 +13,11 @@ This project uses publicly available data from multiple sources in its analysis.
 
 ### New York City air quality surveillance data by the Department of Health and Mental Hygiene
 
-Since 2008, the City of New York has actively maintained a dataset of up to date air quality information across most neighborhoods in the city. Accessible [here](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r), the raw data has measurements of certain air pollutants including nitrogen dioxide (NO2), ozone (O3) and fine particles (PM2.5). The dataset also contains some general information about vehicle traffic, air-pollutant related hospitalizations and more.
+Since 2008, the City of New York has actively maintained a dataset of up to date air quality information across most neighborhoods in the city. Accessible [here](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r), the raw data has measurements of certain air pollutants including nitrogen dioxide (NO2), ozone (O3) and fine particles (PM2.5). The dataset also contains some general information about vehicle traffic, air-pollutant related hospitalizations and more. Shapefiles, available [here](https://github.com/nycehs/NYC_geography/tree/master/UHF_42_DOHMH_2009), were used to plot values into maps, and to join this data with the dataset with daily observations.
 
 ## Second (data with daily observations)
+
+
 
 ## Disease Datasets
 
