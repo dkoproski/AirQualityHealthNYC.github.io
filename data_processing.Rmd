@@ -11,6 +11,8 @@ output:
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(tidyverse)
 library(plotly)
+library(janitor)
+library(readr)
 options(readr.show_col_types = FALSE)
 ```
 
@@ -18,37 +20,187 @@ options(readr.show_col_types = FALSE)
 
 ### *Merging hospitalization/emergency department data involving asthma counts, respiratory diseases and pneumonia*
 
-````{r, message = FALSE}
+```{r, message = FALSE}
 # Load dataset with respiratory and asthma counts (missing some zipcodes)
 
-dis_asth_df = read_csv("data/cleaned_data/joined_respiratory.csv") |> 
+dis_asth_df = read_csv(here::here("data/cleaned_data/joined_respiratory.csv"),
+                       col_types = cols(
+                          `date` = col_date(format = '%m/%d/%y'))) |> 
   filter(zip != 88888 & zip != "Citwide" & age_group == "All age groups") |> 
-  mutate(date = as.Date(format(as.Date(date, "%m/%d/%y"))),
-         year = as.numeric(format(date, format = "%Y")),
+  mutate(year = as.numeric(format(date, format = "%Y")),
          month = month.name[as.numeric(format(date, format = "%m"))],
          day = as.numeric(format(date, format = "%d")),
          zip = as.numeric(zip)) |>
-  select(year, month, day, zip, count_resp, count_asth) 
+  rename(zip_code = zip) |>
+  select(year, month, day, zip_code, count_resp, count_asth) 
 
 # Load dataset with pneumonia data
 
-dis_pneu_df = read_csv("data/raw_data/disease_hospital_admin.csv") |> 
-  separate(date, into=c("month", "day", "year")) |> 
+dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
+                       col_types = cols(
+                                     `date` = col_date(format = "%m/%d/%Y"),
+                                     `total_ed_visits` = col_integer(),
+                                     `ili_pne_visits` = col_integer(),
+                                     `ili_pne_admissions` = col_integer())) |> 
+  separate(date, into=c("year", "month", "day")) |> 
   mutate(day = as.numeric(day),
          month = month.name[as.numeric(month)],
          year = as.numeric(year)) |> 
-  rename(zip = mod_zcta) |> 
-  select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions)
+  rename(zip_code = mod_zcta) |> 
+  select(year, month, day, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions)
 
 # Merge two disease datasets
 
 all_dis_df =
-  full_join(dis_asth_df, dis_pneu_df, by = c("month", "day", "year", "zip"))
+  full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "year", 'month', 'day'))
 ```
+
+### *Merging hospitalization/emergency department data with zip code data containing neighborhood and borough information*
+
+```{r, message = FALSE}
+#loading zip code data
+zip_shapes <- read_csv(here::here('data/cleaned_shapes/nyc_zip_codes.csv')) %>%
+  clean_names()
+
+# merging disease with zip code data to add neigh & borough data
+
+all_dis_df <- left_join(all_dis_df, zip_shapes, by = 'zip_code') %>%
+  mutate(
+    #these zip codes needed manual inputs
+    #bc not in zip_shapes file
+    neighborhood = case_when(
+      zip_code == '10069' ~ 'Upper West Side',
+      zip_code == '11109' ~ 'Northwest Queens',
+      zip_code == '10282' ~ 'Lower Manhattan',
+      zip_code == '10271' ~ 'Lower Manhattan',
+      zip_code == '10278' ~ 'Lower Manhattan',
+      zip_code == '10279' ~ 'Lower Manhattan',
+      #zip_code == '11003' ~ 10000 (deal w these)
+      #zip_code == '11040'
+      TRUE ~ neighborhood),
+    
+    borough = case_when(
+      zip_code == '10069' ~ 'Manhattan',
+      zip_code == '11109' ~ 'Queens',
+      zip_code == '10282' ~ 'Manhattan',
+      zip_code == '10271' ~ 'Manhattan',
+      zip_code == '10278' ~ 'Manhattan',
+      zip_code == '10279' ~ 'Manhattan',
+      TRUE ~ borough)) %>%
+  
+  #removing these zip codes bc
+  #not apart of the 5 boroughs
+  filter(!(zip_code == '10000'),
+         !(zip_code == '11003'),
+         !(zip_code == '11040'))
+```
+
+
+# Disease EDA dataset
+
+```{r, message = FALSE}
+disease_eda <- all_dis_df %>%
+  pivot_longer(cols = 'count_resp':'ili_pne_admissions',
+               names_to = 'illness_counts',
+               values_to = 'count') %>%
+  mutate(month_num = match(month, month.name),
+         date = as.Date(paste(year, month_num, day, sep = '-'),
+                        format = '%Y-%m-%d'),
+         
+         illness_counts = case_when(
+           illness_counts == 'total_ed_visits' ~ 'ED visits (overall)',
+           illness_counts == 'ili_pne_visits' ~ 'Pneumonia (ER visits)',
+           illness_counts == 'ili_pne_admissions' ~ 'Pneumonia (ER admissions)',
+           illness_counts == 'count_resp' ~ 'Respiratory diseases',
+           illness_counts == 'count_asth' ~ 'Asthma'))
+```
+
+
+# Observing specific neighborhoods
+
+### *Creating neighborhood-level dataset for disease counts*
+
+```{r, message = FALSE}
+#loading neighborhood sites data
+sites_neighb <- read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
+
+#neighborhoods of interest
+neighborhoods = c("Washington Heights", "Union Square - Lower East Side",
+                  "Willowbrook", "Hunts Point - Mott Haven", "Fresh Meadows")
+
+store_data = vector("list", length = 5)
+
+for (i in 1:length(neighborhoods)) {
+  
+  n = neighborhoods[i]
+  
+  n_zips = sites_neighb %>%
+  filter(geo_place_name == n) %>%
+  pull(zip_code)
+  
+  counts_data = disease_eda %>%
+    filter(zip_code %in% n_zips) %>%
+    group_by(date, illness_counts) %>%
+    summarize(total_counts = sum(count)) %>%
+    mutate(neighborhood = n)
+  
+  store_data[[i]] = counts_data}
+
+#combining data above
+daily_disease_neigh <- bind_rows(store_data[[1]], store_data[[2]]) %>%
+  bind_rows(store_data[[3]]) %>%
+  bind_rows(store_data[[4]]) %>%
+  bind_rows(store_data[[5]]) %>%
+  mutate(date = as.Date(date, format = '%Y-%m-%d'))
+```
+
+
+# Air quality data
+
+```{r, message = FALSE}
+
+```
+
+
+
+
+# Merging air quality data with disease data
+
+```{r, message = FALSE}
+#altering format
+daily_disease_neigh = daily_disease_neigh %>%
+  pivot_wider(names_from = illness_counts, values_from = total_counts)
+
+#loading fixed air quality data
+air_neighb <- read_csv(here::here('data/cleaned_data/air_neighborhood.csv'))
+
+#altering format
+air_neighb = air_neighb %>%
+  pivot_wider(names_from = pollutant, values_from = mean_value)
+
+#merging air & disease
+disease_air <- full_join(daily_disease_neigh, air_neighb, by = c('date', "neighborhood")) %>%
+  filter(date >= '2020-03-01' & date < '2022-12-01') %>%
+  mutate(year = as.factor(format(date, format = '%Y')),
+         month = month.name[as.numeric(format(date, format = "%m"))],
+         day = as.numeric(format(date, format = "%d")),
+         #adding seasons
+         season = case_when(
+           month %in% c('June', 'July', 'August') ~ 'Summer',
+           month %in% c('September', 'October', 'November') ~ 'Fall',
+           month %in% c('December', 'January', 'February') ~ 'Winter',
+           month %in% c('March', 'April', 'May') ~ 'Spring'))
+
+```
+
+
+
+
+Old code below:..
 
 # Air quality dataset
 
-```{r}
+```{r, eval = F}
 air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |> 
   separate(date, into=c("month", "day", "year")) |>
   mutate(day = as.numeric(day),
@@ -64,7 +216,7 @@ air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |>
 
 # Merging air quality data with disease data
 
-``` {r}
+``` {r, eval = F}
 # Finally merge disease and air_qual data together
 
 air_qual_dis = 

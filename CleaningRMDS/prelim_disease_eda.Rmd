@@ -97,7 +97,7 @@ disease_data <- left_join(disease_data, zip_shapes, by = 'zip_code') %>%
          !(zip_code == '11040'))
 ```
 
-
+code below used for checking zip codes w NA's in borough and neighb.
 ```{r}
 #zip techn doesnt exist within nyc
 disease_data %>%
@@ -115,7 +115,6 @@ disease_data %>%
 disease_data %>%
   filter(zip_code == '11040')
 ```
-
 
 ```{r}
 na_borough <- disease_data %>%
@@ -135,18 +134,6 @@ na_borough_disease1 <- disease_zip %>%
 
 unique(na_borough_disease1$zip_code)
 ```
-
-```{r}
-disease_zip %>%
-  filter(zip_code == '11040')
-```
-
-```{r}
-na_borough %>%
-  filter(zip_code == '10271')
-```
-
-
 
 Notes:
 
@@ -173,7 +160,14 @@ disease_eda <- disease_data %>%
                values_to = 'count') %>%
   mutate(month_num = match(month, month.name),
          date = as.Date(paste(year, month_num, day, sep = '-'),
-                        format = '%Y-%m-%d'))
+                        format = '%Y-%m-%d'),
+         
+         illness_counts = case_when(
+           illness_counts == 'total_ed_visits' ~ 'ED visits (overall)',
+           illness_counts == 'ili_pne_visits' ~ 'Pneumonia (ER visits)',
+           illness_counts == 'ili_pne_admissions' ~ 'Pneumonia (ER admissions)',
+           illness_counts == 'count_resp' ~ 'Respiratory diseases',
+           illness_counts == 'count_asth' ~ 'Asthma'))
 ```
 
 ```{r}
@@ -248,7 +242,7 @@ daily_ill_counts_neigh <- bind_rows(store_data[[1]], store_data[[2]]) %>%
 ```{r}
 #time series...
 daily_ill_counts_neigh %>%
-  filter(illness_counts == 'count_asth') %>%
+  filter(illness_counts == 'Asthma') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
@@ -258,7 +252,7 @@ daily_ill_counts_neigh %>%
 
 ```{r}
 daily_ill_counts_neigh %>%
-  filter(illness_counts == 'count_resp') %>%
+  filter(illness_counts == 'Respiratory diseases') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
@@ -268,7 +262,19 @@ daily_ill_counts_neigh %>%
 
 ```{r}
 daily_ill_counts_neigh %>%
-  filter(illness_counts == 'ili_pne_visits') %>%
+  filter(illness_counts == 'Pneumonia (ER visits)') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+
+#decide against pneumonia (ER admissions) bc visits would be higher
+#more likely to have more zeros in admissions, and EDA showed it. 
+```
+
+
+```{r}
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'ED visits (overall)') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
@@ -277,19 +283,10 @@ daily_ill_counts_neigh %>%
 
 ```{r}
 daily_ill_counts_neigh %>%
-  filter(illness_counts == 'total_ed_visits') %>%
-  ggplot(aes(x = date, y = total_counts,
-             group = neighborhood, color = neighborhood)) +
-  geom_line()
-```
-
-
-```{r}
-daily_ill_counts_neigh %>%
-  filter(illness_counts != 'total_ed_visits') %>%
+  filter(illness_counts != 'ED visits (overall)') %>%
   pivot_wider(names_from = illness_counts, 
               values_from = total_counts) %>%
-  mutate(totals = count_asth + count_resp) %>%
+  mutate(totals = 'Asthma' + 'Respiratory diseases') %>%
   ggplot(aes(x = date, y = totals,
              group = neighborhood, color = neighborhood)) +
   geom_line()
@@ -305,29 +302,145 @@ disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "nei
 ```
 
 ```{r}
+disease_air[!complete.cases(disease_air), ]
+#union sq - no data from march to sept 2020
+#wash heigh - no data for may 12 2020, june 17/18 2020
+```
+
+```{r}
 daily_ill_counts_neigh = daily_ill_counts_neigh %>%
   pivot_wider(names_from = illness_counts, values_from = total_counts)
 
 air_neighb = air_neighb %>%
   pivot_wider(names_from = pollutant, values_from = mean_value)
 
-new_disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
-  filter(date >= '2020-03-01' & date < '2022-12-01')
+disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
+  filter(date >= '2020-03-01' & date < '2022-12-01') %>%
+  mutate(year = as.factor(format(date, format = '%Y')),
+         month = month.name[as.numeric(format(date, format = "%m"))],
+         day = as.numeric(format(date, format = "%d")),
+         #adding seasons
+         season = case_when(
+           month %in% c('June', 'July', 'August') ~ 'Summer',
+           month %in% c('September', 'October', 'November') ~ 'Fall',
+           month %in% c('December', 'January', 'February') ~ 'Winter',
+           month %in% c('March', 'April', 'May') ~ 'Spring'))
+  
+
+#Ozone & PM2.5 - Wash & Willow
+#All pollutants - Fresh Meadows & Hunts Pt
+#PM2.5 - Union Square
+```
+
+
+### Regression
+
+```{r}
+library(statar)
+new_disease_air = new_disease_air %>%
+  filter(neighborhood != "Union Square - Lower East Side")%>%
+  select(-NO2, -count_asth, -count_resp) %>%
+  arrange(date) %>%
+  group_by(neighborhood) %>%
+  mutate(lagged_ozone = tlag(Ozone, 1, time = date),
+         lagged_pm = tlag(PM2.5, 1, time = date))
+
+sum(complete.cases(new_disease_air))
+```
+
+```{r}
+new_disease_air %>%
+  mutate(y = sqrt(ili_pne_visits)) %>%
+  ggplot() + geom_histogram(aes(x= y))
+
+#bc of zeroes
+```
+
+```{r}
+new_disease_air = new_disease_air %>%
+  mutate(sqrt_pne_visits = sqrt(ili_pne_visits))
 ```
 
 
 ```{r}
-disease_air[!complete.cases(disease_air), ]
-#union sq - no data from march to sept 2020
-#wash heigh - no data for may 12 2020, june 17/18 2020
+fit = lm(sqrt_pne_visits ~ lagged_ozone + lagged_pm + year + season + neighborhood, 
+         data = new_disease_air)
+```
 
+```{r}
+new_disease_air %>%
+  modelr::add_residuals(fit) %>% 
+  modelr::add_predictions(fit) %>%
+  ggplot(aes(x = pred, y = resid)) + geom_point()
 ```
 
 
+```{r}
+fit |> 
+  broom::glance()
+```
+
+```{r}
+fit |> 
+  broom::tidy()
+```
+
+```{r}
+library(modelr)
+modelr::crossv_mc(new_disease_air, 100) %>%
+  mutate(
+    pollutants = map(train, \(df) lm(sqrt_pne_visits ~ lagged_ozone + 
+                                       lagged_pm, data = df)),
+    
+    neighborhoods = map(train, \(df) lm(sqrt_pne_visits ~ neighborhood, 
+                                        data = df)),
+    
+    time =  map(train, \(df) lm(sqrt_pne_visits ~ year + season + 
+                                       year*season, data = df))) %>%
+  mutate(
+    rmse_pollutants = map2_dbl(pollutants, test, \(mod, df) rmse(model = mod, 
+                                                        data = df)),
+    rmse_neighborhoods = map2_dbl(neighborhoods, test, \(mod, df) rmse(model = mod, 
+                                                             data = df)),
+    rmse_time = map2_dbl(time, test, \(mod, df) rmse(model = mod, 
+                                                       data = df))) %>%
+  select(starts_with("rmse")) %>%
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") %>%
+  mutate(model = fct_inorder(model)) %>%
+  ggplot(aes(x = model, y = rmse)) + geom_violin() + 
+  labs(title = "RMSE of models predicting sqrt(pneumonia visits)")
+```
 
 
+```{r}
+set.seed(42)
+bootstrap_results = 
+  new_disease_air %>%
+  modelr::bootstrap(n = 1000) %>%
+  mutate(
+    models = map(strap, \(df) lm(sqrt_pne_visits ~ neighborhood, 
+                                        data = df)),
+    estimates = map(models, broom::tidy),
+    results = map(models, broom::glance)) %>% 
+  select(-strap, -models) %>%
+  unnest(estimates, results) %>%
+  select(term, estimate, r.squared) %>% 
+  pivot_wider(names_from = term, values_from = estimate)
+```
 
-
-
-
+```{r}
+bootstrap_results %>%
+pivot_longer(r.squared:neighborhoodWillowbrook,
+             names_to = "estimate", 
+               values_to = "value") %>%
+  group_by(estimate) %>%
+  summarize(
+    ci_lower = quantile(value, 0.025, na.rm = T), 
+    ci_upper = quantile(value, 0.975, na.rm = T),
+    mean = mean(value))
+```
 

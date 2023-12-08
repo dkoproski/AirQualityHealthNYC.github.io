@@ -1,5 +1,5 @@
 ---
-title: "Exploratory Analysis and Visualizations"
+title: "Exploratory Data Analysis and Visualizations"
 output: 
   html_document:
     toc: true
@@ -14,15 +14,18 @@ library(plotly)
 options(readr.show_col_types = FALSE)
 ```
 
-# Air Pollutant EDA
+# **Air Pollutants**
 
-The Air Quality data is split into seasonal and yearly data, which gives us an idea of pollution in all of New York City's neighborhoods, and daily data, which is more precise with regards to time and location where the measurement was done, but is not available for all neighborhoods in New York City.
+The Air Quality data is split into two parts. One consists of seasonal and yearly data, which gives us an idea of pollution in all of New York City's neighborhoods from 2010-2022, while the other involves daily data, which is more precise with regards to time and location where the measurement was done, but is not available for all neighborhoods in New York City and only spans from 2021-2022.
 
-## Seasonal and Yearly Data
+## **Seasonal and Yearly Data**
 
 From the histogram and the boxplots below, it appears that PM2.5 concentrations have been steadily decreasing since 2010. The same trend is evident for NO2, but the decrease seems to be much more gradual relative to PM2.5. Finally, Ozone does not appear to be increasing or decreasing over the time period, but further analysis is needed to confirm this.
 
 ```{r, message = FALSE, echo = FALSE}
+
+# Load datasets for interactive histogram and boxplot
+
 df_histo_pm2.5 = 
   read_csv("data/cleaned_data/uhf_airquality.csv") |> 
   filter(str_detect(time_period, "Annual Average")) |> 
@@ -46,7 +49,6 @@ df_histo_ozone =
   select(year, data_value) |> 
   filter(year != 2009)
 ```
-
 
 ### Histogram of levels of NO2, O3 and PM2.5 by year
 
@@ -150,15 +152,17 @@ combined_boxplot_fig
 
 ```
 
-## Daily Data
+## **Daily Data**
 
-In this data, we have 19,503 rows, where each row is a date-measurement site-pollutant combination.
+Now that we have looked at how pollution levels change over the years, let's examine the pollution variables at a more granular level. In this data, we have 18,452 rows, where each row is a date-measurement site-pollutant combination.
 
-## How do pollutant variables change over time?
+### How do pollutant variables change over time?
 
-After restricting our analysis to roughly 2020 to 2022, we generate visualizations of the distributions of certain pollutants of interest. Throughout the year, we see oscillations in the levels of Ozone and Nitrogen Dioxide throughout the year with the former reaching its highest levels in the summer months and the latter peaking in the winter. Carbon Monoxide also exhibits oscillations, but to a much lower degree and PM2.5 does not appear to exhibit a seasonal pattern.
+After restricting our analysis to roughly 2020 to 2022, we generate visualizations of the distributions of certain pollutants of interest. Throughout the year, we see oscillations in the levels of Ozone (O3) and Nitrogen Dioxide (NO2) throughout the year, with the former reaching its highest levels in the summer months and the latter peaking in the winter. Carbon Monoxide (CO) also exhibits oscillations, but to a much lower degree. PM2.5, a type of fine particulate matter with 2.5 microns or less in diameter, does not appear to exhibit a seasonal pattern. 
 
-```{r, out.width = '100%'}
+This makes sense intuitively, as we would expect higher emissions from heating and transportation to gather in urban regions due to colder temperatures, leading to higher levels of Nitrogen Dioxide and Carbon Monoxide. In fact, [epidemics of CO poisoning](https://pubmed.ncbi.nlm.nih.gov/9950394/) commonly occurs during winter months and sources include smoke from fires, fumes from heating systems burning fuels, and exhaust fumes from motor vehicles. On the other hand, according to the [American Lung Association](https://www.lung.org/clean-air/outdoors/what-makes-air-unhealthy/ozone#), high levels of Ozone are more likely to form in warmer temperatures, which is why harmful ozone levels primarily occur in the summer in most of the US because climate change is driving warmer temperatures.
+
+```{r, out.width = '100%', message = F}
 air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |> 
   separate(date, into=c("month", "day", "year")) |>
   mutate(day = as.numeric(day),
@@ -189,13 +193,11 @@ poll_plot = air_qual_df |>
   geom_point() +
   geom_smooth(color = "blue") +
   facet_wrap(~ pollutant, ncol = 2, scales="free_y") +
-  ggtitle("Daily average of each pollutant by zip") + 
+  ggtitle("Daily average of each pollutant by zip code") + 
   scale_color_discrete()
 
 poll_plot
 ```
-
-
 
 ```{r message = FALSE, echo = FALSE}
 daily_air = read_csv(here::here("data/cleaned_data/alt_air_data.csv")) %>%
@@ -219,7 +221,7 @@ daily_air = read_csv(here::here("data/cleaned_data/alt_air_data.csv")) %>%
 
 ### Distributions of NO2, O3 and PM2.5 by borough
 
-We see that at the borough-level, the daily measurements are similar for all pollutants. 
+Now that we have seen how these pollutant variables change over time, we want to know whether they differ by borough. We see that at the borough-level, the daily measurements are similar for all pollutants. 
 
 ```{r}
 daily_air %>%
@@ -316,21 +318,14 @@ daily_neighborhood_data %>%
 ```
 
 
-# Disease EDA
+# **Disease-related variables**
 
-## Boxplots of respiratory related hospitalizations
+### How do disease variables change over time?
 
-## How do disease variables change over time?
-
-Let us first visualize how the number of emergency department visits change over time. We can see that daily ER visits seem to peak in winter months except in 2021. This could be due to COVID restrictions.
+Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. However, the trend for Ozone moves in the opposite direction, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a [cross-correlation analysis](stats.html) as an attempt to uncover any potential associations.
 
 
-
-From the plot below, we can see that the number of emergency department visits related to pneumonia peak during winter seasons. 
-
-
-
-```{r, out.width = '100%'}
+```{r, out.width = '100%', message = F, warning = F}
 all_dis_plot_df = read_csv("data/cleaned_data/disease_only.csv") |>
   mutate(
     numeric_month = match(month, month.name),
@@ -361,3 +356,4 @@ dis_plot = all_dis_plot_df |>
 dis_plot
 ```
 
+### Boxplots of respiratory related hospitalizations
