@@ -445,7 +445,7 @@ air_qual_dis =
 
 ccf_res = ccf(ccf_df$o3_ppm, ccf_df$ili_pne_visits, lag.max=250, plot = FALSE)
 plot(ccf_res, main = &quot;Analysing Lag between Ozone and Pneumonia ER visits (in days)&quot;)</code></pre>
-<p><img src="stats_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <pre class="r"><code># Visualize lag
 
 ccf_df |&gt; 
@@ -458,7 +458,7 @@ ccf_df |&gt;
   scale_color_manual(labels = c(&quot;Ozone (10^-2 ppm)&quot;, &quot;Pneumonia hospital visits&quot;), 
                      values = c(&quot;Ozone (10^-2 ppm)&quot; = &quot;#FFA500&quot;, &quot;Pneumonia ER visits&quot; = &quot;#6495ED&quot;), 
                      guide = &quot;legend&quot;)</code></pre>
-<p><img src="stats_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
 <pre class="r"><code>prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
 broom::tidy(prelag_model)
 ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) + 
@@ -467,7 +467,7 @@ ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) +
   labs(title = &quot;Pre-lag: Pneumonia ER visits vs. Ozone&quot;,
        x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
        y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
-<p><img src="stats_files/figure-html/unnamed-chunk-3-3.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-3-3.png" width="672" /></p>
 <pre class="r"><code>lag_model = lm(lagged_pne ~ scaled_o3, data = ccf_df)
 broom::tidy(lag_model)
 ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) + 
@@ -476,7 +476,7 @@ ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) +
   labs(title = &quot;Post-lag: Pneumonia ER visits vs. Ozone&quot;,
        x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
        y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
-<p><img src="stats_files/figure-html/unnamed-chunk-3-4.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-3-4.png" width="672" /></p>
 <div
 id="all-lines-below-this-will-be-removed---move-to-section-above-if-want-to-remain"
 class="section level3">

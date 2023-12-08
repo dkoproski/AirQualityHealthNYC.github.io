@@ -365,6 +365,29 @@ div.tocify {
 </div>
 
 
+<div id="air-quality-datasets" class="section level1">
+<h1>Air Quality datasets</h1>
+<div id="data-cleaning-done-on-neighborhood-level-air-quality-dataset"
+class="section level2">
+<h2>Data cleaning done on neighborhood-level air quality dataset</h2>
+<p>This dataset has neighborhood-level air quality data. It has 6300
+rows and 16 columns.</p>
+</div>
+<div id="mapping-neighborhoods-to-daily-sensors" class="section level2">
+<h2>Mapping neighborhoods to daily sensors</h2>
+<p>We want to do regression at the neighborhood level, but our daily air
+quality data only gave us the specific location where the pollutant was
+measured. This code mapped measurement sensors from our daily air
+quality data to neighborhoods.</p>
+</div>
+<div id="daily-air-quality-data-at-the-neighborhood-level"
+class="section level2">
+<h2>Daily air quality data at the neighborhood level</h2>
+<p>We used the dataset just created to summarize pollutant measurements
+at the neighborhood level. After doing this, we had daily data on
+pollutants at the neighborhood level, which allowed for regression.</p>
+</div>
+</div>
 <div id="disease-dataset" class="section level1">
 <h1>Disease dataset</h1>
 <div
@@ -567,50 +590,6 @@ air_qual_dis =
          o3_ppm = Ozone,
          no2_ppb = NO2) |&gt; 
   filter(!(year == &#39;2022&#39; &amp; month == &#39;December&#39;)) </code></pre>
-</div>
-<div
-id="do-we-still-need-this-chunk-below-it-was-to-compare-two-air-quality-datasets-daily-vs.-seasonalannual"
-class="section level1">
-<h1>!!! do we still need this chunk below? it was to compare two air
-quality datasets (daily vs. seasonal/annual)</h1>
-<pre class="r"><code>airqual_annual = read_csv(&quot;data/cleaned_data/uhf_airquality.csv&quot;) |&gt; 
-  filter(str_detect(name, &quot;Fine&quot;) | str_detect(name, &quot;NO2&quot;) | str_detect(name, &quot;O3&quot;)) 
-
-#### Prepare dataset from daily data (Summer: 1June-31Aug, Winter 1Dec-28Feb)
-
-# Annual averages for each pollutant and each zip
-
-airqual_yr_avg = air_qual_df |&gt; 
-  group_by(year, zip, pollutant) |&gt; 
-  summarize(mean = mean(value)) |&gt; 
-  pivot_wider(
-    names_from = pollutant,
-    values_from = mean
-  )
-
-# Seasonal averages for each pollutant and each zip
-
-airqual_szn_avg = air_qual_df |&gt; 
-  mutate(season = case_when(
-    month %in% c(&quot;June&quot;, &quot;July&quot;, &quot;August&quot;) ~ &quot;summer&quot;,
-    month %in% c(&quot;December&quot;, &quot;January&quot;, &quot;February&quot;) ~ &quot;winter&quot;,
-    TRUE ~ &quot;other&quot;
-  )) |&gt; 
-  filter(season != &quot;other&quot;) |&gt; 
-  group_by(season, year, zip, pollutant) |&gt; 
-  summarize(mean = mean(value)) |&gt; 
-  pivot_wider(
-    names_from = pollutant,
-    values_from = mean
-  )
-
-#### Prepare dataset from daily data
-
-airqual_annual = read_csv(&quot;data/cleaned_data/uhf_airquality.csv&quot;) |&gt; 
-  filter(str_detect(name, &quot;Fine&quot;) | str_detect(name, &quot;NO2&quot;) | str_detect(name, &quot;O3&quot;)) |&gt; 
-  select(name, )
-
-#### Comparison between daily data and yearly/seasonal data</code></pre>
 </div>
 
 
