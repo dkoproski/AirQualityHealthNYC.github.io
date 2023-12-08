@@ -409,19 +409,6 @@ air_qual_df = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt;
   group_by(day, month, year, zip, pollutant) |&gt; 
   summarize(value = mean(value))
 
-# air_qual_df_aqi = read_csv(&quot;data/cleaned_data/alt_air_data.csv&quot;) |&gt; 
-#   separate(date, into=c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;)) |&gt;
-#   mutate(day = as.numeric(day),
-#          month = month.name[as.numeric(month)],
-#          year = as.numeric(year)) |&gt; 
-#   filter(!(year == &#39;2020&#39; &amp; month == &#39;January&#39;),
-#          !(year == &#39;2020&#39; &amp; month == &#39;February&#39;),
-#          !(aqs_parameter_desc == &quot;Acceptable PM2.5 AQI &amp; Speciation Mass&quot;)) |&gt;  
-#   rename(zip = zip_code) |&gt; 
-#   select(year, month, day, zip, daily_aqi_value, pollutant, value) |&gt; 
-#   group_by(day, month, year, zip, pollutant) |&gt; 
-#   summarize(daily_aqi = mean(daily_aqi_value))
-
 ### note: removed acceptable pm2.5... from https://www.epa.gov/aqs/aqs-memos-technical-note-reporting-pm25-continuous-monitoring-and-speciation-data-air-quality
 
 # Finally merge disease and air qual data together
@@ -442,25 +429,6 @@ air_qual_dis = # with value
          o3_ppm = Ozone,
          no2_ppb = NO2) |&gt; 
   filter(!(year == &#39;2022&#39; &amp; month == &#39;December&#39;)) 
-
-
-  
-# air_qual_dis_aqi = # with daily aqi value
-#   full_join(all_dis_df, air_qual_df_aqi, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip&quot;)) |&gt; 
-#   select(year, month, day, zip, count_resp, count_asth, total_ed_visits, 
-#          ili_pne_visits, ili_pne_admissions, pollutant, daily_aqi) |&gt; 
-#   pivot_wider(names_from = pollutant,
-#               values_from = daily_aqi) |&gt; 
-#   select(-`NA`) |&gt; 
-#   rename(pm25_ug_m3_lc = PM2.5,
-#          co_ppm = CO,
-#          o3_ppm = Ozone,
-#          no2_ppb = NO2) |&gt; 
-#   filter(!(year == &#39;2022&#39; &amp; month == &#39;December&#39;)) |&gt; 
-#   mutate(
-#     numeric_month = match(month, month.name),
-#     date = as.Date(paste(year, numeric_month, day, sep = &quot;-&quot;), format = &quot;%Y-%m-%d&quot;)
-#   )
 
 # measurement: ozone (daily_max_8_hour_ozone_concentration)
 # co (daily_max_8_hour_co_concentration)
@@ -508,55 +476,6 @@ airqual_annual = read_csv(&quot;data/cleaned_data/uhf_airquality.csv&quot;) |&gt
   select(name, )
 
 #### Comparison between daily data and yearly/seasonal data</code></pre>
-</div>
-<div
-id="investigating-the-lagged-association-of-ozone-with-variables-related-to-respiratory-diseases"
-class="section level1">
-<h1>Investigating the lagged association of Ozone with variables related
-to respiratory diseases</h1>
-<div id="cross-correlation-analysis" class="section level2">
-<h2>Cross correlation analysis</h2>
-<pre class="r"><code>ccf_df = air_qual_dis |&gt; 
-  filter(!is.na(o3_ppm) &amp; !is.na(ili_pne_visits)) |&gt; 
-  mutate(date_lag = date + days(125),
-         scaled_o3 = o3_ppm * 100, 
-         lagged_pne = lag(ili_pne_visits, n = 125)
-  )
-
-ccf_res = ccf(ccf_df$o3_ppm, ccf_df$ili_pne_visits, lag.max=250, plot = FALSE)
-plot(ccf_res, main = &quot;Analysing Lag between Ozone and Pneumonia ER visits (in days)&quot;)</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-3-1.png" width="100%" /></p>
-<pre class="r"><code># Visualize lag
-
-ccf_df |&gt; 
-  ggplot() +
-  geom_point(aes(x = date_lag, y = lagged_pne, color = &quot;Pneumonia ER visits&quot;)) +
-  geom_point(aes(x = date, y = scaled_o3, color = &quot;Ozone (10^-2 ppm)&quot;)) +
-  labs(title = &quot;Lagging Pneumonia ER visits by 125 days&quot;, 
-       x = &quot;Date&quot;,
-       y = &quot;Values&quot;) +
-  scale_color_manual(labels = c(&quot;Ozone (10^-2 ppm)&quot;, &quot;Pneumonia hospital visits&quot;), 
-                     values = c(&quot;Ozone (10^-2 ppm)&quot; = &quot;#FFA500&quot;, &quot;Pneumonia ER visits&quot; = &quot;#6495ED&quot;), 
-                     guide = &quot;legend&quot;)</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-3-2.png" width="100%" /></p>
-<pre class="r"><code>prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
-broom::tidy(prelag_model)
-ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) + 
-  geom_point(color = &quot;#FFA500&quot;) +
-  geom_smooth(method = &quot;lm&quot;, color = &quot;blue&quot;) +
-  labs(title = &quot;Pre-lag: Pneumonia ER visits vs. Ozone&quot;,
-       x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
-       y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-3-3.png" width="100%" /></p>
-<pre class="r"><code>lag_model = lm(lagged_pne ~ scaled_o3, data = ccf_df)
-broom::tidy(lag_model)
-ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) + 
-  geom_point(color = &quot;#FFA500&quot;) +
-  geom_smooth(method = &quot;lm&quot;, color = &quot;blue&quot;) +
-  labs(title = &quot;Post-lag: Pneumonia ER visits vs. Ozone&quot;,
-       x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
-       y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-3-4.png" width="100%" /></p>
 <pre class="r"><code># EDA
 
 ## Histograms
@@ -646,7 +565,6 @@ air_dis_df = read_csv(&quot;data/cleaned_data/air_quality_disease.csv&quot;) |&g
   select(year, month, day, zip, total_ed_visits, ili_pne_visits, ili_pne_admissions, everything())
 
 # Found many NAs in air_quality_disease.csv - need revision</code></pre>
-</div>
 </div>
 
 

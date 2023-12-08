@@ -14,6 +14,70 @@ library(plotly)
 options(readr.show_col_types = FALSE)
 ```
 
+### 
+
+# Investigating the lagged association of Ozone with variables related to respiratory diseases
+
+## Cross correlation analysis
+
+```{r, out.width='100%', results = 'hide'}
+ccf_df = read_csv("data/cleaned_data/final_airqualdis.csv") |> 
+  filter(!is.na(o3_ppm) & !is.na(ili_pne_visits)) |> 
+  mutate(date_lag = date + days(125),
+         scaled_o3 = o3_ppm * 100, 
+         lagged_pne = lag(ili_pne_visits, n = 125)
+  )
+
+ccf_res = ccf(ccf_df$o3_ppm, ccf_df$ili_pne_visits, lag.max=250, plot = FALSE)
+plot(ccf_res, main = "Analysing Lag between Ozone and Pneumonia ER visits (in days)")
+
+# Visualize lag
+
+ccf_df |> 
+  ggplot() +
+  geom_point(aes(x = date_lag, y = lagged_pne, color = "Pneumonia ER visits")) +
+  geom_point(aes(x = date, y = scaled_o3, color = "Ozone (10^-2 ppm)")) +
+  labs(title = "Lagging Pneumonia ER visits by 125 days", 
+       x = "Date",
+       y = "Values") +
+  scale_color_manual(labels = c("Ozone (10^-2 ppm)", "Pneumonia hospital visits"), 
+                     values = c("Ozone (10^-2 ppm)" = "#FFA500", "Pneumonia ER visits" = "#6495ED"), 
+                     guide = "legend")
+
+prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
+broom::tidy(prelag_model)
+ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) + 
+  geom_point(color = "#FFA500") +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Pre-lag: Pneumonia ER visits vs. Ozone",
+       x = expression(paste("Ozone (", 10^-2, " ppm)")), 
+       y = "Pneumonia hospital visits (count)")
+
+lag_model = lm(lagged_pne ~ scaled_o3, data = ccf_df)
+broom::tidy(lag_model)
+ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) + 
+  geom_point(color = "#FFA500") +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Post-lag: Pneumonia ER visits vs. Ozone",
+       x = expression(paste("Ozone (", 10^-2, " ppm)")), 
+       y = "Pneumonia hospital visits (count)")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### ALL LINES BELOW THIS WILL BE REMOVED - MOVE TO SECTION ABOVE IF WANT TO REMAIN
+
 
 ## Regression of Fine Particles (PM 2.5) over time (testing the state of new york's claim that air pollutants are decreasing)
 

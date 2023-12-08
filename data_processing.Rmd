@@ -57,19 +57,6 @@ air_qual_df = read_csv("data/cleaned_data/alt_air_data.csv") |>
   group_by(day, month, year, zip, pollutant) |> 
   summarize(value = mean(value))
 
-# air_qual_df_aqi = read_csv("data/cleaned_data/alt_air_data.csv") |> 
-#   separate(date, into=c("month", "day", "year")) |>
-#   mutate(day = as.numeric(day),
-#          month = month.name[as.numeric(month)],
-#          year = as.numeric(year)) |> 
-#   filter(!(year == '2020' & month == 'January'),
-#          !(year == '2020' & month == 'February'),
-#          !(aqs_parameter_desc == "Acceptable PM2.5 AQI & Speciation Mass")) |>  
-#   rename(zip = zip_code) |> 
-#   select(year, month, day, zip, daily_aqi_value, pollutant, value) |> 
-#   group_by(day, month, year, zip, pollutant) |> 
-#   summarize(daily_aqi = mean(daily_aqi_value))
-
 ### note: removed acceptable pm2.5... from https://www.epa.gov/aqs/aqs-memos-technical-note-reporting-pm25-continuous-monitoring-and-speciation-data-air-quality
 
 # Finally merge disease and air qual data together
@@ -90,25 +77,6 @@ air_qual_dis = # with value
          o3_ppm = Ozone,
          no2_ppb = NO2) |> 
   filter(!(year == '2022' & month == 'December')) 
-
-
-  
-# air_qual_dis_aqi = # with daily aqi value
-#   full_join(all_dis_df, air_qual_df_aqi, by = c("month", "day", "year", "zip")) |> 
-#   select(year, month, day, zip, count_resp, count_asth, total_ed_visits, 
-#          ili_pne_visits, ili_pne_admissions, pollutant, daily_aqi) |> 
-#   pivot_wider(names_from = pollutant,
-#               values_from = daily_aqi) |> 
-#   select(-`NA`) |> 
-#   rename(pm25_ug_m3_lc = PM2.5,
-#          co_ppm = CO,
-#          o3_ppm = Ozone,
-#          no2_ppb = NO2) |> 
-#   filter(!(year == '2022' & month == 'December')) |> 
-#   mutate(
-#     numeric_month = match(month, month.name),
-#     date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
-#   )
 
 # measurement: ozone (daily_max_8_hour_ozone_concentration)
 # co (daily_max_8_hour_co_concentration)
@@ -159,59 +127,6 @@ airqual_annual = read_csv("data/cleaned_data/uhf_airquality.csv") |>
 #### Comparison between daily data and yearly/seasonal data
 
 ```
-
-
-# Investigating the lagged association of Ozone with variables related to respiratory diseases
-
-## Cross correlation analysis
-
-```{r, out.width='100%', results = 'hide'}
-ccf_df = air_qual_dis |> 
-  filter(!is.na(o3_ppm) & !is.na(ili_pne_visits)) |> 
-  mutate(date_lag = date + days(125),
-         scaled_o3 = o3_ppm * 100, 
-         lagged_pne = lag(ili_pne_visits, n = 125)
-  )
-
-ccf_res = ccf(ccf_df$o3_ppm, ccf_df$ili_pne_visits, lag.max=250, plot = FALSE)
-plot(ccf_res, main = "Analysing Lag between Ozone and Pneumonia ER visits (in days)")
-
-# Visualize lag
-
-ccf_df |> 
-  ggplot() +
-  geom_point(aes(x = date_lag, y = lagged_pne, color = "Pneumonia ER visits")) +
-  geom_point(aes(x = date, y = scaled_o3, color = "Ozone (10^-2 ppm)")) +
-  labs(title = "Lagging Pneumonia ER visits by 125 days", 
-       x = "Date",
-       y = "Values") +
-  scale_color_manual(labels = c("Ozone (10^-2 ppm)", "Pneumonia hospital visits"), 
-                     values = c("Ozone (10^-2 ppm)" = "#FFA500", "Pneumonia ER visits" = "#6495ED"), 
-                     guide = "legend")
-
-prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
-broom::tidy(prelag_model)
-ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) + 
-  geom_point(color = "#FFA500") +
-  geom_smooth(method = "lm", color = "blue") +
-  labs(title = "Pre-lag: Pneumonia ER visits vs. Ozone",
-       x = expression(paste("Ozone (", 10^-2, " ppm)")), 
-       y = "Pneumonia hospital visits (count)")
-
-lag_model = lm(lagged_pne ~ scaled_o3, data = ccf_df)
-broom::tidy(lag_model)
-ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) + 
-  geom_point(color = "#FFA500") +
-  geom_smooth(method = "lm", color = "blue") +
-  labs(title = "Post-lag: Pneumonia ER visits vs. Ozone",
-       x = expression(paste("Ozone (", 10^-2, " ppm)")), 
-       y = "Pneumonia hospital visits (count)")
-```
-
-
-
-
-
 
 
 
