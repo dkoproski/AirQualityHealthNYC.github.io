@@ -392,18 +392,20 @@ modelr::crossv_mc(new_disease_air, 100) %>%
     pollutants = map(train, \(df) lm(sqrt_pne_visits ~ lagged_ozone + 
                                        lagged_pm, data = df)),
     
-    neighborhoods = map(train, \(df) lm(sqrt_pne_visits ~ neighborhood, 
-                                        data = df)),
-    
     time =  map(train, \(df) lm(sqrt_pne_visits ~ year + season + 
-                                       year*season, data = df))) %>%
+                                       year*season, data = df)),
+    
+    neighborhoods = map(train, \(df) lm(sqrt_pne_visits ~ neighborhood, 
+                                        data = df))) %>%
   mutate(
     rmse_pollutants = map2_dbl(pollutants, test, \(mod, df) rmse(model = mod, 
                                                         data = df)),
-    rmse_neighborhoods = map2_dbl(neighborhoods, test, \(mod, df) rmse(model = mod, 
-                                                             data = df)),
+    
     rmse_time = map2_dbl(time, test, \(mod, df) rmse(model = mod, 
-                                                       data = df))) %>%
+                                                       data = df)),
+    
+    rmse_neighborhoods = map2_dbl(neighborhoods, test, \(mod, df) rmse(model = mod, 
+                                                             data = df))) %>%
   select(starts_with("rmse")) %>%
   pivot_longer(
     everything(),
