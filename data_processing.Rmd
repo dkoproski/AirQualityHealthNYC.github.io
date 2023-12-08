@@ -116,13 +116,85 @@ disease_eda <- all_dis_df %>%
 
 # Observing specific neighborhoods
 
-### *Creating neighborhood-level dataset for diseases*
+### *Creating neighborhood-level dataset for disease counts*
+
+```{r, message = FALSE}
+#loading neighborhood sites data
+sites_neighb <- read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
+
+#neighborhoods of interest
+neighborhoods = c("Washington Heights", "Union Square - Lower East Side",
+                  "Willowbrook", "Hunts Point - Mott Haven", "Fresh Meadows")
+
+store_data = vector("list", length = 5)
+
+for (i in 1:length(neighborhoods)) {
+  
+  n = neighborhoods[i]
+  
+  n_zips = sites_neighb %>%
+  filter(geo_place_name == n) %>%
+  pull(zip_code)
+  
+  counts_data = disease_eda %>%
+    filter(zip_code %in% n_zips) %>%
+    group_by(date, illness_counts) %>%
+    summarize(total_counts = sum(count)) %>%
+    mutate(neighborhood = n)
+  
+  store_data[[i]] = counts_data}
+
+#combining data above
+daily_disease_neigh <- bind_rows(store_data[[1]], store_data[[2]]) %>%
+  bind_rows(store_data[[3]]) %>%
+  bind_rows(store_data[[4]]) %>%
+  bind_rows(store_data[[5]]) %>%
+  mutate(date = as.Date(date, format = '%Y-%m-%d'))
+```
+
+
+# Air quality data
+
+```{r, message = FALSE}
+
+```
 
 
 
 
+# Merging air quality data with disease data
+
+```{r, message = FALSE}
+#altering format
+daily_disease_neigh = daily_disease_neigh %>%
+  pivot_wider(names_from = illness_counts, values_from = total_counts)
+
+#loading fixed air quality data
+air_neighb <- read_csv(here::here('data/cleaned_data/air_neighborhood.csv'))
+
+#altering format
+air_neighb = air_neighb %>%
+  pivot_wider(names_from = pollutant, values_from = mean_value)
+
+#merging air & disease
+disease_air <- full_join(daily_disease_neigh, air_neighb, by = c('date', "neighborhood")) %>%
+  filter(date >= '2020-03-01' & date < '2022-12-01') %>%
+  mutate(year = as.factor(format(date, format = '%Y')),
+         month = month.name[as.numeric(format(date, format = "%m"))],
+         day = as.numeric(format(date, format = "%d")),
+         #adding seasons
+         season = case_when(
+           month %in% c('June', 'July', 'August') ~ 'Summer',
+           month %in% c('September', 'October', 'November') ~ 'Fall',
+           month %in% c('December', 'January', 'February') ~ 'Winter',
+           month %in% c('March', 'April', 'May') ~ 'Spring'))
+
+```
 
 
+
+
+Old code below:..
 
 # Air quality dataset
 
