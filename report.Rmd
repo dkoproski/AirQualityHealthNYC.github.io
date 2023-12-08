@@ -6,6 +6,12 @@ output:
     toc_float: true
     code_folding: hide
 ---
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(leaflet)
+library(plotly)
+options(readr.show_col_types = FALSE)
+```
 
 # Project Report 
  
@@ -50,12 +56,139 @@ Additionally, a geographic location dataset was used to provide more precise loc
 Two air quality and two disease data sets were obtained for analysis. [AIR QUALITY (SEASONAL) ONE CLEANING]. [AIR QUALITY (DAILY)]. 
 Two disease data sets. [1] and [2]
 
+
+```{r, message = FALSE, echo = FALSE}
+
+# Load datasets for interactive histogram and boxplot
+
+df_histo_pm2.5 = 
+  read_csv("data/cleaned_data/uhf_airquality.csv") |> 
+  filter(str_detect(time_period, "Annual Average")) |> 
+  mutate(year = str_extract(time_period, "\\d{4}")) |> 
+  filter(name == "Fine particles (PM 2.5)",
+         year != 2009) |> 
+  select(year, data_value)
+
+df_histo_NO2 = 
+  read_csv("data/cleaned_data/uhf_airquality.csv")  |> 
+  filter(str_detect(time_period, "Annual Average")) |> 
+  mutate(year = str_extract(time_period, "\\d{4}")) |> 
+  filter(name == "Nitrogen dioxide (NO2)",
+         year != 2009) |> 
+  select(year, data_value) 
+
+df_histo_ozone =
+  read_csv("data/cleaned_data/uhf_airquality.csv")  |> 
+  filter(name == "Ozone (O3)") |> 
+  mutate(year = str_extract(time_period, "\\d{4}")) |> 
+  select(year, data_value) |> 
+  filter(year != 2009)
+```
+
 ### Exploratory Analysis and Visualizations
 
 O3, PM2.5, and NO2 were the air pollutants chosen for our descriptive and statistical analysis. 
 
 #### Histogram and boxplot of air quality from 2010-2021
 An interactive histogram showing each air pollutant concentration, overlaid from the years 2009-2021, was constructed to depict frequency distribution and central tendency. Additionally, the spread, central tendency, and presence of outliers were shown in an interactive box plot based on air pollutant and year. PM2.5 and NO2 concentrations continuously declined from 2009 to 2021, as evident on the layered histogram and box plots. PM2.5 showed an emphasized decrease in concentration, with the lowest median concentration exhibited in 2020.O3 concentrations initially increased from 2010 to 2016, but seemed to stabilize around 30 ppb with observed measurement decreases from 2017 to 2021. 
+
+```{r}
+all_years = sort(unique(c(as.numeric(df_histo_pm2.5$year),
+                           as.numeric(df_histo_NO2$year),
+                           as.numeric(df_histo_ozone$year))))
+
+combined_fig = plot_ly()
+
+
+pollutants_data = list(df_histo_pm2.5, df_histo_NO2, df_histo_ozone)
+pollutant_names = c("PM2.5", "NO2", "O3")
+pollutant_units = c("PM2.5 Concentration (mcg/m3)", "NO2 Concentration (ppb)", "O3 Concentration (ppb)")
+
+
+for(i in seq_along(pollutants_data)) {
+
+  for(year_value in all_years) {
+    year_data = filter(pollutants_data[[i]], year == as.character(year_value))
+    combined_fig = combined_fig |>
+      add_histogram(data = year_data, 
+                    x = ~data_value, 
+                    name = as.character(year_value),
+                    marker = list(opacity = 0.6),
+                    visible = i == 1) 
+  }
+}
+
+num_years = length(all_years)
+buttons = lapply(seq_along(pollutants_data), function(i) {
+  visibility = c(rep(FALSE, num_years * (i - 1)), 
+                 rep(TRUE, num_years), 
+                 rep(FALSE, num_years * (length(pollutants_data) - i)))
+  list(method = "update",
+       args = list(list("visible" = visibility),
+                   list("title" = paste(pollutant_names[i], "Concentration"),
+                        "xaxis.title" = pollutant_units[i])),
+       label = pollutant_names[i])
+})
+
+combined_fig = combined_fig |>
+  layout(title = "Comparison of Pollutant Concentrations",
+         barmode = "overlay",
+         xaxis = list(title = "Concentration"),
+         yaxis = list(title = 'Count of Measurements'),
+         updatemenus = list(list(type = "dropdown", buttons = buttons)))
+
+combined_fig
+```
+
+```{r}
+add_yearly_boxplots = function(data, years, name_prefix, visible) {
+  for(year_value in years) {
+    year_data = filter(data, year == as.character(year_value))
+    combined_boxplot_fig <<- combined_boxplot_fig |>
+      add_trace(data = year_data, 
+                y = ~data_value, 
+                type = 'box',
+                name = paste(name_prefix, year_value),
+                visible = visible)
+  }
+}
+
+
+combined_boxplot_fig = plot_ly()
+
+
+add_yearly_boxplots(df_histo_pm2.5, all_years, "PM2.5", TRUE)
+
+add_yearly_boxplots(df_histo_NO2, all_years, "NO2", FALSE)
+add_yearly_boxplots(df_histo_ozone, all_years, "O3", FALSE)
+
+
+buttons = lapply(seq_along(pollutants_data), function(i) {
+  visibility = c(rep(i == 1, num_years), rep(i == 2, num_years), rep(i == 3, num_years))
+  list(
+    method = "update",
+    args = list(
+      list("visible" = visibility),
+      list(
+        "title" = paste(pollutant_names[i], "Concentration"),
+        "yaxis.title" = pollutant_units[i]
+      )
+    ),
+    label = pollutant_names[i]
+  )
+})
+
+
+combined_boxplot_fig = combined_boxplot_fig |>
+  layout(
+    title = "Comparison of Pollutant Concentrations (Boxplots)",
+    yaxis = list(title = pollutant_units[1]), 
+    updatemenus = list(list(type = "dropdown", buttons = buttons))
+  )
+
+combined_boxplot_fig
+
+```
 
 #### Heatmaps of air quality from 2010-2021
 A heat map of the air pollutants with a year selector was constructed to monitor and understand the air quality in NYC. High concentrations of the selected pollutant were indicated by red and maroon, while lower concentrations were shown in green. The PM2.5 heat map showed a greater amount of PM2.5 levels in Lower Manhattan throughout the years. Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Outer boroughs such as Brooklyn showed consistently high concentrations of O3 levels from 2009 to 2021. NO2 displayed a decrease in concentration however it was less noticeable. 
