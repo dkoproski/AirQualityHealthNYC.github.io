@@ -94,6 +94,36 @@ all_dis_df <- left_join(all_dis_df, zip_shapes, by = 'zip_code') %>%
 ```
 
 
+# Disease EDA dataset
+
+```{r, message = FALSE}
+disease_eda <- all_dis_df %>%
+  pivot_longer(cols = 'count_resp':'ili_pne_admissions',
+               names_to = 'illness_counts',
+               values_to = 'count') %>%
+  mutate(month_num = match(month, month.name),
+         date = as.Date(paste(year, month_num, day, sep = '-'),
+                        format = '%Y-%m-%d'),
+         
+         illness_counts = case_when(
+           illness_counts == 'total_ed_visits' ~ 'ED visits (overall)',
+           illness_counts == 'ili_pne_visits' ~ 'Pneumonia (ER visits)',
+           illness_counts == 'ili_pne_admissions' ~ 'Pneumonia (ER admissions)',
+           illness_counts == 'count_resp' ~ 'Respiratory diseases',
+           illness_counts == 'count_asth' ~ 'Asthma'))
+```
+
+
+# Observing specific neighborhoods
+
+### *Creating neighborhood-level dataset for diseases*
+
+
+
+
+
+
+
 # Air quality dataset
 
 ```{r}
