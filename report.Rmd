@@ -60,7 +60,7 @@ Two disease data sets. [1] and [2]
 
 
 DF for Interactive Histogram and Boxplot
-```{r, message = FALSE, echo = FALSE}
+```{r, message = FALSE}
 
 # Load datasets for interactive histogram and boxplot
 
@@ -90,7 +90,7 @@ df_histo_ozone =
 
 
 DF for Interactive Heatmaps
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
+```{r,  message = FALSE, warning = FALSE}
 
 air_df = read_csv("data/cleaned_data/air_quality_zips.csv")
 df_air_geo = 
@@ -103,7 +103,7 @@ df_air_geo =
 ```
 
 DF for Boxplots according to Borough
-```{r message = FALSE, echo = FALSE}
+```{r message = FALSE}
 daily_air = read_csv(here::here("data/cleaned_data/alt_air_data.csv")) %>%
   mutate(borough = case_when(
     county == "New York" ~ "Manhattan",
@@ -130,7 +130,7 @@ DF for time series by neighboorhood
 sites_nghbors = read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
 ```
 
-```{r message = FALSE, echo = FALSE}
+```{r message = FALSE}
 #Where Fresh Meadows is Queens and Willowbrook is in Staten Island
 #Hunts Point - Mott Haven is in Bronx
 
