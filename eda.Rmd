@@ -152,6 +152,8 @@ combined_boxplot_fig
 
 ## Daily Data
 
+In this data, we have 19,503 rows, where each row is a date-measurement site-pollutant combination.
+
 ## How do pollutant variables change over time?
 
 After restricting our analysis to roughly 2020 to 2022, we generate visualizations of the distributions of certain pollutants of interest. Throughout the year, we see oscillations in the levels of Ozone and Nitrogen Dioxide throughout the year with the former reaching its highest levels in the summer months and the latter peaking in the winter. Carbon Monoxide also exhibits oscillations, but to a much lower degree and PM2.5 does not appear to exhibit a seasonal pattern.
