@@ -14,6 +14,7 @@ library(plotly)
 options(readr.show_col_types = FALSE)
 ```
 
+
 # **Air Pollutants**
 
 The Air Quality data is split into two parts. One consists of seasonal and yearly data, which gives us an idea of pollution in all of New York City's neighborhoods from 2010-2022, while the other involves daily data, which is more precise with regards to time and location where the measurement was done, but is not available for all neighborhoods in New York City and only spans from 2021-2022.
@@ -326,18 +327,36 @@ Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we
 
 
 ```{r, out.width = '100%', message = F, warning = F}
-all_dis_plot_df = read_csv("data/cleaned_data/disease_only.csv") |>
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
-  ) |> 
-  select(-day, -month, -year, -numeric_month, -total_ed_visits) |> 
+
+# Load datasets we need for disease EDA
+
+dis_asth_df = read_csv(here::here("data/cleaned_data/joined_respiratory.csv"),
+                       col_types = cols(
+                          `date` = col_date(format = '%m/%d/%y'))) |> 
+  rename(zip_code = zip) |> 
+  filter(zip_code != 88888 & zip_code != "Citwide" & age_group == "All age groups") |> 
+  mutate(zip_code = as.numeric(zip_code)) |>
+  select(date, zip_code, count_resp, count_asth)
+
+dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
+                       col_types = cols(
+                                     `date` = col_date(format = "%m/%d/%Y"),
+                                     `total_ed_visits` = col_integer(),
+                                     `ili_pne_visits` = col_integer(),
+                                     `ili_pne_admissions` = col_integer())) |> 
+  rename(zip_code = mod_zcta) |> 
+  select(date, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions)
+
+all_dis_df =
+  full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "date"))
+
+# Alter data to fit plot
+all_dis_plot_df = all_dis_df |>
   pivot_longer(cols = c("count_resp", "count_asth", "ili_pne_visits", "ili_pne_admissions"), 
                names_to = "variable",
                values_to = "count")
 
 dis_plot = all_dis_plot_df |> 
-  
   mutate(variable = case_when(
       variable =="count_resp" ~ "Respiratory diseases",
       variable =="count_asth" ~ "Asthma",
