@@ -372,6 +372,40 @@ class="section level2">
 <h2>Data cleaning done on neighborhood-level air quality dataset</h2>
 <p>This dataset has neighborhood-level air quality data. It has 6300
 rows and 16 columns.</p>
+<pre class="r"><code>library(tidyverse)
+library(sf)
+library(sfheaders)
+
+df_air = read_csv(here::here(&quot;data/raw_data/air_quality.csv&quot;)) %&gt;%
+  janitor::clean_names() %&gt;%
+  select(-message) %&gt;%
+  mutate(id = as.character(geo_join_id)) %&gt;%
+  filter(geo_type_name == &quot;UHF42&quot;)
+
+#shapefiles aren&#39;t in the repository due to their size
+zip_shapes = read_sf(dsn = here::here(&quot;raw_shapes/&quot;), 
+                     layer = &#39;tl_2019_us_zcta510&#39;) %&gt;% 
+  rename(zip = ZCTA5CE10)
+
+air_shapes = read_sf(dsn = &quot;raw_shapes/&quot;, layer = &quot;UHF42&quot;) %&gt;%
+  filter(id != &quot;0&quot;) %&gt;%
+  st_transform(crs= st_crs(zip_shapes)) %&gt;%
+  rename(geo_join_id = id) %&gt;%
+  mutate(geo_join_id = as.numeric(geo_join_id))
+
+df_air = df_air %&gt;%
+  left_join(air_shapes) %&gt;%
+   mutate(x_center = map_dbl(geometry, ~st_point_on_surface(.x)[[1]]),
+         y_center = map_dbl(geometry, ~st_point_on_surface(.x)[[2]]),
+         intplon10 = x_center, intplat10 = y_center) #I do this so that the 
+        #zip_code shape files and UHF air quality shapefiles have the same 
+        #variable names for the point in the center of polygons
+        #Otherwise, code done with zip_code shapefiles would need to be
+        #edited to account for these new variable names
+
+df_air %&gt;%
+  select(-geometry) %&gt;% 
+  write_csv(here::here(&quot;data/cleaned_data/uhf_airquality.csv&quot;))</code></pre>
 </div>
 <div id="mapping-neighborhoods-to-daily-sensors" class="section level2">
 <h2>Mapping neighborhoods to daily sensors</h2>
@@ -379,6 +413,41 @@ rows and 16 columns.</p>
 quality data only gave us the specific location where the pollutant was
 measured. This code mapped measurement sensors from our daily air
 quality data to neighborhoods.</p>
+<pre class="r"><code>df_air = read_csv(here::here(&quot;data/cleaned_data/uhf_airquality.csv&quot;))
+
+zip_shapes = read_sf(dsn = here::here(&quot;raw_shapes/&quot;), 
+                     layer = &#39;tl_2019_us_zcta510&#39;) %&gt;% 
+  rename(zip = ZCTA5CE10)
+
+air_shapes = read_sf(dsn = here::here(&quot;raw_shapes/&quot;), layer = &quot;UHF42&quot;) %&gt;%
+  filter(id != &quot;0&quot;) %&gt;%
+  st_transform(crs= st_crs(zip_shapes)) %&gt;%
+  rename(geo_join_id = id) %&gt;%
+  mutate(geo_join_id = as.numeric(geo_join_id))
+
+df_air = df_air %&gt;%
+  left_join(air_shapes) %&gt;%
+   mutate(x_center = map_dbl(geometry, ~st_point_on_surface(.x)[[1]]),
+         y_center = map_dbl(geometry, ~st_point_on_surface(.x)[[2]]),
+         intplon10 = x_center, intplat10 = y_center)
+
+daily_air = read_csv(here::here(&quot;data/cleaned_data/alt_air_data.csv&quot;))
+
+daily_air = daily_air %&gt;%
+  st_as_sf(coords = c(&quot;x&quot;, &quot;y&quot;), crs = st_crs(zip_shapes))
+
+geo_joins_sites = st_join(daily_air, air_shapes, join = st_within)  %&gt;%
+  select(zip_code, site_name, geo_join_id, pollutant) %&gt;%
+  group_by(zip_code, site_name, pollutant) %&gt;%
+  summarize(geo_join_id = mean(geo_join_id))
+
+geo_join_neighborhoods = df_air %&gt;%
+  group_by(geo_place_name) %&gt;%
+  summarize(geo_join_id = mean(geo_join_id))
+
+left_join(geo_joins_sites, geo_join_neighborhoods) %&gt;%
+  select(zip_code, site_name, pollutant, geo_place_name) %&gt;%
+  write_csv(here::here(&quot;data/cleaned_data/pollutant_per_neighborhood.csv&quot;))</code></pre>
 </div>
 <div id="daily-air-quality-data-at-the-neighborhood-level"
 class="section level2">
@@ -386,6 +455,39 @@ class="section level2">
 <p>We used the dataset just created to summarize pollutant measurements
 at the neighborhood level. After doing this, we had daily data on
 pollutants at the neighborhood level, which allowed for regression.</p>
+<pre class="r"><code>#neighborhoods on interest:
+
+neighborhoods = c(&quot;Washington Heights&quot;, &quot;Union Square - Lower East Side&quot;,
+                  &quot;Willowbrook&quot;, &quot;Hunts Point - Mott Haven&quot;, &quot;Fresh Meadows&quot;)
+
+store_data = vector(&quot;list&quot;, length = 5)
+
+for (i in 1:length(neighborhoods)) {
+  
+  n = neighborhoods[i]
+  
+  n_zips = sites_nghbors %&gt;%
+  filter(geo_place_name == n) %&gt;%
+  pull(zip_code)
+  
+  daily_data = daily_air %&gt;%
+    filter(zip_code %in% n_zips) %&gt;%
+    group_by(date, pollutant) %&gt;%
+    summarize(mean_value = mean(value)) %&gt;%
+    mutate(neighborhood = n)
+  
+  store_data[[i]] = daily_data
+  
+}
+
+daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %&gt;%
+  bind_rows(store_data[[3]]) %&gt;%
+  bind_rows(store_data[[4]]) %&gt;%
+  bind_rows(store_data[[5]]) %&gt;%
+  mutate(date = as.Date(date, format = &quot;%m/%d/%Y&quot;))
+
+write_csv(daily_neighborhood_data, 
+          here::here(&quot;data/cleaned_data/air_neighborhood.csv&quot;))</code></pre>
 </div>
 </div>
 <div id="disease-dataset" class="section level1">

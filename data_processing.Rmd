@@ -22,7 +22,7 @@ options(readr.show_col_types = FALSE)
 
 This dataset has neighborhood-level air quality data. It has 6300 rows and 16 columns.
 
-```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(sf)
 library(sfheaders)
@@ -63,7 +63,7 @@ df_air %>%
 
 We want to do regression at the neighborhood level, but our daily air quality data only gave us the specific location where the pollutant was measured. This code mapped measurement sensors from our daily air quality data to neighborhoods.
 
-```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE}
 df_air = read_csv(here::here("data/cleaned_data/uhf_airquality.csv"))
 
 zip_shapes = read_sf(dsn = here::here("raw_shapes/"), 
@@ -105,7 +105,7 @@ left_join(geo_joins_sites, geo_join_neighborhoods) %>%
 
 We used the dataset just created to summarize pollutant measurements at the neighborhood level. After doing this, we had daily data on pollutants at the neighborhood level, which allowed for regression.
 
-```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE}
 #neighborhoods on interest:
 
 neighborhoods = c("Washington Heights", "Union Square - Lower East Side",
