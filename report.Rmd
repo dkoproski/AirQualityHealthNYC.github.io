@@ -39,7 +39,7 @@ In a study focusing on PM2.5 levels, the potential health benefits for adults an
 
 Ambient PM2.5 attributed deaths increased from 3.5 million in 1990 to 4.2 million in 2015. In 2015, the fifth-ranking cause of global deaths was ambient PM2.5 [PM2.5 related deaths](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439030/). In a study following the PM2.5 concentration in NYC from 2015-2020, similar decrease levels between January and May were observed. There was less air pollutant in 2020 that could have been due to the government shutdown during the corona virus pandemic could not be confirmed[COVID shutdown](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7314691/#bb0010). 
 
-## **Methods** 
+## **Methods and Exploratory Analysis** 
 ### Data Sources
 The initial air quality dataset was obtained from [NYC Open Data](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r), showing comprehensive  information on air pollutants in NYC from 2008 to 2021. The year range 2010 to 2021 was chosen for analysis. A subsequent air quality data set was obtained from [EPA](https://www.epa.gov/outdoor-air-quality-data/download-daily-data). [add info about dataset]
 
@@ -53,23 +53,26 @@ Additionally, a geographic location dataset was used to provide more precise loc
 
 ### Exploratory Analysis and Visualizations
 
-An interactive histogram showing each air pollutant concentration overlaid by year, from the years 2009-2021, was constructed to depict frequency distribution and central tendency. Additionally, the spread, central tendency, and presence of outliers were shown in an interactive box plot based on air pollutant and year. The distribution of each pollutant on a daily basis from the years 2020 to 2023 were also constructed. Furthermore, the distribution of each air pollutant were seen in box plots categories by county. A heat map of O3, PM2.5, and NO2 with a year selector was constructed  to monitor and understand the air quality in NYC. High concentrations of the selected pollutant were indicated by red and maroon, while lower concentrations were shown in green.  
+O3, PM2.5, and NO2 were the air pollutants chosen for our descriptive and statistical analysis. 
 
-To visualize how air pollutants changed over time, time series plots were generated to examine the daily change of air pollutant by zip code. Trend  and seasonal patterns were determined from the time series plots were compared to each other. A similar analysis was performed for daily ER visit and disease counts. 
+#histogram/boxplot seasonal air quality from 2009-2021
+An interactive histogram showing each air pollutant concentration overlaid by year, from the years 2009-2021, was constructed to depict frequency distribution and central tendency. Additionally, the spread, central tendency, and presence of outliers were shown in an interactive box plot based on air pollutant and year. PM2.5 and NO2 concentrations continuously declined from 2009 to 2021, as evident on the layered histogram and box plots. PM2.5 showed a steady decrease in concentration, with the lowest median concentration exhibited in 2020.O3 concentrations initially increased from 2010 to 2016, but seemed to stabilize around 30 ppb with observed measurement decreases from 2017 to 2021
 
-### Statistical Analysis 
+#heatmaps of seasonal air quality from 2009-2021
+A heat map of the air pollutants with a year selector was constructed to monitor and understand the air quality in NYC. High concentrations of the selected pollutant were indicated by red and maroon, while lower concentrations were shown in green. The heat map revealed distinct spatial and temporal patterns of O3. .Lower Manhattan showed a steady increase of O3 levels from 2009 to 2021. Outer boroughs such as Brooklyn showed consistent concentrations of O3 from 2009 to 2021.Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Additionally, the layered PM2.5 map shows a greater amount of PM2.5 levels in lower Manhattan throughout the years.NO2 also displayed a decrease in concentration however it was less noticeable. O3 concentrations displayed a different trend. 
 
-Cross correlation analysis was used to examine the relationship between two time-series variables. From the cross-correlation plots, the positive and negative correlations determined the lag between O3 levels and and pneumonia ER visits. The lag was added as an additional predictor in the linear regression model.  
+#time series daily counts air qualand daily of disease 
+Time series plot in regards to daily ER visit and disease counts were generated, showing that asthma and respiratory diseases did not have a seasonal pattern. However, pneumonia ER visits did peak during the winter months. Similarly, time series plots were created for daily air concentrations. Trend and seasonal patterns of CO, O3, and N02 showed oscillations throughout the year. Specifically, O3 showed the a greater difference and reached high levels during the summer month a opposed to NO2 which peaked in the winter. PM2.4 should a steady concentration trend and did not display seasonal patterns. Cross correlation analysis was used to examine the relationship between O3 and pneumonia ER visits. From the cross-correlation plots, the positive and negative correlations determined the lag between O3 levels and and pneumonia ER visits was about 117 days. The lag was added as an additional predictor in the linear regression model.
+
+#boxplot of daily air pollutants by borough
+
+
+ 
 
 
 
-## **Results** 
+## **Statistical Results** 
 
-PM2.5 and NO2 concentrations continuously declined from 2009 to 2021, as evident on the layered histogram and box plots. PM2.5 showed a steady decrease in concentration, with the lowest median concentration exhibited in 2020. NO2 also displayed a decrease in concentration however it was less noticeable. O3 concentrations displayed a different trend. O3 concentrations initially increased from 2010 to 2016, but seemed to stabilize around 30 ppb with observed measurement decreases from 2017 to 2021.  
-
-Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Additionally, the layered PM2.5 map shows a greater amount of PM2.5 levels in lower Manhattan throughout the years. 
-
-The heat map revealed distinct spatial and temporal patterns of O3. Lower Manhattan showed a steady increase of O3 levels from 2009 to 2021. Outer boroughs such as Brooklyn showed consistent concentrations of O3 from 2009 to 2021. 
 
 ## **Discussion and Conclusions**
 ### Findings

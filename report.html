@@ -372,12 +372,28 @@ div.tocify {
 <div id="background" class="section level3">
 <h3>Background</h3>
 <p>Public health and overall community well-being are impacted by
-environmental factors such as the quantity of air pollutants in an area.
-Key pollutants of public health concern include: carbon monoxide (CO),
-ozone (O3), nitrogen dioxide(NO2), particulate matter 2.5 (PM2.5), and
-sulfur dioxide (SO2) <a
-href="https://www.who.int/health-topics/air-pollution#tab=tab_1">WHO</a>.</p>
-<p>As a colorless and odorless gas, CO poses a great health risk when
+environmental factors such as the concentration of air pollutants in an
+area. While recent policy and public sentiment has lowered the emissions
+of air pollutants in many urban environments, air pollution still poses
+a threat to millions annually. This is especially true in urban
+environments with large amounts of industry and vehicle emissions. New
+York City is a great example of an urban setting where air pollution has
+been <a
+href="https://www.nyc.gov/site/doh/about/press/pr2022/earth-day-new-report-on-nyc-air-quality.page#:~:text=NYC%20Community%20Air%20Survey%20Findings%20Between%202009%20and%202020,ozone%20levels%20have%20remained%20stable.">decreasing</a>
+over the past decade, but some regions still remain vulnerable. Thus,
+more research is required to determine where future initiatives should
+be targeted to best improve New York City air quality. This project aims
+to review the geographic and temporal distribution of air pollutants to
+determine if recent air pollution trends contribute to respiratory
+related hospitalizations and to determine which regions are experiencing
+the worst air pollution.</p>
+<p>?? remove those we don’t discuss ??</p>
+<p>While there are countless air pollutants, key pollutants of public
+health concern include: carbon monoxide (CO), ozone (O3), nitrogen
+dioxide (NO2), fine particulate matter 2.5 (PM2.5), and sulfur dioxide
+(SO2) <a
+href="https://www.who.int/health-topics/air-pollution#tab=tab_1">WHO</a>.
+As a colorless and odorless gas, CO poses a great health risk when
 inhaled in large amounts. Majority of CO levels are attributed to
 machinery that use fossil fuels such as vehicles and gas space heaters
 <a
@@ -401,9 +417,10 @@ PM2.5</a>. SO2 in NYC is mainly generated through the combustion of
 residual fuel oil during the winter months from residential buildings.
 Additionally, SO2 contributed to PM2.5 formation in the atmosphere <a
 href="https://a816-dohbesp.nyc.gov/IndicatorPublic/beta/key-topics/airquality/nyccas/">EHDP
-SO2</a> .</p>
-<p>Air pollution is associated with a number of health concerns such as
-respiratory diseases and heart attacks <a
+SO2</a>.</p>
+<p>Long term and short term exposure to the pollutants discussed above
+is associated with a number of health concerns such as respiratory
+diseases and heart attacks <a
 href="https://www.epa.gov/report-environment/air#:~:text=Air%20pollution%2C%20whether%20indoors%20or,respiratory%20symptoms%2C%20and%20premature%20mortality.">EPA</a>.
 For example, high levels of O3 can pose a great risk with those
 suffering from asthma <a
@@ -423,7 +440,7 @@ the increase of air pollutants is needed. The motivation behind this
 project stems from the potential effects pollutants may have on human
 health. We aim to understand the association between air quality and
 public health in New York City, to identify where interventions are
-needed.</p>
+needed. ?? Remove maybe keep in intro??</p>
 </div>
 <div id="initial-questions" class="section level3">
 <h3>Initial Questions</h3>
@@ -467,8 +484,8 @@ href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7314691/#bb0010">COVID
 shutdown</a>.</p>
 </div>
 </div>
-<div id="methods" class="section level2">
-<h2><strong>Methods</strong></h2>
+<div id="methods-and-exploratory-analysis" class="section level2">
+<h2><strong>Methods and Exploratory Analysis</strong></h2>
 <div id="data-sources" class="section level3">
 <h3>Data Sources</h3>
 <p>The initial air quality dataset was obtained from <a
@@ -488,7 +505,10 @@ Health</a> detailed the number of hospitalizations attributed to asthma,
 diarrhea, influenza-like illness, respiratory diseases, and vomiting for
 each zip code. The data collection period occurred during 2016 to early
 2023.</p>
-<p>Additionally, a geographic location dataset was used to …..</p>
+<p>Additionally, a geographic location dataset was used to provide more
+precise location data for observations in both air quality datasets.
+These were used in the map making process as well as for statistical
+analyses later. ?? add more here i think ??</p>
 </div>
 <div id="data-cleaning" class="section level3">
 <h3>Data Cleaning</h3>
@@ -496,50 +516,53 @@ each zip code. The data collection period occurred during 2016 to early
 <div id="exploratory-analysis-and-visualizations"
 class="section level3">
 <h3>Exploratory Analysis and Visualizations</h3>
-<p>An interactive histogram showing each air pollutant concentration
-overlaid by year, from the years 2009-2021, was constructed to depict
-frequency distribution and central tendency. Additionally, the spread,
-central tendency, and presence of outliers were shown in an interactive
-box plot based on air pollutant and year. The distribution of each
-pollutant on a daily basis from the years 2020 to 2023 were also
-constructed. Furthermore, the distribution of each air pollutant were
-seen in box plots categories by county. A heat map of O3, PM2.5, and NO2
-with a year selector was constructed to monitor and understand the air
-quality in NYC. High concentrations of the selected pollutant were
-indicated by red and maroon, while lower concentrations were shown in
-green.</p>
-<p>To visualize how air pollutants changed over time, time series plots
-were generated to examine the daily change of air pollutant by zip code.
-Trend and seasonal patterns were determined from the time series plots
-were compared to each other. A similar analysis was performed for daily
-ER visit and disease counts.</p>
+<p>O3, PM2.5, and NO2 were the air pollutants chosen for our descriptive
+and statistical analysis.</p>
+<p>#histogram/boxplot seasonal air quality from 2009-2021 An interactive
+histogram showing each air pollutant concentration overlaid by year,
+from the years 2009-2021, was constructed to depict frequency
+distribution and central tendency. Additionally, the spread, central
+tendency, and presence of outliers were shown in an interactive box plot
+based on air pollutant and year. PM2.5 and NO2 concentrations
+continuously declined from 2009 to 2021, as evident on the layered
+histogram and box plots. PM2.5 showed a steady decrease in
+concentration, with the lowest median concentration exhibited in 2020.O3
+concentrations initially increased from 2010 to 2016, but seemed to
+stabilize around 30 ppb with observed measurement decreases from 2017 to
+2021</p>
+<p>#heatmaps of seasonal air quality from 2009-2021 A heat map of the
+air pollutants with a year selector was constructed to monitor and
+understand the air quality in NYC. High concentrations of the selected
+pollutant were indicated by red and maroon, while lower concentrations
+were shown in green. The heat map revealed distinct spatial and temporal
+patterns of O3. .Lower Manhattan showed a steady increase of O3 levels
+from 2009 to 2021. Outer boroughs such as Brooklyn showed consistent
+concentrations of O3 from 2009 to 2021.Comparing 2009 to 2021, the
+levels in each area show a decline in PM2.5 levels. Additionally, the
+layered PM2.5 map shows a greater amount of PM2.5 levels in lower
+Manhattan throughout the years.NO2 also displayed a decrease in
+concentration however it was less noticeable. O3 concentrations
+displayed a different trend.</p>
+<p>#time series daily counts air qualand daily of disease Time series
+plot in regards to daily ER visit and disease counts were generated,
+showing that asthma and respiratory diseases did not have a seasonal
+pattern. However, pneumonia ER visits did peak during the winter months.
+Similarly, time series plots were created for daily air concentrations.
+Trend and seasonal patterns of CO, O3, and N02 showed oscillations
+throughout the year. Specifically, O3 showed the a greater difference
+and reached high levels during the summer month a opposed to NO2 which
+peaked in the winter. PM2.4 should a steady concentration trend and did
+not display seasonal patterns. Cross correlation analysis was used to
+examine the relationship between O3 and pneumonia ER visits. From the
+cross-correlation plots, the positive and negative correlations
+determined the lag between O3 levels and and pneumonia ER visits was
+about 117 days. The lag was added as an additional predictor in the
+linear regression model.</p>
+<p>#boxplot of daily air pollutants by borough</p>
 </div>
-<div id="statistical-analysis" class="section level3">
-<h3>Statistical Analysis</h3>
-<p>Cross correlation analysis was used to examine the relationship
-between two time-series variables. From the cross-correlation plots, the
-positive and negative correlations determined the lag between O3 levels
-and and pneumonia ER visits. The lag was added as an additional
-predictor in the linear regression model.</p>
 </div>
-</div>
-<div id="results" class="section level2">
-<h2><strong>Results</strong></h2>
-<p>PM2.5 and NO2 concentrations continuously declined from 2009 to 2021,
-as evident on the layered histogram and box plot. PM2.5 showed a steady
-decrease in concentration, with the lowest median concentration
-exhibited in 2020. NO2 also displayed a decrease in concentration
-however it was less noticeable. O3 concentrations displayed a different
-trend. O3 concentrations initially increased from 2010 to 2016, but
-seemed to stabilize around 30 ppb with observed measurement decreases
-from 2017 to 2021.</p>
-<p>Comparing 2009 to 2021, the levels in each area show a decline in
-PM2.5 levels. Additionally, the layered PM2.5 map shows a greater amount
-of PM2.5 levels in lower Manhattan throughout the years.</p>
-<p>The heat map revealed distinct spatial and temporal patterns of O3.
-Lower Manhattan showed a steady increase of O3 levels from 2009 to 2021.
-Outer boroughs such as Brooklyn showed consistent concentrations of O3
-from 2009 to 2021.</p>
+<div id="statistical-results" class="section level2">
+<h2><strong>Statistical Results</strong></h2>
 </div>
 <div id="discussion-and-conclusions" class="section level2">
 <h2><strong>Discussion and Conclusions</strong></h2>
