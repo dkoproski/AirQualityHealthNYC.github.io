@@ -509,184 +509,6 @@ airqual_annual = read_csv(&quot;data/cleaned_data/uhf_airquality.csv&quot;) |&gt
 
 #### Comparison between daily data and yearly/seasonal data</code></pre>
 </div>
-<div id="exploratory-data-analysis" class="section level1">
-<h1>Exploratory Data Analysis</h1>
-<div id="how-do-disease-variables-change-over-time"
-class="section level2">
-<h2>How do disease variables change over time?</h2>
-<p>Let us first visualize how the number of emergency department visits
-change over time. We can see that daily ER visits seem to peak in winter
-months except in 2021. This could be due to COVID restrictions.</p>
-<pre class="r"><code>all_dis_plot_df = all_dis_df |&gt;
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = &quot;-&quot;), format = &quot;%Y-%m-%d&quot;)
-  ) |&gt; 
-  select(-day, -month, -year, -numeric_month) |&gt; 
-  pivot_longer(cols = c(&quot;count_resp&quot;, &quot;count_asth&quot;, &quot;total_ed_visits&quot;, &quot;ili_pne_visits&quot;, &quot;ili_pne_admissions&quot;), 
-               names_to = &quot;variable&quot;,
-               values_to = &quot;count&quot;) 
-
-er_plot = all_dis_plot_df |&gt; 
-  filter(variable == &quot;total_ed_visits&quot;) |&gt; 
-  plot_ly(x = ~date, y = ~count, 
-          type = &#39;scatter&#39;, 
-          mode = &#39;markers&#39;, 
-          text = ~paste(&quot;Zip: &quot;, zip, &quot;&lt;br&gt;Date:&quot;, date, &quot;&lt;br&gt;Count:&quot;, count),
-          color = &quot;viridis&quot;) |&gt; 
-  layout(title = &#39;Daily total ER visits by zip&#39;, plot_bgcolor = &quot;#e5ecf6&quot;, 
-         xaxis = list(title = &quot;Date&quot;), 
-         yaxis = list(title = &quot;Counts&quot;))
-
-er_plot</code></pre>
-<pre class="r"><code>all_dis_df |&gt;
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = &quot;-&quot;), format = &quot;%Y-%m-%d&quot;)
-  ) |&gt; 
-  ggplot(aes(x = date, y = total_ed_visits, color = &quot;#9D5FF3&quot;)) +
-  geom_point() +
-  labs(title = &quot;Daily total ER visits by zip&quot;,
-       y = &quot;Total ER visits&quot;) +
-  theme(legend.position = &quot;none&quot;)</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-4-1.png" width="100%" /></p>
-<p>From the plot below, we can see that the number of emergency
-department visits related to pneumonia peak during winter seasons.</p>
-<pre class="r"><code>resp_plot = all_dis_plot_df |&gt; 
-  filter(variable == &quot;count_resp&quot;) |&gt; 
-  plot_ly(x = ~date, y = ~count, 
-          type = &#39;scatter&#39;, 
-          mode = &#39;markers&#39;, 
-          text = ~paste(&quot;Zip: &quot;, zip, &quot;&lt;br&gt;Date:&quot;, date, &quot;&lt;br&gt;Count:&quot;, count),
-          marker = list(color = &quot;#35B779&quot;))
-
-asth_plot = all_dis_plot_df |&gt; 
-  filter(variable == &quot;count_asth&quot;) |&gt; 
-  plot_ly(x = ~date, y = ~count, 
-          type = &#39;scatter&#39;, 
-          mode = &#39;markers&#39;, 
-          text = ~paste(&quot;Zip: &quot;, zip, &quot;&lt;br&gt;Date:&quot;, date, &quot;&lt;br&gt;Count:&quot;, count),
-          marker = list(color = &quot;#B8860B&quot;))
-
-pne_visit_plot = all_dis_plot_df |&gt; 
-  filter(variable == &quot;ili_pne_visits&quot;) |&gt; 
-  plot_ly(x = ~date, y = ~count, 
-          type = &#39;scatter&#39;, 
-          mode = &#39;markers&#39;, 
-          text = ~paste(&quot;Zip: &quot;, zip, &quot;&lt;br&gt;Date:&quot;, date, &quot;&lt;br&gt;Count:&quot;, count),
-          marker = list(color = &quot;#440154&quot;))
-
-pne_adm_plot = all_dis_plot_df |&gt; 
-  filter(variable == &quot;ili_pne_admissions&quot;) |&gt; 
-  plot_ly(x = ~date, y = ~count, 
-          type = &#39;scatter&#39;, 
-          mode = &#39;markers&#39;, 
-          text = ~paste(&quot;Zip: &quot;, zip, &quot;&lt;br&gt;Date:&quot;, date, &quot;&lt;br&gt;Count:&quot;, count),
-          marker = list(color = &quot;#31688E&quot;))
-
-fig = subplot(resp_plot, asth_plot, pne_visit_plot, pne_adm_plot, 
-              nrows = 2, shareX = TRUE) |&gt; 
-  layout(plot_bgcolor=&#39;#e5ecf6&#39;, 
-         title = &#39;Daily counts of variables by zip&#39;,
-         xaxis = list(title = &quot;date&quot;), 
-         showlegend = FALSE) 
-
-annotations = list( 
-  list(
-    x = 0.25, y = 0.9, 
-    text = &quot;Respiratory diseases&quot;, 
-    xref = &quot;paper&quot;, yref = &quot;paper&quot;, 
-    xanchor = &quot;center&quot;, yanchor = &quot;bottom&quot;, 
-    showarrow = FALSE),  
-  list( 
-    x = 0.75, y = 0.9, 
-    text = &quot;Asthma&quot;,  
-    xref = &quot;paper&quot;, yref = &quot;paper&quot;,  
-    xanchor = &quot;center&quot;, yanchor = &quot;bottom&quot;, 
-    showarrow = FALSE 
-  ),  
-  list( 
-    x = 0.25, y = 0.4, text = &quot;Pneumonia (ER visits)&quot;,  
-    xref = &quot;paper&quot;, yref = &quot;paper&quot;,  
-    xanchor = &quot;center&quot;, yanchor = &quot;bottom&quot;,  
-    showarrow = FALSE 
-  ),
-  list( 
-    x = 0.75, y = 0.4,  
-    text = &quot;Pneumonia (admissions)&quot;,  
-    xref = &quot;paper&quot;, yref = &quot;paper&quot;,  
-    xanchor = &quot;center&quot;, yanchor = &quot;bottom&quot;,  
-    showarrow = FALSE 
-  ))
-
-
-fig = fig |&gt; layout(annotations = annotations) 
-fig</code></pre>
-<pre class="r"><code>all_dis_plot_df = all_dis_df |&gt;
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = &quot;-&quot;), format = &quot;%Y-%m-%d&quot;)
-  ) |&gt; 
-  select(-day, -month, -year, -numeric_month) |&gt; 
-  pivot_longer(cols = c(&quot;count_resp&quot;, &quot;count_asth&quot;, &quot;total_ed_visits&quot;, &quot;ili_pne_visits&quot;, &quot;ili_pne_admissions&quot;), 
-               names_to = &quot;variable&quot;,
-               values_to = &quot;count&quot;) 
-
-dis_plot = all_dis_plot_df |&gt; 
-  filter(variable != &quot;total_ed_visits&quot;) |&gt; 
-  mutate(variable = case_when(
-      variable ==&quot;count_resp&quot; ~ &quot;Respiratory diseases&quot;,
-      variable ==&quot;count_asth&quot; ~ &quot;Asthma&quot;,
-      variable ==&quot;ili_pne_visits&quot; ~ &quot;Pneumonia (ER visits)&quot;,
-      variable ==&quot;ili_pne_admissions&quot; ~ &quot;Pneumonia (admissions)&quot;),
-      across(variable, ~factor(., levels=c(&quot;Asthma&quot;,&quot;Respiratory diseases&quot;,
-                                           &quot;Pneumonia (ER visits)&quot;,
-                                           &quot;Pneumonia (admissions)&quot;))))|&gt; 
-  ggplot(aes(x = date, y = count, color = variable)) +
-  geom_point() +
-  geom_smooth(color = &quot;blue&quot;) +
-  facet_wrap(~ variable, ncol = 2, scales=&quot;free_y&quot;) +
-  ggtitle(&quot;Daily counts of disease variables by zip&quot;) + 
-  scale_color_discrete()
-
-dis_plot</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-6-1.png" width="100%" /></p>
-</div>
-<div id="how-do-pollutant-variables-change-over-time"
-class="section level2">
-<h2>How do pollutant variables change over time?</h2>
-<p>After restricting our analysis to roughly 2020 to 2022, we generate
-visualizations of the distributions of certain pollutants of interest.
-Throughout the year, we see oscillations in the levels of Ozone and
-Nitrogen Dioxide throughout the year with the former reaching its
-highest levels in the summer months and the latter peaking in the
-winter. Carbon Monoxide also exhibits oscillations, but to a much lower
-degree and PM2.5 does not appear to exhibit a seasonal pattern.</p>
-<pre class="r"><code>poll_plot = air_qual_df |&gt; 
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = &quot;-&quot;), 
-                   format = &quot;%Y-%m-%d&quot;),
-    pollutant = case_when(
-      pollutant ==&quot;CO&quot; ~ &quot;Carbon Monoxide (ppm)&quot;,
-      pollutant ==&quot;PM2.5&quot; ~ &quot;PM2.5 (μg/m3)&quot;,
-      pollutant ==&quot;Ozone&quot; ~ &quot;Ozone (ppm)&quot;,
-      pollutant ==&quot;NO2&quot; ~ &quot;Nitrogen Dioxide (ppb)&quot;),
-    across(pollutant, ~factor(., levels=c(&quot;Carbon Monoxide (ppm)&quot;,
-                                          &quot;Ozone (ppm)&quot;,
-                                          &quot;Nitrogen Dioxide (ppb)&quot;,
-                                          &quot;PM2.5 (μg/m3)&quot;))),) |&gt; 
-  ggplot(aes(x = date, y = value, color = pollutant)) +
-  geom_point() +
-  geom_smooth(color = &quot;blue&quot;) +
-  facet_wrap(~ pollutant, ncol = 2, scales=&quot;free_y&quot;) +
-  ggtitle(&quot;Daily average of each pollutant by zip&quot;) + 
-  scale_color_discrete()
-
-poll_plot</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
-</div>
-</div>
 <div
 id="investigating-the-lagged-association-of-ozone-with-variables-related-to-respiratory-diseases"
 class="section level1">
@@ -703,7 +525,7 @@ to respiratory diseases</h1>
 
 ccf_res = ccf(ccf_df$o3_ppm, ccf_df$ili_pne_visits, lag.max=250, plot = FALSE)
 plot(ccf_res, main = &quot;Analysing Lag between Ozone and Pneumonia ER visits (in days)&quot;)</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<p><img src="data_processing_files/figure-html/unnamed-chunk-3-1.png" width="100%" /></p>
 <pre class="r"><code># Visualize lag
 
 ccf_df |&gt; 
@@ -716,7 +538,7 @@ ccf_df |&gt;
   scale_color_manual(labels = c(&quot;Ozone (10^-2 ppm)&quot;, &quot;Pneumonia hospital visits&quot;), 
                      values = c(&quot;Ozone (10^-2 ppm)&quot; = &quot;#FFA500&quot;, &quot;Pneumonia ER visits&quot; = &quot;#6495ED&quot;), 
                      guide = &quot;legend&quot;)</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-8-2.png" width="100%" /></p>
+<p><img src="data_processing_files/figure-html/unnamed-chunk-3-2.png" width="100%" /></p>
 <pre class="r"><code>prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
 broom::tidy(prelag_model)
 ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) + 
@@ -725,7 +547,7 @@ ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) +
   labs(title = &quot;Pre-lag: Pneumonia ER visits vs. Ozone&quot;,
        x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
        y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-8-3.png" width="100%" /></p>
+<p><img src="data_processing_files/figure-html/unnamed-chunk-3-3.png" width="100%" /></p>
 <pre class="r"><code>lag_model = lm(lagged_pne ~ scaled_o3, data = ccf_df)
 broom::tidy(lag_model)
 ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) + 
@@ -734,7 +556,7 @@ ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) +
   labs(title = &quot;Post-lag: Pneumonia ER visits vs. Ozone&quot;,
        x = expression(paste(&quot;Ozone (&quot;, 10^-2, &quot; ppm)&quot;)), 
        y = &quot;Pneumonia hospital visits (count)&quot;)</code></pre>
-<p><img src="data_processing_files/figure-html/unnamed-chunk-8-4.png" width="100%" /></p>
+<p><img src="data_processing_files/figure-html/unnamed-chunk-3-4.png" width="100%" /></p>
 <pre class="r"><code># EDA
 
 ## Histograms
