@@ -112,3 +112,11 @@ daily_neighborhood_data %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
                             group = neighborhood, color = neighborhood))
 ```
+
+# Outputting this file
+
+```{r}
+write_csv(daily_neighborhood_data, 
+          here::here("data/cleaned_data/air_neighborhood.csv"))
+```
+
