@@ -322,7 +322,7 @@ daily_neighborhood_data %>%
 
 ### How do disease variables change over time?
 
-Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. But, what about Ozone? Since the time trend for Ozone is in the opposite direction, we are interested in investigating whether there is a lagged association between Ozone and disease. This can be done using a cross-correlation analysis, which we have attempted [here](#Stats.html).
+Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. But, what about Ozone? Since the time trend for Ozone is in the opposite direction, we are interested in investigating whether there is a lagged association between Ozone and disease. This can be done using a cross-correlation analysis, which we have attempted [here](#stats.html).
 
 
 ```{r, out.width = '100%', message = F, warning = F}
