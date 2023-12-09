@@ -6,7 +6,7 @@ output:
     toc_float: true
     code_folding: hide
 ---
-```{r, echo = FALSE, message = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(leaflet)
 library(plotly)
@@ -585,54 +585,55 @@ m
 
 
 #### Time series plots on daily counts of air pollutants and daily disease visits
-Time series plots were created for daily air concentrations. Trend and seasonal patterns of CO, O3, and N02 showed oscillations throughout the year. Specifically, O3 showed the a greater difference and reached high levels during the summer month a opposed to NO2 which peaked in the winter. PM2.4 should a steady concentration trend and did not display seasonal patterns. Similarly, time series plot in regards to daily ER visit and disease counts were generated, showing that asthma and respiratory diseases did not have a seasonal pattern. However, pneumonia ER visits did peak during the winter months. 
+
+Time series plots were created for daily air concentrations. After restricting our analysis to roughly 2020 to 2022, we generate visualizations of the distributions of certain pollutants of interest. Trend and seasonal patterns of Carbon Monoxide (CO), Ozone (O3), and Nitrogen Dioxide (N02) showed oscillations throughout the year. Specifically, O3 showed the a greater difference and reached high levels during the summer month a opposed to NO2 which peaked in the winter. PM2.5 showed a steady concentration trend and did not display seasonal patterns. 
+
+This makes sense intuitively, as we would expect higher emissions from heating and transportation to gather in urban regions due to colder temperatures, leading to higher levels of Nitrogen Dioxide and Carbon Monoxide. In fact, [epidemics of CO poisoning](https://pubmed.ncbi.nlm.nih.gov/9950394/) commonly occurs during winter months and sources include smoke from fires, fumes from heating systems burning fuels, and exhaust fumes from motor vehicles. On the other hand, according to the [American Lung Association](https://www.lung.org/clean-air/outdoors/what-makes-air-unhealthy/ozone#), high levels of Ozone are more likely to form in warmer temperatures, which is why harmful ozone levels primarily occur in the summer in most of the US because climate change is driving warmer temperatures.
 
 ```{r, out.width = '100%', message = F}
-air_qual_df = read_csv("data/raw_data/alt_air_data.csv") |> 
-  separate(date, into=c("month", "day", "year")) |>
-  mutate(day = as.numeric(day),
-         month = month.name[as.numeric(month)],
-         year = as.numeric(year)) |> 
-  filter(!(year == '2020' & month == 'January'),
-         !(year == '2020' & month == 'February')) |> 
-  rename(zip = zip_code) |> 
-  select(year, month, day, zip, pollutant, value) |> 
-  group_by(day, month, year, zip, pollutant) |> 
-  summarize(value = mean(value))
-
-poll_plot = air_qual_df |> 
+daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
+  mutate(borough = case_when(
+    county == "New York" ~ "Manhattan",
+    county == "Bronx" ~ "Bronx",
+    county == "Kings" ~ "Brooklyn",
+    county == "Queens" ~ "Queens",
+    county == "Richmond" ~ "Staten Island"
+     ),
+    pollutant= case_when(
+    pollutant == "PM2.5" ~ "PM 2.5",
+    pollutant == "Ozone" ~ "O3",
+    T ~ pollutant ),
+    date = as.Date(date, format = "%m/%d/%Y")) %>% 
   mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = "-"), 
-                   format = "%Y-%m-%d"),
-    pollutant = case_when(
-      pollutant =="CO" ~ "Carbon Monoxide (ppm)",
-      pollutant =="PM2.5" ~ "PM2.5 (μg/m3)",
-      pollutant =="Ozone" ~ "Ozone (ppm)",
-      pollutant =="NO2" ~ "Nitrogen Dioxide (ppb)"),
-    across(pollutant, ~factor(., levels=c("Carbon Monoxide (ppm)",
-                                          "Ozone (ppm)",
-                                          "Nitrogen Dioxide (ppb)",
-                                          "PM2.5 (μg/m3)"))),) |> 
+    pollutant = str_c(pollutant, " (", units, ")")
+  )
+
+poll_plot = daily_air |> 
   ggplot(aes(x = date, y = value, color = pollutant)) +
   geom_point() +
   geom_smooth(color = "blue") +
   facet_wrap(~ pollutant, ncol = 2, scales="free_y") +
-  ggtitle("Daily average of each pollutant by zip code") + 
+  ggtitle("Daily average of each pollutant by site") + 
   scale_color_discrete()
 
 poll_plot
 ```
 
+Similarly, time series plot in regards to daily ER visit and disease counts were generated, showing that asthma and respiratory diseases did not have a seasonal pattern. However, pneumonia ER visits did peak during the winter months. Colds, flus and other respiratory illnesses are common in colder months. Among these variables, [pneumonia](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3314701/) is commonly known have a higher occurrence during winter. This is partly attributed to the drop in temperature and rise in humidity levels, which can impair the immune system thus rendering individuals more vulnerable to infections. The body focuses on combating the cold and retaining warmth, making it more challenging to fend off infections such as pneumonia.
+ 
 ```{r, out.width = '100%', message = F, warning = F}
-
 dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
                        col_types = cols(
                           `date` = col_date(format = '%m/%d/%y'))) |> 
   rename(zip_code = zip) |> 
   filter(zip_code != 88888 & zip_code != "Citwide" & age_group == "All age groups") |> 
-  mutate(zip_code = as.numeric(zip_code)) |>
-  select(date, zip_code, count_resp, count_asth)
+  mutate(year = as.numeric(format(date, format = "%Y")),
+         month = month.name[as.numeric(format(date, format = "%m"))],
+         day = as.numeric(format(date, format = "%d")),
+         zip_code = as.numeric(zip_code)) |>
+  select(year, month, day, zip_code, count_resp, count_asth) 
+
+# Load dataset with pneumonia data
 
 dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
                        col_types = cols(
@@ -640,19 +641,22 @@ dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
                                      `total_ed_visits` = col_integer(),
                                      `ili_pne_visits` = col_integer(),
                                      `ili_pne_admissions` = col_integer())) |> 
+  separate(date, into=c("year", "month", "day")) |> 
+  mutate(day = as.numeric(day),
+         month = month.name[as.numeric(month)],
+         year = as.numeric(year)) |> 
   rename(zip_code = mod_zcta) |> 
-  select(date, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions)
+  select(year, month, day, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions)
+
+# Merge two disease datasets
 
 all_dis_df =
-  full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "date"))
+  full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "year", 'month', 'day'))
 
-# Alter data to fit plot
-all_dis_plot_df = all_dis_df |>
+dis_plot = all_dis_df |>
   pivot_longer(cols = c("count_resp", "count_asth", "ili_pne_visits", "ili_pne_admissions"), 
                names_to = "variable",
-               values_to = "count")
-
-dis_plot = all_dis_plot_df |> 
+               values_to = "count") |> 
   mutate(variable = case_when(
       variable =="count_resp" ~ "Respiratory diseases",
       variable =="count_asth" ~ "Asthma",
@@ -660,19 +664,19 @@ dis_plot = all_dis_plot_df |>
       variable =="ili_pne_admissions" ~ "Pneumonia (admissions)"),
       across(variable, ~factor(., levels=c("Asthma","Respiratory diseases",
                                            "Pneumonia (ER visits)",
-                                           "Pneumonia (admissions)"))))|> 
+                                           "Pneumonia (admissions)"))),
+      month_num = match(month, month.name),
+         date = as.Date(paste(year, month_num, day, sep = '-'),
+                        format = '%Y-%m-%d'))|> 
   ggplot(aes(x = date, y = count, color = variable)) +
   geom_point() +
   geom_smooth(color = "blue") +
   facet_wrap(~ variable, ncol = 2, scales="free_y") +
-  ggtitle("Daily counts of disease variables by zip") + 
+  ggtitle("Daily counts of disease variables by site") + 
   scale_color_discrete()
 
 dis_plot
 ```
-
-#### Cross-correlation
-Cross correlation analysis was used to examine the relationship between O3 and pneumonia ER visits. From the cross-correlation plots, the positive and negative correlations determined the lag between O3 levels and and pneumonia ER visits was about 117 days. The lag was added as an additional predictor in the linear regression model. There was a negative correlation in pneumonia ER visits and O3 regression model before the lag was added. However, after adding the lag, a positive correlation emerged between pneumonia ER visits and O3. 
 
 #### Boxplots of daily air pollutants by borough
 The frequency distribution of daily air pollutant concentrations in regard to borough was shown in boxplots. NO2 and PM2.5 showed consistent daily medians throughout each borough. O3 showed a slightly elevated daily concentration median in Staten Island compared to other boroughs. 
