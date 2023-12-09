@@ -13,7 +13,6 @@
 
 <title>Data Processing</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
@@ -385,11 +384,16 @@ div.tocify {
 <h1>Air Quality datasets</h1>
 <div id="data-cleaning---neighborhood-level" class="section level2">
 <h2>Data Cleaning - Neighborhood-level</h2>
+<<<<<<< HEAD
+<p>This dataset has neighborhood-level air quality data. It has 6300 rows and 16 columns.</p>
+<p>This code chunk fixes the projection used to map the neighborhood-level air quality dataset, and calculates a point as the center of the neighborhood. This will be used for maps later on.</p>
+=======
 <p>This dataset has neighborhood-level air quality data. It has 6300
 rows and 16 columns.</p>
 <p>This code chunk fixes the projection used to map the
 neighborhood-level air quality dataset, and calculates a point as the
 center of the neighborhood. This will be used for maps later on.</p>
+>>>>>>> 377af9644180ace7bbe955575b39b2826ef4d693
 <pre class="r"><code>library(tidyverse)
 library(sf)
 library(sfheaders)
@@ -427,10 +431,7 @@ df_air %&gt;%
 </div>
 <div id="mapping-neighborhoods-to-daily-sensors" class="section level2">
 <h2>Mapping neighborhoods to daily sensors</h2>
-<p>We want to do regression at the neighborhood level, but our daily air
-quality data only gave us the specific location where the pollutant was
-measured. This code mapped measurement sensors from our daily air
-quality data to neighborhoods.</p>
+<p>We want to do regression at the neighborhood level, but our daily air quality data only gave us the specific location where the pollutant was measured. This code mapped measurement sensors from our daily air quality data to neighborhoods.</p>
 <pre class="r"><code>df_air = read_csv(here::here(&quot;data/cleaned_data/uhf_airquality.csv&quot;))
 
 zip_shapes = read_sf(dsn = here::here(&quot;raw_shapes/&quot;), 
@@ -467,12 +468,9 @@ left_join(geo_joins_sites, geo_join_neighborhoods) %&gt;%
   select(zip_code, site_name, pollutant, geo_place_name) %&gt;%
   write_csv(here::here(&quot;data/cleaned_data/pollutant_per_neighborhood.csv&quot;))</code></pre>
 </div>
-<div id="daily-air-quality-data---neighborhood-level"
-class="section level2">
+<div id="daily-air-quality-data---neighborhood-level" class="section level2">
 <h2>Daily Air Quality Data - Neighborhood-level</h2>
-<p>We used the dataset just created to summarize pollutant measurements
-at the neighborhood level. After doing this, we had daily data on
-pollutants at the neighborhood level, which allowed for regression.</p>
+<p>We used the dataset just created to summarize pollutant measurements at the neighborhood level. After doing this, we had daily data on pollutants at the neighborhood level, which allowed for regression.</p>
 <pre class="r"><code>#neighborhoods on interest:
 
 neighborhoods = c(&quot;Washington Heights&quot;, &quot;Union Square - Lower East Side&quot;,
@@ -507,14 +505,9 @@ daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %&gt;%
 </div>
 <div id="disease-datasets" class="section level1">
 <h1>Disease datasets</h1>
-<div id="merging-hospitalizationemergency-department-data"
-class="section level2">
+<div id="merging-hospitalizationemergency-department-data" class="section level2">
 <h2>Merging hospitalization/emergency department data</h2>
-<p>Since we pulled disease/illness related data from two different
-sources, the code below reflects the cleaning of individual datasets and
-merging of the two. We now have data for asthma, respiratory diseases,
-influenza-like/pneumonia ER visits and admissions, and all other ER
-admissions by zip code and date.</p>
+<p>Since we pulled disease/illness related data from two different sources, the code below reflects the cleaning of individual datasets and merging of the two. We now have data for asthma, respiratory diseases, influenza-like/pneumonia ER visits and admissions, and all other ER admissions by zip code and date.</p>
 <pre class="r"><code># Load dataset with respiratory and asthma counts (missing some zipcodes)
 
 dis_asth_df = read_csv(here::here(&quot;data/raw_data/joined_respiratory.csv&quot;),
@@ -548,16 +541,9 @@ dis_pneu_df = read_csv(here::here(&quot;data/raw_data/disease_hospital_admin.csv
 all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c(&quot;zip_code&quot;, &quot;year&quot;, &#39;month&#39;, &#39;day&#39;))</code></pre>
 </div>
-<div
-id="merging-hospitalizationemergency-department-data-with-zip-code-data"
-class="section level2">
-<h2>Merging hospitalization/emergency department data with zip code
-data</h2>
-<p>Since our above merged dataset only contains zip code-level data, we
-added neighborhood and borough information using a zip code dataset
-containing that information. Note that after exploring that outputed
-data, some zip codes needed manual inputs for neighborhood and borough
-information. The code below reflects this process.</p>
+<div id="merging-hospitalizationemergency-department-data-with-zip-code-data" class="section level2">
+<h2>Merging hospitalization/emergency department data with zip code data</h2>
+<p>Since our above merged dataset only contains zip code-level data, we added neighborhood and borough information using a zip code dataset containing that information. Note that after exploring that outputed data, some zip codes needed manual inputs for neighborhood and borough information. The code below reflects this process.</p>
 <pre class="r"><code>#loading zip code data
 zip_shapes &lt;- read_csv(here::here(&#39;data/cleaned_shapes/nyc_zip_codes.csv&#39;)) %&gt;%
   clean_names()
@@ -596,6 +582,7 @@ all_dis_df &lt;- left_join(all_dis_df, zip_shapes, by = &#39;zip_code&#39;) %&gt
 </div>
 <div id="disease-dataset---eda" class="section level2">
 <h2>Disease Dataset - EDA</h2>
+<p>To aid our EDA, we altered the format of the final merged dataset above. In doing so, we make aesthetic name changes for nicer output of EDA plots. The code below reflects this process.</p>
 <pre class="r"><code>disease_eda &lt;- all_dis_df %&gt;%
   pivot_longer(cols = &#39;count_resp&#39;:&#39;ili_pne_admissions&#39;,
                names_to = &#39;illness_counts&#39;,
@@ -611,14 +598,9 @@ all_dis_df &lt;- left_join(all_dis_df, zip_shapes, by = &#39;zip_code&#39;) %&gt
            illness_counts == &#39;count_resp&#39; ~ &#39;Respiratory diseases&#39;,
            illness_counts == &#39;count_asth&#39; ~ &#39;Asthma&#39;))</code></pre>
 </div>
-<div id="disease-count-dataset---neighborhood-level"
-class="section level2">
+<div id="disease-count-dataset---neighborhood-level" class="section level2">
 <h2>Disease Count Dataset - Neighborhood-level</h2>
-<p>Using the dataset just created, we summarized illness counts at the
-neighborhood level. We focused on 5 specific neighborhoods, each in a
-different borough. This provided us with daily data on illness counts
-for the 5 boroughs/neighborhoods, which allowed for time-series EDA, and
-the joining of disease and air quality data for regression.</p>
+<p>Using the dataset just created, we summarized illness counts at the neighborhood level. We focused on 5 specific neighborhoods, each in a different borough. This provided us with daily data on illness counts for the 5 boroughs/neighborhoods, which allowed for time-series EDA, and the joining of disease and air quality data for regression.</p>
 <pre class="r"><code>#neighborhoods of interest
 neighborhoods = c(&quot;Inwood and Washington Heights&quot;, &quot;Lower East Side&quot;,
                   &quot;Mid-Island&quot;, &quot;Hunts Point and Mott Haven&quot;, &quot;Central Queens&quot;)
@@ -641,14 +623,9 @@ daily_disease_neigh = disease_eda %&gt;%
   date = as.Date(date, format = &#39;%Y-%m-%d&#39;))</code></pre>
 </div>
 </div>
-<div id="merging-air-quality-and-disease-datasets"
-class="section level1">
+<div id="merging-air-quality-and-disease-datasets" class="section level1">
 <h1>Merging Air Quality and Disease Datasets</h1>
-<p>Now, having daily disease data and daily air quality data at the
-neighborhood level allows for a smooth merging of datasets. The final
-merged dataset contains daily information on illness counts and
-pollutants by neighborhoods. We also added a season variable to aid our
-regression analysis.</p>
+<p>Now, having daily disease data and daily air quality data at the neighborhood level allows for a smooth merging of datasets. The final merged dataset contains daily information on illness counts and pollutants by neighborhoods. We also added a season variable to aid our regression analysis.</p>
 <pre class="r"><code>#altering format
 daily_disease_neigh = daily_disease_neigh %&gt;%
   pivot_wider(names_from = illness_counts, values_from = total_counts)
@@ -675,19 +652,7 @@ disease_air &lt;- full_join(daily_disease_neigh, air_neighb, by = c(&#39;date&#3
 </div>
 <div id="regression-analysis-data" class="section level1">
 <h1>Regression Analysis Data</h1>
-<p>We altered the final merged dataset to aid our regression. Since the
-Union Square - Lower East Side neighborhood only contained information
-for the PM2.5 pollutant, we decided to remove the neighborhood from the
-dataset. Additionally, our EDA revealed that Asthma and Respiratory
-diseases had very few counts of admittance, which would result in them
-not being great responses in models. Thus, they were both removed.
-Furthermore, we removed NO2 to remain consistent regarding the three
-pollutants discussed in the report, since the first air quality dataset
-discussed did not contain NO2 data. Finally, we lagged ozone and PM 2.5
-readings by one day, which is <a
-href="https://www.airnow.gov/sites/default/files/2018-04/aqi_brochure_02_14_0.pdf">the
-believed time it can take for those pollutants to have an effect on your
-respiratory health.</a>.</p>
+<p>We altered the final merged dataset to aid our regression. Since the Union Square - Lower East Side neighborhood only contained information for the PM2.5 pollutant, we decided to remove the neighborhood from the dataset. Additionally, our EDA revealed that asthma and respiratory diseases had very few counts of hospital admittance, which would result in them not being great responses in models. Thus, they were both removed. Furthermore, we removed NO2 to remain consistent regarding the three pollutants discussed in the report, since the first air quality dataset discussed did not contain NO2 data. Finally, we lagged ozone and PM 2.5 readings by one day, which is <a href="https://www.airnow.gov/sites/default/files/2018-04/aqi_brochure_02_14_0.pdf">the believed time it can take for those pollutants to have an effect on your respiratory health.</a>. The outputed dataset was used in our regression analysis.</p>
 <pre class="r"><code>disease_air = disease_air %&gt;%
   filter(neighborhood != &quot;Union Square - Lower East Side&quot;) %&gt;%
   select(-NO2, -Asthma, -`Respiratory diseases`) %&gt;%
