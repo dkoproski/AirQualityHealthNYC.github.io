@@ -12,6 +12,7 @@ library(leaflet)
 library(plotly)
 library(glue)
 library(leaflet.extras)
+library(janitor)
 options(readr.show_col_types = FALSE)
 ```
 
@@ -91,15 +92,11 @@ df_histo_ozone =
 
 DF for Interactive Heatmaps
 ```{r,  message = FALSE, warning = FALSE}
-
-air_df = read_csv("data/cleaned_data/air_quality_zips.csv")
 df_air_geo = 
-  read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
-  select(zip, intptlat10, intptlon10) |> 
-  left_join(read_csv("data/cleaned_data/air_quality_zips.csv"), by = "zip") |> 
-  mutate(lat = intptlat10,
-         lon = intptlon10) |> 
-  select(-intptlat10, -intptlon10)
+  read_csv("data/cleaned_data/uhf_airquality.csv") |> 
+  mutate(lat = intplat10,
+         lon = intplon10) |> 
+  select(-intplat10, -intplon10)
 ```
 
 DF for Boxplots according to Borough
@@ -168,6 +165,86 @@ daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
   bind_rows(store_data[[5]]) %>%
   mutate(date = as.Date(date, format = "%m/%d/%Y"))
 ```
+
+DF EDA Disease 
+```{r}
+#loading disease data
+disease_zip <- read_csv(here::here('data/cleaned_data/disease_zip.csv'))
+#loading zip code data
+zip_shapes <- read_csv(here::here('data/cleaned_shapes/nyc_zip_codes.csv')) %>%
+  clean_names()
+#cleaning second disease data
+joined_resp <- read_csv(here::here('data/raw_data/joined_respiratory.csv'),
+                        col_types = cols(
+                          `date` = col_date(format = '%m/%d/%y'))) %>%
+  separate(date, into = c('year', 'month', 'day')) %>%
+  rename(zip_code = zip) %>%
+  filter(!(zip_code == 'Citwide'),
+         !(zip_code == '88888'),
+         age_group == 'All age groups') %>%
+  mutate(month = case_when(
+    month == '01' ~ 'January',
+    month == '02' ~ 'February',
+    month == '03' ~ 'March',
+    month == '04' ~ 'April',
+    month == '05' ~ 'May',
+    month == '06' ~ 'June',
+    month == '07' ~ 'July',
+    month == '08' ~ 'August',
+    month == '09' ~ 'September',
+    month == '10' ~ 'October',
+    month == '11' ~ 'November',
+    month == '12' ~ 'December'),
+    
+    year = as.integer(year),
+    zip_code = as.double(zip_code))
+#joining 2nd option (full_join)
+disease_data <- full_join(disease_zip, joined_resp, by = c('zip_code', 'year', 'month', 'day')) %>%
+  #deleting unness. columns
+  select(-extract_date, -age_group, -borough, -neighborhood)
+#adding missing zip code
+disease_data <- left_join(disease_data, zip_shapes, by = 'zip_code') %>%
+  mutate(
+    neighborhood = case_when(
+      zip_code == '10069' ~ 'Upper West Side',
+      zip_code == '11109' ~ 'Northwest Queens',
+      zip_code == '10282' ~ 'Lower Manhattan',
+      zip_code == '10271' ~ 'Lower Manhattan',
+      zip_code == '10278' ~ 'Lower Manhattan',
+      zip_code == '10279' ~ 'Lower Manhattan',
+      #zip_code == '11003' ~ 10000 (deal w these)
+      #zip_code == '11040'
+      TRUE ~ neighborhood),
+  
+    borough = case_when(
+      zip_code == '10069' ~ 'Manhattan',
+      zip_code == '11109' ~ 'Queens',
+      zip_code == '10282' ~ 'Manhattan',
+      zip_code == '10271' ~ 'Manhattan',
+      zip_code == '10278' ~ 'Manhattan',
+      zip_code == '10279' ~ 'Manhattan',
+      TRUE ~ borough)) %>%
+  
+  filter(!(zip_code == '10000'),
+         !(zip_code == '11003'),
+         !(zip_code == '11040'))
+
+disease_eda <- disease_data %>%
+  pivot_longer(cols = 'total_ed_visits':'count_asth',
+               names_to = 'illness_counts',
+               values_to = 'count') %>%
+  mutate(month_num = match(month, month.name),
+         date = as.Date(paste(year, month_num, day, sep = '-'),
+                        format = '%Y-%m-%d'),
+         
+         illness_counts = case_when(
+           illness_counts == 'total_ed_visits' ~ 'ED visits (overall)',
+           illness_counts == 'ili_pne_visits' ~ 'Pneumonia (ER visits)',
+           illness_counts == 'ili_pne_admissions' ~ 'Pneumonia (ER admissions)',
+           illness_counts == 'count_resp' ~ 'Respiratory diseases',
+           illness_counts == 'count_asth' ~ 'Asthma'))
+```
+
 ### Exploratory Analysis and Visualizations
 
 O3, PM2.5, and NO2 were the air pollutants chosen for our descriptive and statistical analysis. 
@@ -274,9 +351,11 @@ combined_boxplot_fig
 ```
 
 #### Heatmaps of air quality from 2010-2021
+
 A heat map of the air pollutants with a year selector was constructed to monitor and understand the air quality in NYC. High concentrations of the selected pollutant were indicated by red and maroon, while lower concentrations were shown in green. The PM2.5 heat map showed a greater amount of PM2.5 levels in Lower Manhattan throughout the years. Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Outer boroughs such as Brooklyn showed consistently high concentrations of O3 levels from 2009 to 2021. NO2 displayed a decrease in concentration however it was less noticeable. 
 
-**2009-2021: Ozone (O3) Levels**
+**2010-2021: Ozone (O3) Levels**
+
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract ozone data
 o3_data = df_air_geo |> 
@@ -284,9 +363,10 @@ o3_data = df_air_geo |>
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          year = year(start_date),
          name = str_remove(name, "(due to).*")) |> 
-  select(zip, name, measure, measure_info, year, data_value, lat, lon) |> 
-  group_by(zip, name, year, lat, lon) |> 
-  summarize(zipmean = mean(data_value)) 
+  select(geo_place_name, name, measure, measure_info, year, data_value, lat, lon) |> 
+  group_by(geo_place_name, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value)) |> 
+  filter(year != 2009)
 
 # Create yearly dataframes
 yearly_data_frames <- list()
@@ -313,7 +393,7 @@ for(year in year_i) {
   
   
   label_text <- glue(
-    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
     "<b>Zip mean: </b> {yeardata$zipmean} ppb<br/>") |> 
     lapply(htmltools::HTML)
@@ -341,7 +421,8 @@ m = m |>
 m
 ```
 
-**2008-2021: Fine Particles PM2.5**
+**2010-2021: Fine Particles PM2.5**
+
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract pm2.5 data
 pm25_data = df_air_geo |> 
@@ -349,9 +430,10 @@ pm25_data = df_air_geo |>
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          year = year(start_date),
          name = str_remove(name, "(due to).*")) |> 
-  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
-  group_by(zip, name, year, lat, lon) |> 
-  summarize(zipmean = mean(data_value))
+  select(geo_place_name, name, measure, measure_info, year, data_value, lat, lon) |> 
+  group_by(geo_place_name, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value)) |> 
+  filter(year != 2008 & year != 2009)
 
 # Create yearly dataframes
 yearly_data_frames <- list()
@@ -378,7 +460,7 @@ for(year in year_i) {
   
   
   label_text <- glue(
-    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
     "<b>Zip mean: </b> {round(yeardata$zipmean,3)} mcg/m3<br/>") |> 
     lapply(htmltools::HTML)
@@ -406,7 +488,8 @@ m = m |>
 m
 ```
 
-**2008-2021: Nitrogen dioxide (NO2)**
+**2010-2021: Nitrogen dioxide (NO2)**
+
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract NO2 data
 no2_data = df_air_geo |> 
@@ -414,9 +497,10 @@ no2_data = df_air_geo |>
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          year = year(start_date),
          name = str_remove(name, "(due to).*")) |> 
-  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
-  group_by(zip, name, year, lat, lon) |> 
-  summarize(zipmean = mean(data_value))
+  select(geo_place_name, name, measure, measure_info, year, data_value, lat, lon) |> 
+  group_by(geo_place_name, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value)) |> 
+  filter(year != 2008 & year != 2009)
 
 # Create yearly dataframes
 yearly_data_frames <- list()
@@ -443,7 +527,7 @@ for(year in year_i) {
   
   
   label_text <- glue(
-    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
     "<b>Zip mean: </b> {round(yeardata$zipmean,3)} ppb<br/>") |> 
     lapply(htmltools::HTML)
@@ -610,8 +694,25 @@ daily_neighborhood_data %>%
        y = "Mean measurement (ug/m3 LC)", color = "Neighborhood")
 ```
 
-#### EDA DAILY DISEASE VISITS
+#### Histogram of illness
 
+```{r}
+#distribution of illness counts
+disease_eda %>%
+  ggplot(aes(x = count, fill = illness_counts)) +
+  geom_histogram(bins = 15) + 
+  facet_wrap(~illness_counts, scales = 'free')
+```
+
+####
+```{r}
+#distribution of illness counts by neighborhood
+disease_eda %>%
+  ggplot(aes(x = borough, y = count, fill = borough)) +
+  geom_boxplot() +
+  facet_wrap(~illness_counts, scales = 'free') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
 
 ## **Statistical Results** 
 Cross correlation analysis was used to examine the relationship between O3 and pneumonia ER visits. From the cross-correlation plots, the positive and negative correlations determined the lag between O3 levels and and pneumonia ER visits was about 117 days. The lag was added as an additional predictor in the linear regression model. There was a negative correlation in pneumonia ER visits and O3 regression model before the lag was added. However, after adding the lag, a positive correlation emerged between pneumonia ER visits and O3. 

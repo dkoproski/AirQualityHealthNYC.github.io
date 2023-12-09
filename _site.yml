@@ -15,6 +15,9 @@ navbar:
       href: stats.html
     - text: "Final Report"
       href: report.html
+    - text: "GitHub"
+      href: https://github.com/dkoproski/AirQualityHealthNYC.github.io
+      icon: fa-github
 output:
   html_document:
     theme: cosmo
