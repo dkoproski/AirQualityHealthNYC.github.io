@@ -365,6 +365,9 @@ dis_plot
 
 ### Distributions of illness counts by illness/disease
 
+Now that we see how the different illnesses behave over time, it would be important to see how they/their counts behave individualy. We can see that all illnesses have a majority of zero counts, thus their distributions are right skewed. The only distribution with more variability is for ER visits (overall).
+
+
 ```{r, out.width = '100%', message = F, warning = F}
 # loading zip code data
 zip_shapes <- read_csv(here::here('data/cleaned_shapes/nyc_zip_codes.csv')) %>%
@@ -428,6 +431,8 @@ disease_eda %>%
 
 ### Distribution of illness counts by borough
 
+Furthermore, we want to know how the illnesses differ by borough. We can see that even for boroughs, illness distributions are zero inflated. Again, the ER visits (overall) has more variability among boroughs.
+
 ```{r, out.width = '100%', message = F, warning = F}
 #distribution of illness counts by neighborhood
 disease_eda %>%
@@ -439,6 +444,8 @@ disease_eda %>%
 
 
 ### Time series plots for select neighborhoods
+
+In preperation for regression analysis, we explored 5 specific neighborhoods, each in a different borough. The neighborhoods were picked based on the available data for the pollutants.
 
 ```{r, out.width = '100%', message = F, warning = F}
 #neighborhoods of interest
@@ -460,6 +467,10 @@ daily_disease_neigh = disease_eda %>%
   ),
   date = as.Date(date, format = '%Y-%m-%d'))
 ```
+
+In the time series plots below, each line represents the total number of hospital visits per day per neighborhood, and each plot presents that information for the different illnesses and total ER visits. 
+
+The plots below further supports that most illness distributions are zero inflated. Specifically, asthma, respiratory diseases. Thus, we decided against using those as responses in regression analysis as prediction may not be accurate. Similarly, we noticed that pneumonia ER admissions consistently had less counts than pneumonia ER visits. And although overall ER visits had more counts, we decided to soley focus on pneumonia ER visits as a response in regression for the purpose of this analysis.
 
 ```{r, out.width = '100%', message = F, warning = F}
 daily_disease_neigh %>%
@@ -484,6 +495,15 @@ daily_disease_neigh %>%
              group = neighborhood, color = neighborhood)) +
   geom_line()
 ```
+
+```{r, out.width = '100%', message = F, warning = F}
+daily_disease_neigh %>%
+  filter(illness_counts == 'Pneumonia (ER admissions)') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
+
 
 ```{r, out.width = '100%', message = F, warning = F}
 daily_disease_neigh %>%
