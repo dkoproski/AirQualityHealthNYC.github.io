@@ -612,7 +612,7 @@ daily_air %>%
 
 In the context of these time series plots, the daily mean measurement of each pollutant, categorized by neighborhoods, was derived and depicted as a distinctive line. Coherent patterns were observed for each pollutant in these neighborhoods. NO2 displayed its pinnacle reach during the winter and spring transitions, where as O3 sowed its highest vales in the summer months. These visual representation shows and highlights the nuanced temporal fluctuation between the pollutants. 
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 neighborhoods = c("Washington Heights", "Union Square - Lower East Side",
                   "Willowbrook", "Hunts Point - Mott Haven", "Fresh Meadows")
 
@@ -645,7 +645,7 @@ daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
 ```
 
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, message = FALSE}
 daily_neighborhood_data %>%
   filter(pollutant == "NO2 (ppb)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
@@ -658,7 +658,7 @@ daily_neighborhood_data %>%
 ```
 
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, message = FALSE}
 daily_neighborhood_data %>%
   filter(pollutant == "O3 (ppm)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
@@ -670,7 +670,7 @@ daily_neighborhood_data %>%
        y = "Mean measurement (ppm)", color = "Neighborhood")
 ```
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, message = FALSE}
 daily_neighborhood_data %>%
   filter(pollutant == "PM 2.5 (ug/m3 LC)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
@@ -874,7 +874,10 @@ daily_disease_neigh %>%
   filter(illness_counts == 'Asthma') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
-  geom_line()
+  geom_line() +
+  labs(title = 'Asthma per neighborhood',
+       y = 'Total counts',
+       x = 'Date')
 ```
 
 ```{r, out.width = '100%', message = F, warning = F}
@@ -882,7 +885,10 @@ daily_disease_neigh %>%
   filter(illness_counts == 'Respiratory diseases') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
-  geom_line()
+  geom_line() +
+  labs(title = 'Respiratory diseases per neighborhood',
+       y = 'Total counts',
+       x = 'Date')
 ```
 
 ```{r, out.width = '100%', message = F, warning = F}
@@ -890,7 +896,10 @@ daily_disease_neigh %>%
   filter(illness_counts == 'Pneumonia (ER visits)') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
-  geom_line()
+  geom_line() +
+  labs(title = 'Pneumonia (ER visits) per neighborhood',
+       y = 'Total counts',
+       x = 'Date')
 ```
 
 ```{r, out.width = '100%', message = F, warning = F}
@@ -898,7 +907,10 @@ daily_disease_neigh %>%
   filter(illness_counts == 'Pneumonia (ER admissions)') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
-  geom_line()
+  geom_line() +
+  labs(title = 'Pneumonia (ER admissions) per neighborhood',
+       y = 'Total counts',
+       x = 'Date')
 ```
 
 
@@ -907,14 +919,17 @@ daily_disease_neigh %>%
   filter(illness_counts == 'ED visits (overall)') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
-  geom_line()
+  geom_line() +
+  labs(title = 'ED visits (overall) per neighborhood',
+       y = 'Total counts',
+       x = 'Date')
 ```
 
 
 ## **Statistical Results** 
 Cross correlation analysis was used to examine the relationship between O3 and pneumonia ER visits. From the cross-correlation plots, the positive and negative correlations determined the lag between O3 levels and and pneumonia ER visits was about 117 days. The lag was added as an additional predictor in the linear regression model. There was a negative correlation in pneumonia ER visits and O3 regression model before the lag was added. However, after adding the lag, a positive correlation emerged between pneumonia ER visits and O3. 
 
-```{r}
+```{r, message = FALSE}
 #altering format
 daily_disease_neigh = daily_disease_neigh %>%
   pivot_wider(names_from = illness_counts, values_from = total_counts)
@@ -1049,7 +1064,7 @@ pivot_longer(everything(),
 
 We did bootstrapping with 5,000 samples, and got an estimated $R^2$ and 95% confidence interval of:
 
-```{r}
+```{r, message = FALSE}
 bootstrap_results %>%
   filter(estimate == "r.squared") %>%
   knitr::kable(digits = 2)
