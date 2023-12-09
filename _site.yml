@@ -18,6 +18,9 @@ navbar:
     - text: "GitHub"
       href: https://github.com/dkoproski/AirQualityHealthNYC.github.io
       icon: fa-github
+    - text: "Video"
+      href: https://www.youtube.com/YOUR_CHANNEL_OR_VIDEO_LINK
+      icon: fa-youtube
 output:
   html_document:
     theme: cosmo
