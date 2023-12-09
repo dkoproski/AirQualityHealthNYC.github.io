@@ -184,19 +184,19 @@ daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
   )
 ```
   
-```{r}
+```{r, message = FALSE, results='hide'}
 poll_plot = daily_air |> 
   ggplot(aes(x = date, y = value, color = pollutant)) +
   geom_point() +
   geom_smooth(color = "blue") +
   facet_wrap(~ pollutant, ncol = 2, scales="free_y") +
-  ggtitle("Daily average of each pollutant by neighborhood") + 
+  ggtitle("Daily average of each pollutant by site") + 
   scale_color_discrete()
 
 poll_plot
 ```
 
-```{r message = FALSE, echo = FALSE}
+```{r, message = FALSE}
 daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
   mutate(borough = case_when(
     county == "New York" ~ "Manhattan",
@@ -323,61 +323,7 @@ Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we
 
 However, we saw previously that Ozone trends in the opposite direction as other pollutants, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a cross-correlation analysis as an attempt to test out the idea of lagging certain variables.
 
-
-```{r, out.width = '100%', message = F, warning = F}
-
-# Load datasets we need for disease EDA
-
-dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
-                       col_types = cols(
-                          `date` = col_date(format = '%m/%d/%y'))) |> 
-  rename(zip_code = zip) |> 
-  filter(zip_code != 88888 & zip_code != "Citwide" & age_group == "All age groups") |> 
-  mutate(zip_code = as.numeric(zip_code)) |>
-  select(date, zip_code, count_resp, count_asth)
-
-dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
-                       col_types = cols(
-                                     `date` = col_date(format = "%m/%d/%Y"),
-                                     `total_ed_visits` = col_integer(),
-                                     `ili_pne_visits` = col_integer(),
-                                     `ili_pne_admissions` = col_integer())) |> 
-  rename(zip_code = mod_zcta) |> 
-  select(date, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions)
-
-all_dis_df =
-  full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "date"))
-
-# Alter data to fit plot
-all_dis_plot_df = all_dis_df |>
-  pivot_longer(cols = c("count_resp", "count_asth", "ili_pne_visits", "ili_pne_admissions"), 
-               names_to = "variable",
-               values_to = "count")
-
-dis_plot = all_dis_plot_df |> 
-  mutate(variable = case_when(
-      variable =="count_resp" ~ "Respiratory diseases",
-      variable =="count_asth" ~ "Asthma",
-      variable =="ili_pne_visits" ~ "Pneumonia (ER visits)",
-      variable =="ili_pne_admissions" ~ "Pneumonia (admissions)"),
-      across(variable, ~factor(., levels=c("Asthma","Respiratory diseases",
-                                           "Pneumonia (ER visits)",
-                                           "Pneumonia (admissions)"))))|> 
-  ggplot(aes(x = date, y = count, color = variable)) +
-  geom_point() +
-  geom_smooth(color = "blue") +
-  facet_wrap(~ variable, ncol = 2, scales="free_y") +
-  ggtitle("Daily counts of disease variables by zip") + 
-  scale_color_discrete()
-
-dis_plot
-```
-
-### Distributions of illness counts by illness/disease
-
-```{r, out.width = '100%', message = F, warning = F}
-# Load dataset with respiratory and asthma counts (missing some zipcodes)
-
+```{r, message = FALSE, results='hide', warning = F}
 dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
                        col_types = cols(
                           `date` = col_date(format = '%m/%d/%y'))) |> 
@@ -408,8 +354,38 @@ dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
 
 all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "year", 'month', 'day'))
+```
 
-#loading zip code data
+```{r, message = FALSE, results='hide', warning = F}
+dis_plot = all_dis_df |>
+  pivot_longer(cols = c("count_resp", "count_asth", "ili_pne_visits", "ili_pne_admissions"), 
+               names_to = "variable",
+               values_to = "count") |> 
+  mutate(variable = case_when(
+      variable =="count_resp" ~ "Respiratory diseases",
+      variable =="count_asth" ~ "Asthma",
+      variable =="ili_pne_visits" ~ "Pneumonia (ER visits)",
+      variable =="ili_pne_admissions" ~ "Pneumonia (admissions)"),
+      across(variable, ~factor(., levels=c("Asthma","Respiratory diseases",
+                                           "Pneumonia (ER visits)",
+                                           "Pneumonia (admissions)"))),
+      month_num = match(month, month.name),
+         date = as.Date(paste(year, month_num, day, sep = '-'),
+                        format = '%Y-%m-%d'))|> 
+  ggplot(aes(x = date, y = count, color = variable)) +
+  geom_point() +
+  geom_smooth(color = "blue") +
+  facet_wrap(~ variable, ncol = 2, scales="free_y") +
+  ggtitle("Daily counts of disease variables by site") + 
+  scale_color_discrete()
+
+dis_plot
+```
+
+### Distributions of illness counts by illness/disease
+
+```{r, out.width = '100%', message = F, warning = F}
+# loading zip code data
 zip_shapes <- read_csv(here::here('data/cleaned_shapes/nyc_zip_codes.csv')) %>%
   clean_names()
 
