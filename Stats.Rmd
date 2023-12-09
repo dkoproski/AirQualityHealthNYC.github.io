@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(janitor)
 library(statar)
+library(modelr)
 ```
 ```{r message=FALSE, include=FALSE}
 #loading disease data
@@ -152,7 +153,7 @@ disease_air = disease_air %>%
 
 We will now use the merged dataset for modelling. For out dataset: we selected four neighborhoods we were interested in: Washington Heights, Willowbrook, Hunts Point - Mott Haven, and Fresh Meadows. These neighborhoods all have at least one sensor for O3 and PM 2.5, and are all in different boroughs, which are part of the reason why we picked them.
 
-In the final dataset, every one of the `r `nrow(disease_air)` rows is a date-neighborhood combination, for dates between March 2020 and November 2022.
+In the final dataset, every one of the `r `nrow(disease_air)` rows is a date-neighborhood combination, for dates between March 2020 and November 2022. An important nuance of this modelling section is that we lagged ozone and PM 2.5 readings by one day, which is [the believed time it can take for those pollutants to have an effect on your respiratory health.](https://www.airnow.gov/sites/default/files/2018-04/aqi_brochure_02_14_0.pdf)
 
 We first look at the response variable we'll focus on: visits to the hospital due to pneumonia. This variable is discrete and we found that a square root transformation yielded a more Normal distribution
 
@@ -168,39 +169,25 @@ disease_air %>%
        x = "Sqrt(Pneumonia visits)")
 ```
 
-```{r}
-fit = lm(sqrt_pne_visits ~ lagged_ozone + lagged_pm + year + season + neighborhood, 
-         data = disease_air)
-```
+Our next challenge is choosing which variables to use as predictors of `sqrt(pneumonia visits)`. We know from our exploratory data analysis that pollutant levels are associated with date, so including both in the model would be a muticollinarity issue. However, the exploratory data analysis did not reveal an association between boroughs (location) and pollutants, so using both in a model would be appropriate. 
+
+We decide be can compare the predictive ability of time and the lagged pollutants by comparing the cross validation root mean square error for 100 cross validation samples. The two models compared will both use `neighborhood` as the predictor, but one will have `season` and `year` (and the interaction between the two), and the other will have lagged ozone and PM 2.5 readings. this process revealed that the time of the year was a better predictor of `sqrt(pneumonia visits)` than the lagged pollutants.
 
 ```{r}
-disease_air %>%
-  modelr::add_residuals(fit) %>% 
-  modelr::add_predictions(fit) %>%
-  ggplot(aes(x = pred, y = resid)) + geom_point()
-```
-
-
-```{r}
-library(modelr)
 modelr::crossv_mc(disease_air, 100) %>%
   mutate(
     pollutants = map(train, \(df) lm(sqrt_pne_visits ~ lagged_ozone + 
-                                       lagged_pm, data = df)),
+                                       lagged_pm + neighborhood, data = df)),
     
-    time =  map(train, \(df) lm(sqrt_pne_visits ~ year + season + 
-                                       year*season, data = df)),
-    
-    neighborhoods = map(train, \(df) lm(sqrt_pne_visits ~ neighborhood, 
+    time = map(train, \(df) lm(sqrt_pne_visits ~ year + season + 
+                                       year*season +  neighborhood, 
                                         data = df))) %>%
   mutate(
     rmse_pollutants = map2_dbl(pollutants, test, \(mod, df) rmse(model = mod, 
                                                         data = df)),
     
-    rmse_time = map2_dbl(time, test, \(mod, df) rmse(model = mod, 
-                                                       data = df)),
-    
-    rmse_neighborhoods = map2_dbl(neighborhoods, test, \(mod, df) rmse(model = mod, 
+    rmse_time = map2_dbl(time, test, 
+                                       \(mod, df) rmse(model = mod, 
                                                              data = df))) %>%
   select(starts_with("rmse")) %>%
   pivot_longer(
@@ -213,26 +200,37 @@ modelr::crossv_mc(disease_air, 100) %>%
   labs(title = "RMSE of models predicting sqrt(pneumonia visits)")
 ```
 
+After this, we fit the selected model on the entire dataset, and notice that the diagnostics are not good: the residuals clearly have some relationship to the predicted values, but in reality should be nothing more than noise. This motivates bootstrap so we can have interpretable confidence intervals.
+
+```{r}
+fit = lm(sqrt_pne_visits ~ year + season + 
+                            year*season + neighborhood, 
+         data = disease_air)
+
+disease_air %>%
+  modelr::add_residuals(fit) %>% 
+  modelr::add_predictions(fit) %>%
+  ggplot(aes(x = pred, y = resid)) + geom_point() + geom_smooth(se = F) + 
+  labs(title = "Our model fails diagnostics", 
+       x = "Predicted sqrt(pneumonia visits)", y = "Residuals")
+```
 
 ```{r}
 set.seed(42)
 bootstrap_results = 
   disease_air %>%
-  modelr::bootstrap(n = 1000) %>%
+  modelr::bootstrap(n = 5000) %>%
   mutate(
-    models = map(strap, \(df) lm(sqrt_pne_visits ~ neighborhood, 
+    models = map(strap, \(df) lm(sqrt_pne_visits ~ year + season + 
+                            year*season + neighborhood, 
                                         data = df)),
     estimates = map(models, broom::tidy),
     results = map(models, broom::glance)) %>% 
   select(-strap, -models) %>%
   unnest(estimates, results) %>%
   select(term, estimate, r.squared) %>% 
-  pivot_wider(names_from = term, values_from = estimate)
-```
-
-```{r}
-bootstrap_results %>%
-pivot_longer(r.squared:neighborhoodWillowbrook,
+  pivot_wider(names_from = term, values_from = estimate) %>%
+pivot_longer(everything(),
              names_to = "estimate", 
                values_to = "value") %>%
   group_by(estimate) %>%
@@ -240,5 +238,63 @@ pivot_longer(r.squared:neighborhoodWillowbrook,
     ci_lower = quantile(value, 0.025, na.rm = T), 
     ci_upper = quantile(value, 0.975, na.rm = T),
     mean = mean(value))
+```
+
+We did bootstrap with 5,000 samples, and got an estimated $r^2$ and 95% confidence interval of:
+
+```{r}
+bootstrap_results %>%
+  filter(estimate == "r.squared") %>%
+  knitr::kable(digits = 2)
+```
+
+Additionally, we are able to interpret the coefficients (holding all else constant:
+
+- Using Fresh Meadows as the reference, we see that Willlowbrook has a similar effect on the predicted value of `sqrt(pneumonia)`, because its confidence interval includes 0. Washington Heights is the higuest of all values.
+
+```{r}
+bootstrap_results %>%
+  filter(str_detect(estimate, "neighborhood")) %>%
+  mutate(estimate = str_sub(estimate, 13)) %>% 
+  mutate(estimate = fct_reorder(estimate, mean)) %>%
+  ggplot()  +
+  geom_errorbar(aes(x = estimate, ymax = ci_upper, ymin = ci_lower), 
+                width=0.2, size=1) + 
+  geom_point(aes(x = estimate, y = mean), color = "red") + 
+  labs(title = "Neighborhood model coefficients",
+       subtitle = "Reference = Fresh Meadows", 
+       x = "Coefficient", y = "Estimate")
+```
+
+- The predicted number of `sqrt(pneumonia cases)` is on the rise, although the diference between 2020 (reference group) and 2021 is not significant.
+
+```{r}
+bootstrap_results %>%
+  filter(str_detect(estimate, "year") & !str_detect(estimate, ":")) %>%
+  mutate(estimate = str_sub(estimate, 5)) %>% 
+  mutate(estimate = fct_reorder(estimate, mean)) %>%
+  ggplot()  +
+  geom_errorbar(aes(x = estimate, ymax = ci_upper, ymin = ci_lower), 
+                width=0.2, size=1) + 
+  geom_point(aes(x = estimate, y = mean), color = "red") + 
+  labs(title = "Year model coefficients",
+       subtitle = "Reference = 2020", 
+       x = "Coefficient", y = "Estimate")
+```
+
+- Summer season has a significantly lower `sqrt(pneumonia cases)` than Fall (the reference group), while Spring is the highest, and Winter is the second highest.
+
+```{r}
+bootstrap_results %>%
+  filter(str_detect(estimate, "season") & !str_detect(estimate, ":")) %>%
+  mutate(estimate = str_sub(estimate, 7)) %>% 
+  mutate(estimate = fct_reorder(estimate, mean)) %>%
+  ggplot()  +
+  geom_errorbar(aes(x = estimate, ymax = ci_upper, ymin = ci_lower), 
+                width=0.2, size=1) + 
+  geom_point(aes(x = estimate, y = mean), color = "red") + 
+  labs(title = "Season model coefficients",
+       subtitle = "Reference = Fall", 
+       x = "Coefficient", y = "Estimate")
 ```
 

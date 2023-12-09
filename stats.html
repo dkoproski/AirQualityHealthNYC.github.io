@@ -374,7 +374,244 @@ div.tocify {
 </div>
 
 
+<pre class="r"><code>#neighborhoods of interest
+neighborhoods = c(&quot;Inwood and Washington Heights&quot;, &quot;Lower East Side&quot;,
+                  &quot;Mid-Island&quot;, &quot;Hunts Point and Mott Haven&quot;, &quot;Central Queens&quot;)
 
+daily_ill_counts_neigh = disease_eda %&gt;%
+  filter(neighborhood %in% neighborhoods) %&gt;%
+  group_by(date, borough, neighborhood, illness_counts) %&gt;% 
+  summarize(total_counts = sum(count, na.remove = T)) %&gt;%
+  #need neighborhood names to match
+  mutate(neighborhood = case_when( 
+    neighborhood == &quot;Inwood and Washington Heights&quot; ~ &quot;Washington Heights&quot;,
+    neighborhood == &quot;Lower East Side&quot;  ~  &quot;Union Square - Lower East Side&quot;,
+    neighborhood ==  &quot;Mid-Island&quot; ~ &quot;Willowbrook&quot;,
+    neighborhood == &quot;Hunts Point and Mott Haven&quot; ~ 
+      &quot;Hunts Point - Mott Haven&quot;,
+    neighborhood == &quot;Central Queens&quot; ~&quot;Fresh Meadows&quot;
+  ),
+  date = as.Date(date, format = &#39;%Y-%m-%d&#39;))
+  
+
+daily_ill_counts_neigh = daily_ill_counts_neigh %&gt;%
+  pivot_wider(names_from = illness_counts, values_from = total_counts)
+
+air_neighb = air_neighb %&gt;%
+  pivot_wider(names_from = pollutant, values_from = mean_value)
+
+disease_air &lt;- full_join(daily_ill_counts_neigh, air_neighb, by = c(&#39;date&#39;, &quot;neighborhood&quot;)) %&gt;%
+  filter(date &gt;= &#39;2020-03-01&#39; &amp; date &lt; &#39;2022-12-01&#39;) %&gt;%
+  mutate(year = as.factor(format(date, format = &#39;%Y&#39;)),
+         month = month.name[as.numeric(format(date, format = &quot;%m&quot;))],
+         day = as.numeric(format(date, format = &quot;%d&quot;)),
+         #adding seasons
+         season = case_when(
+           month %in% c(&#39;June&#39;, &#39;July&#39;, &#39;August&#39;) ~ &#39;Summer&#39;,
+           month %in% c(&#39;September&#39;, &#39;October&#39;, &#39;November&#39;) ~ &#39;Fall&#39;,
+           month %in% c(&#39;December&#39;, &#39;January&#39;, &#39;February&#39;) ~ &#39;Winter&#39;,
+           month %in% c(&#39;March&#39;, &#39;April&#39;, &#39;May&#39;) ~ &#39;Spring&#39;))
+
+disease_air = disease_air %&gt;%
+  filter(neighborhood != &quot;Union Square - Lower East Side&quot;) %&gt;%
+  select(-NO2, -Asthma, -`Respiratory diseases`) %&gt;%
+  arrange(date) %&gt;%
+  group_by(neighborhood) %&gt;%
+  mutate(lagged_ozone = tlag(Ozone, 1, time = date),
+         lagged_pm = tlag(PM2.5, 1, time = date)) %&gt;%
+  rename( total_ed_visits = `ED visits (overall)`,
+          ili_pne_visits = `Pneumonia (ER visits)`)</code></pre>
+<p>We will now use the merged dataset for modelling. For out dataset: we
+selected four neighborhoods we were interested in: Washington Heights,
+Willowbrook, Hunts Point - Mott Haven, and Fresh Meadows. These
+neighborhoods all have at least one sensor for O3 and PM 2.5, and are
+all in different boroughs, which are part of the reason why we picked
+them.</p>
+<p>In the final dataset, every one of the
+<code>r</code>nrow(disease_air)` rows is a date-neighborhood
+combination, for dates between March 2020 and November 2022. An
+important nuance of this modelling section is that we lagged ozone and
+PM 2.5 readings by one day, which is <a
+href="https://www.airnow.gov/sites/default/files/2018-04/aqi_brochure_02_14_0.pdf">the
+believed time it can take for those pollutants to have an effect on your
+respiratory health.</a></p>
+<p>We first look at the response variable we’ll focus on: visits to the
+hospital due to pneumonia. This variable is discrete and we found that a
+square root transformation yielded a more Normal distribution</p>
+<pre class="r"><code>disease_air = disease_air %&gt;%
+  mutate(sqrt_pne_visits = sqrt(ili_pne_visits))
+
+disease_air %&gt;%
+  ggplot() + geom_histogram(aes(x= sqrt_pne_visits), fill = &quot;black&quot;) + 
+  labs(title = 
+         &quot;Sqrt(Pneumonia visits) has a more favorable distribution for regression&quot;,
+       y = &quot;Count&quot;,
+       x = &quot;Sqrt(Pneumonia visits)&quot;)</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="Stats_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Our next challenge is choosing which variables to use as predictors
+of <code>sqrt(pneumonia visits)</code>. We know from our exploratory
+data analysis that pollutant levels are associated with date, so
+including both in the model would be a muticollinarity issue. However,
+the exploratory data analysis did not reveal an association between
+boroughs (location) and pollutants, so using both in a model would be
+appropriate.</p>
+<p>We decide be can compare the predictive ability of time and the
+lagged pollutants by comparing the cross validation root mean square
+error for 100 cross validation samples. The two models compared will
+both use <code>neighborhood</code> as the predictor, but one will have
+<code>season</code> and <code>year</code> (and the interaction between
+the two), and the other will have lagged ozone and PM 2.5 readings. this
+process revealed that the time of the year was a better predictor of
+<code>sqrt(pneumonia visits)</code> than the lagged pollutants.</p>
+<pre class="r"><code>modelr::crossv_mc(disease_air, 100) %&gt;%
+  mutate(
+    pollutants = map(train, \(df) lm(sqrt_pne_visits ~ lagged_ozone + 
+                                       lagged_pm + neighborhood, data = df)),
+    
+    time = map(train, \(df) lm(sqrt_pne_visits ~ year + season + 
+                                       year*season +  neighborhood, 
+                                        data = df))) %&gt;%
+  mutate(
+    rmse_pollutants = map2_dbl(pollutants, test, \(mod, df) rmse(model = mod, 
+                                                        data = df)),
+    
+    rmse_time = map2_dbl(time, test, 
+                                       \(mod, df) rmse(model = mod, 
+                                                             data = df))) %&gt;%
+  select(starts_with(&quot;rmse&quot;)) %&gt;%
+  pivot_longer(
+    everything(),
+    names_to = &quot;model&quot;, 
+    values_to = &quot;rmse&quot;,
+    names_prefix = &quot;rmse_&quot;) %&gt;%
+  mutate(model = fct_inorder(model)) %&gt;%
+  ggplot(aes(x = model, y = rmse)) + geom_violin() + 
+  labs(title = &quot;RMSE of models predicting sqrt(pneumonia visits)&quot;)</code></pre>
+<p><img src="Stats_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>After this, we fit the selected model on the entire dataset, and
+notice that the diagnostics are not good: the residuals clearly have
+some relationship to the predicted values, but in reality should be
+nothing more than noise. This motivates bootstrap so we can have
+interpretable confidence intervals.</p>
+<pre class="r"><code>fit = lm(sqrt_pne_visits ~ year + season + 
+                            year*season + neighborhood, 
+         data = disease_air)
+
+disease_air %&gt;%
+  modelr::add_residuals(fit) %&gt;% 
+  modelr::add_predictions(fit) %&gt;%
+  ggplot(aes(x = pred, y = resid)) + geom_point() + geom_smooth(se = F) + 
+  labs(title = &quot;Our model fails diagnostics&quot;, 
+       x = &quot;Predicted sqrt(pneumonia visits)&quot;, y = &quot;Residuals&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;gam&#39; and formula = &#39;y ~ s(x, bs = &quot;cs&quot;)&#39;</code></pre>
+<p><img src="Stats_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<pre class="r"><code>set.seed(42)
+bootstrap_results = 
+  disease_air %&gt;%
+  modelr::bootstrap(n = 5000) %&gt;%
+  mutate(
+    models = map(strap, \(df) lm(sqrt_pne_visits ~ year + season + 
+                            year*season + neighborhood, 
+                                        data = df)),
+    estimates = map(models, broom::tidy),
+    results = map(models, broom::glance)) %&gt;% 
+  select(-strap, -models) %&gt;%
+  unnest(estimates, results) %&gt;%
+  select(term, estimate, r.squared) %&gt;% 
+  pivot_wider(names_from = term, values_from = estimate) %&gt;%
+pivot_longer(everything(),
+             names_to = &quot;estimate&quot;, 
+               values_to = &quot;value&quot;) %&gt;%
+  group_by(estimate) %&gt;%
+  summarize(
+    ci_lower = quantile(value, 0.025, na.rm = T), 
+    ci_upper = quantile(value, 0.975, na.rm = T),
+    mean = mean(value))</code></pre>
+<pre><code>## Warning: `unnest()` has a new interface. See `?unnest` for details.
+## ℹ Try `df %&gt;% unnest(c(estimates, results))`, with `mutate()` if needed.</code></pre>
+<p>We did bootstrap with 5,000 samples, and got an estimated <span
+class="math inline">\(r^2\)</span> and 95% confidence interval of:</p>
+<pre class="r"><code>bootstrap_results %&gt;%
+  filter(estimate == &quot;r.squared&quot;) %&gt;%
+  knitr::kable(digits = 2)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">estimate</th>
+<th align="right">ci_lower</th>
+<th align="right">ci_upper</th>
+<th align="right">mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">r.squared</td>
+<td align="right">0.55</td>
+<td align="right">0.59</td>
+<td align="right">0.57</td>
+</tr>
+</tbody>
+</table>
+<p>Additionally, we are able to interpret the coefficients (holding all
+else constant:</p>
+<ul>
+<li>Using Fresh Meadows as the reference, we see that Willlowbrook has a
+similar effect on the predicted value of <code>sqrt(pneumonia)</code>,
+because its confidence interval includes 0. Washington Heights is the
+higuest of all values.</li>
+</ul>
+<pre class="r"><code>bootstrap_results %&gt;%
+  filter(str_detect(estimate, &quot;neighborhood&quot;)) %&gt;%
+  mutate(estimate = str_sub(estimate, 13)) %&gt;% 
+  mutate(estimate = fct_reorder(estimate, mean)) %&gt;%
+  ggplot()  +
+  geom_errorbar(aes(x = estimate, ymax = ci_upper, ymin = ci_lower), 
+                width=0.2, size=1) + 
+  geom_point(aes(x = estimate, y = mean), color = &quot;red&quot;) + 
+  labs(title = &quot;Neighborhood model coefficients&quot;,
+       subtitle = &quot;Reference = Fresh Meadows&quot;, 
+       x = &quot;Coefficient&quot;, y = &quot;Estimate&quot;)</code></pre>
+<pre><code>## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## ℹ Please use `linewidth` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<p><img src="Stats_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<ul>
+<li>The predicted number of <code>sqrt(pneumonia cases)</code> is on the
+rise, although the diference between 2020 (reference group) and 2021 is
+not significant.</li>
+</ul>
+<pre class="r"><code>bootstrap_results %&gt;%
+  filter(str_detect(estimate, &quot;year&quot;) &amp; !str_detect(estimate, &quot;:&quot;)) %&gt;%
+  mutate(estimate = str_sub(estimate, 5)) %&gt;% 
+  mutate(estimate = fct_reorder(estimate, mean)) %&gt;%
+  ggplot()  +
+  geom_errorbar(aes(x = estimate, ymax = ci_upper, ymin = ci_lower), 
+                width=0.2, size=1) + 
+  geom_point(aes(x = estimate, y = mean), color = &quot;red&quot;) + 
+  labs(title = &quot;Year model coefficients&quot;,
+       subtitle = &quot;Reference = 2020&quot;, 
+       x = &quot;Coefficient&quot;, y = &quot;Estimate&quot;)</code></pre>
+<p><img src="Stats_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<ul>
+<li>Summer season has a significantly lower
+<code>sqrt(pneumonia cases)</code> than Fall (the reference group),
+while Spring is the highest, and Winter is the second highest.</li>
+</ul>
+<pre class="r"><code>bootstrap_results %&gt;%
+  filter(str_detect(estimate, &quot;season&quot;) &amp; !str_detect(estimate, &quot;:&quot;)) %&gt;%
+  mutate(estimate = str_sub(estimate, 7)) %&gt;% 
+  mutate(estimate = fct_reorder(estimate, mean)) %&gt;%
+  ggplot()  +
+  geom_errorbar(aes(x = estimate, ymax = ci_upper, ymin = ci_lower), 
+                width=0.2, size=1) + 
+  geom_point(aes(x = estimate, y = mean), color = &quot;red&quot;) + 
+  labs(title = &quot;Season model coefficients&quot;,
+       subtitle = &quot;Reference = Fall&quot;, 
+       x = &quot;Coefficient&quot;, y = &quot;Estimate&quot;)</code></pre>
+<p><img src="Stats_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 
 
 
