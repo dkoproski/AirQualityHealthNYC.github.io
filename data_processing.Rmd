@@ -141,22 +141,7 @@ daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
   bind_rows(store_data[[4]]) %>%
   bind_rows(store_data[[5]]) %>%
   mutate(date = as.Date(date, format = "%m/%d/%Y"))
-
-write_csv(daily_neighborhood_data, 
-          here::here("data/cleaned_data/air_neighborhood.csv"))
 ```
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -166,6 +151,9 @@ write_csv(daily_neighborhood_data,
 # Disease dataset
 
 ## Merging hospitalization/emergency department data 
+
+Since we pulled disease/illness related data from two different sources, the code below reflects the cleaning of individual datasets and merging of the two. We now have data for asthma, respiratory diseases, influenza-like/pneumonia ER visits and admissions, and all other ER admissions by zip code and date.
+
 ```{r, message = FALSE}
 # Load dataset with respiratory and asthma counts (missing some zipcodes)
 
@@ -202,7 +190,8 @@ all_dis_df =
 ```
 
 ## Merging hospitalization/emergency department data with zip code data 
-This contains neighborhood and borough information. 
+
+Since our above merged dataset only contains zip code-level data, we added neighborhood and borough information using a zip code dataset containing that information. Note that after exploring that outputed data, some zip codes needed manual inputs for neighborhood and borough information. The code below reflects this process. 
 
 ```{r, message = FALSE}
 #loading zip code data
@@ -295,6 +284,8 @@ daily_disease_neigh = disease_eda %>%
 
 
 
+
+
 # Merging Air Quality and Disease Datasets
 
 Now, having daily disease data and daily air quality data at the neighborhood level allows for a smooth merging of datasets. The final merged dataset contains daily information on illness counts and pollutants by neighborhoods. We also added a season variable to aid our regression analysis.
@@ -324,6 +315,11 @@ disease_air <- full_join(daily_disease_neigh, air_neighb, by = c('date', "neighb
            month %in% c('December', 'January', 'February') ~ 'Winter',
            month %in% c('March', 'April', 'May') ~ 'Spring'))
 ```
+
+
+
+
+
 
 
 
