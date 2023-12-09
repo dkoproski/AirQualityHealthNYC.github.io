@@ -328,5 +328,20 @@ disease_air <- full_join(daily_disease_neigh, air_neighb, by = c('date', "neighb
 
 
 
+# Regression analysis data
 
-# Regression data
+We altered the final merged dataset to aid our regression. Since the Union Square - Lower East Side neighborhood only contained information for the PM2.5 pollutant, we decided to remove the neighborhood from the dataset. Additionally, our EDA revealed that Asthma and Respiratory diseases had very few counts of admittance, which would result in them not being great responses in models. Thus, they were both removed. Furthermore, 
+
+
+```{r, message = FALSE}
+new_disease_air = disease_air %>%
+  filter(neighborhood != "Union Square - Lower East Side") %>%
+  select(-NO2, -Asthma, -`Respiratory diseases`) %>%
+  arrange(date) %>%
+  group_by(neighborhood) %>%
+  mutate(lagged_ozone = tlag(Ozone, 1, time = date),
+         lagged_pm = tlag(PM2.5, 1, time = date)) %>%
+  rename( total_ed_visits = `ED visits (overall)`,
+          ili_pne_visits = `Pneumonia (ER visits)`)
+```
+
