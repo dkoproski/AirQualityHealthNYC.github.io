@@ -437,14 +437,64 @@ disease_eda %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-<<<<<<< HEAD
+
 ### Time series plots for select neighborhoods
 
+```{r, out.width = '100%', message = F, warning = F}
+#neighborhoods of interest
+neighborhoods = c("Inwood and Washington Heights", "Lower East Side",
+                  "Mid-Island", "Hunts Point and Mott Haven", "Central Queens")
+
+daily_disease_neigh = disease_eda %>%
+  filter(neighborhood %in% neighborhoods) %>%
+  group_by(date, borough, neighborhood, illness_counts) %>% 
+  summarize(total_counts = sum(count, na.remove = T)) %>%
+  #need neighborhood names to match
+  mutate(neighborhood = case_when( 
+    neighborhood == "Inwood and Washington Heights" ~ "Washington Heights",
+    neighborhood == "Lower East Side"  ~  "Union Square - Lower East Side",
+    neighborhood ==  "Mid-Island" ~ "Willowbrook",
+    neighborhood == "Hunts Point and Mott Haven" ~ 
+      "Hunts Point - Mott Haven",
+    neighborhood == "Central Queens" ~"Fresh Meadows"
+  ),
+  date = as.Date(date, format = '%Y-%m-%d'))
+```
+
+```{r, out.width = '100%', message = F, warning = F}
+daily_disease_neigh %>%
+  filter(illness_counts == 'Asthma') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
+
+```{r, out.width = '100%', message = F, warning = F}
+daily_disease_neigh %>%
+  filter(illness_counts == 'Respiratory diseases') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
+
+```{r, out.width = '100%', message = F, warning = F}
+daily_disease_neigh %>%
+  filter(illness_counts == 'Pneumonia (ER visits)') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
+
+```{r, out.width = '100%', message = F, warning = F}
+daily_disease_neigh %>%
+  filter(illness_counts == 'ED visits (overall)') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
 
 
 
-=======
->>>>>>> bbb0aff2b3f70f740881ab75e3ff537a8d267e9c
 # Investigating the lagged association of Ozone with variables related to respiratory diseases
 
 ```{r, out.width='100%', results = 'hide', message = F}
