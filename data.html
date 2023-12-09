@@ -342,17 +342,17 @@ div.tocify {
   <a href="report.html">Final Report</a>
 </li>
 <li>
-  <a href="https://github.com/dkoproski/AirQualityHealthNYC.github.io">
-    <span class="fa fa-github"></span>
-     
-    GitHub
-  </a>
-</li>
-<li>
   <a href="https://www.youtube.com/YOUR_CHANNEL_OR_VIDEO_LINK">
     <span class="fa fa-youtube"></span>
      
     Video
+  </a>
+</li>
+<li>
+  <a href="https://github.com/dkoproski/AirQualityHealthNYC.github.io">
+    <span class="fa fa-github"></span>
+     
+    GitHub
   </a>
 </li>
       </ul>
@@ -384,13 +384,17 @@ href="https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r">here</a>,
 the raw data has measurements of certain air pollutants including
 nitrogen dioxide (NO2), ozone (O3) and fine particles (PM2.5). The
 dataset also contains some general information about vehicle traffic,
-air-pollutant related hospitalizations and more. We later added a
-dataset containing information on New York air quality at the daily
-level which is accessible <a
+air-pollutant related hospitalizations and more. The raw dataset from
+this source is named <code>air_quality.csv</code> in
+<code>data/raw_data</code>. We later added a dataset containing
+information on New York air quality at the daily level which is
+accessible <a
 href="https://www.epa.gov/outdoor-air-quality-data/download-daily-data">here</a>.
 This data has daily observations for a limited number of locations,
 making it ideal for a focused analysis on single zip
-codes/neighborhoods. Shapefiles, available <a
+codes/neighborhoods. The raw csv from this source is named
+<code>alt_air_data.csv</code> in <code>data/raw_data</code>. Shapefiles,
+available <a
 href="https://github.com/nycehs/NYC_geography/tree/master/UHF_42_DOHMH_2009">here</a>,
 were used to plot values into maps, and to join this data with the
 dataset with daily observations.</p>
@@ -411,7 +415,12 @@ diarrhea, influenza-like illness, respiratory diseases and vomit for
 each zip code in NYC. Data collection began in 2016 and was last updated
 in early 2023. The data can be viewed <a
 href="https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&amp;PopulationSource=Syndromic">here</a>
-and subsets of the data can be selected and downloaded for use.</p>
+and subsets of the data can be selected and downloaded for use. These
+two files are named <code>disease_hospital_admin.csv</code> and
+<code>joined_respiratory.csv</code> respectively in
+<code>data/raw_data</code>. Both of these datasets were trimmed outside
+of the github repo prior to being pushed as they were too large to
+manipulate.</p>
 </div>
 <div id="zip-code-datasets" class="section level2">
 <h2>Zip Code Datasets</h2>
