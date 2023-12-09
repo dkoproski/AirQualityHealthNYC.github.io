@@ -9,6 +9,7 @@ output:
 
 ```{r, echo = FALSE, message = FALSE}
 library(tidyverse)
+library(broom)
 library(leaflet)
 library(plotly)
 options(readr.show_col_types = FALSE)
@@ -323,7 +324,7 @@ daily_neighborhood_data %>%
 
 ### How do disease variables change over time?
 
-Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. However, the trend for Ozone moves in the opposite direction, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a [cross-correlation analysis](stats.html) as an attempt to uncover any potential associations.
+Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. However, the trend for Ozone moves in the opposite direction, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a cross-correlation analysis as an attempt to test out the idea of lagging certain variables.
 
 
 ```{r, out.width = '100%', message = F, warning = F}
@@ -374,4 +375,128 @@ dis_plot = all_dis_plot_df |>
 
 dis_plot
 ```
+
+# Investigating the lagged association of Ozone with variables related to respiratory diseases
+
+## Cross correlation analysis
+
+```{r, out.width='100%', results = 'hide', message = F}
+
+# Datasets we need
+
+dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
+                       col_types = cols(
+                          `date` = col_date(format = '%m/%d/%y'))) |> 
+  rename(zip_code = zip) |> 
+  filter(zip_code != 88888 & zip_code != "Citwide" & age_group == "All age groups") |> 
+  mutate(year = as.numeric(format(date, format = "%Y")),
+         month = month.name[as.numeric(format(date, format = "%m"))],
+         day = as.numeric(format(date, format = "%d")),
+         zip_code = as.numeric(zip_code)) |>
+  select(year, month, day, zip_code, count_resp, count_asth) 
+
+# Load dataset with pneumonia data
+
+dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
+                       col_types = cols(
+                                     `date` = col_date(format = "%m/%d/%Y"),
+                                     `total_ed_visits` = col_integer(),
+                                     `ili_pne_visits` = col_integer(),
+                                     `ili_pne_admissions` = col_integer())) |> 
+  separate(date, into=c("year", "month", "day")) |> 
+  mutate(day = as.numeric(day),
+         month = month.name[as.numeric(month)],
+         year = as.numeric(year)) |> 
+  rename(zip_code = mod_zcta) |> 
+  select(year, month, day, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions)
+
+# Merge two disease datasets
+
+all_dis_df =
+  full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "year", 'month', 'day'))
+
+# Air quality dataset
+
+air_qual_df = read_csv("data/raw_data/alt_air_data.csv") |> 
+  separate(date, into=c("month", "day", "year")) |>
+  mutate(day = as.numeric(day),
+         month = month.name[as.numeric(month)],
+         year = as.numeric(year)) |> 
+  filter(!(year == '2020' & month == 'January'),
+         !(year == '2020' & month == 'February')) |> 
+  select(year, month, day, zip_code, pollutant, value) |> 
+  group_by(day, month, year, zip_code, pollutant) |> 
+  summarize(value = mean(value))
+
+# Merge all together
+
+air_qual_dis = 
+  full_join(all_dis_df, air_qual_df, by = c("month", "day", "year", "zip_code")) |>  
+  mutate(
+    numeric_month = match(month, month.name),
+    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
+  ) |> 
+  select(year, month, day, date, zip_code, count_resp, count_asth, total_ed_visits, 
+         ili_pne_visits, ili_pne_admissions, pollutant, value) |> 
+  pivot_wider(names_from = pollutant,
+              values_from = value) |> 
+  select(-`NA`) |> 
+  rename(pm25_ug_m3_lc = PM2.5,
+         co_ppm = CO,
+         o3_ppm = Ozone,
+         no2_ppb = NO2) |> 
+  filter(!(year == '2022' & month == 'December')) 
+```
+
+```{r, out.width='100%', warning = F, results = 'hide', message=F}
+ccf_df = air_qual_dis |> 
+  filter(!is.na(o3_ppm) & !is.na(ili_pne_visits)) |> 
+  mutate(date_lag = date + days(125),
+         scaled_o3 = o3_ppm * 100, 
+         lagged_pne = lag(ili_pne_visits, n = 125)
+  )
+
+ccf_res = ccf(ccf_df$o3_ppm, ccf_df$ili_pne_visits, lag.max=250, plot = FALSE)
+plot(ccf_res, main = "Analysing Lag between Ozone and Pneumonia ER visits (in days)")
+
+# Visualize lag
+
+ccf_df |> 
+  ggplot() +
+  geom_point(aes(x = date_lag, y = lagged_pne, color = "Pneumonia ER visits")) +
+  geom_point(aes(x = date, y = scaled_o3, color = "Ozone (10^-2 ppm)")) +
+  labs(title = "Lagging Pneumonia ER visits by 125 days", 
+       x = "Date",
+       y = "Values") +
+  scale_color_manual(labels = c("Ozone (10^-2 ppm)", "Pneumonia hospital visits"), 
+                     values = c("Ozone (10^-2 ppm)" = "#FFA500", "Pneumonia ER visits" = "#6495ED"), 
+                     guide = "legend")
+
+prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
+broom::tidy(prelag_model)
+ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) + 
+  geom_point(color = "#FFA500") +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Pre-lag: Pneumonia ER visits vs. Ozone",
+       x = expression(paste("Ozone (", 10^-2, " ppm)")), 
+       y = "Pneumonia hospital visits (count)")
+
+lag_model = lm(lagged_pne ~ scaled_o3, data = ccf_df)
+broom::tidy(lag_model)
+ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) + 
+  geom_point(color = "#FFA500") +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Post-lag: Pneumonia ER visits vs. Ozone",
+       x = expression(paste("Ozone (", 10^-2, " ppm)")), 
+       y = "Pneumonia hospital visits (count)")
+```
+
+
+
+
+
+
+
+
+
 
