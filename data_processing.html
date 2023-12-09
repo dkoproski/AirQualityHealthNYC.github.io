@@ -660,33 +660,7 @@ disease_air &lt;- full_join(daily_disease_neigh, air_neighb, by = c(&#39;date&#3
            month %in% c(&#39;September&#39;, &#39;October&#39;, &#39;November&#39;) ~ &#39;Fall&#39;,
            month %in% c(&#39;December&#39;, &#39;January&#39;, &#39;February&#39;) ~ &#39;Winter&#39;,
            month %in% c(&#39;March&#39;, &#39;April&#39;, &#39;May&#39;) ~ &#39;Spring&#39;))</code></pre>
-<p>Old code below:..</p>
 </div>
-</div>
-</div>
-<div id="air-quality-dataset" class="section level1">
-<h1>Air quality dataset</h1>
-<div id="merging-air-quality-data-with-disease-data-1"
-class="section level2">
-<h2>Merging air quality data with disease data</h2>
-<pre class="r"><code># Finally merge disease and air_qual data together
-
-air_qual_dis = 
-  full_join(all_dis_df, air_qual_df, by = c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;, &quot;zip_code&quot;)) |&gt;  
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = &quot;-&quot;), format = &quot;%Y-%m-%d&quot;)
-  ) |&gt; 
-  select(year, month, day, date, zip_code, count_resp, count_asth, total_ed_visits, 
-         ili_pne_visits, ili_pne_admissions, pollutant, value) |&gt; 
-  pivot_wider(names_from = pollutant,
-              values_from = value) |&gt; 
-  select(-`NA`) |&gt; 
-  rename(pm25_ug_m3_lc = PM2.5,
-         co_ppm = CO,
-         o3_ppm = Ozone,
-         no2_ppb = NO2) |&gt; 
-  filter(!(year == &#39;2022&#39; &amp; month == &#39;December&#39;)) </code></pre>
 </div>
 </div>
 

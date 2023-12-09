@@ -327,30 +327,4 @@ disease_air <- full_join(daily_disease_neigh, air_neighb, by = c('date', "neighb
 ```
 
 
-Old code below:..
-
-# Air quality dataset
-## Merging air quality data with disease data
-
-``` {r, eval = F}
-# Finally merge disease and air_qual data together
-
-air_qual_dis = 
-  full_join(all_dis_df, air_qual_df, by = c("month", "day", "year", "zip_code")) |>  
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = "-"), format = "%Y-%m-%d")
-  ) |> 
-  select(year, month, day, date, zip_code, count_resp, count_asth, total_ed_visits, 
-         ili_pne_visits, ili_pne_admissions, pollutant, value) |> 
-  pivot_wider(names_from = pollutant,
-              values_from = value) |> 
-  select(-`NA`) |> 
-  rename(pm25_ug_m3_lc = PM2.5,
-         co_ppm = CO,
-         o3_ppm = Ozone,
-         no2_ppb = NO2) |> 
-  filter(!(year == '2022' & month == 'December')) 
-```
-
 

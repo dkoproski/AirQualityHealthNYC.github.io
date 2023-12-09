@@ -803,7 +803,6 @@ Cross correlation analysis was used to examine the relationship between O3 and p
 Several challenges arose in the analysis related to data processing. The datasets had significant constraints, including limited data, temporal dimensions, and location misalignment. The limited data potentially impacted our overall findings. The air quality datasets had different observation frequencies, with one being seasonal and the other daily. Health outcomes affected by air pollutants  may be misrepresented due to the lack of hospital information in areas of high pollutants. Lastly, with only 3,000 observations available from an original data set of 188,000 observations, there was a substantial reduction in sample size data.
 
 ### Future Implications
-
-
+The observational patterns of air pollutant in a seasonal and daily aspect can impact urban planning and infrastructure development, environmental policy and regulation, and research opportunities. Disease and ER admissions and visits potentially impacted air quality can influence disease detection and prevention, healthcare regimen, and healthcare costs.  
 
 
