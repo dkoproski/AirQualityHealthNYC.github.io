@@ -196,25 +196,6 @@ poll_plot = daily_air |>
 poll_plot
 ```
 
-```{r, message = FALSE}
-daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
-  mutate(borough = case_when(
-    county == "New York" ~ "Manhattan",
-    county == "Bronx" ~ "Bronx",
-    county == "Kings" ~ "Brooklyn",
-    county == "Queens" ~ "Queens",
-    county == "Richmond" ~ "Staten Island"
-     ),
-    pollutant= case_when(
-    pollutant == "PM2.5" ~ "PM 2.5",
-    pollutant == "Ozone" ~ "O3",
-    T ~ pollutant )) %>% 
-  filter(pollutant != "CO") %>%
-  mutate(
-    pollutant = str_c(pollutant, " (", units, ")")
-  )
-```
-
 ### Distributions of NO2, O3 and PM2.5 by borough
 
 Now that we have seen how these pollutant variables change over time, we want to know whether they differ by borough. We see that at the borough-level, the daily measurements are similar for all pollutants. 
@@ -456,47 +437,9 @@ disease_eda %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-
-
-
-
-
 # Investigating the lagged association of Ozone with variables related to respiratory diseases
 
-## Cross correlation analysis
-
 ```{r, out.width='100%', results = 'hide', message = F}
-
-# Datasets we need
-
-dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
-                       col_types = cols(
-                          `date` = col_date(format = '%m/%d/%y'))) |> 
-  rename(zip_code = zip) |> 
-  filter(zip_code != 88888 & zip_code != "Citwide" & age_group == "All age groups") |> 
-  mutate(year = as.numeric(format(date, format = "%Y")),
-         month = month.name[as.numeric(format(date, format = "%m"))],
-         day = as.numeric(format(date, format = "%d")),
-         zip_code = as.numeric(zip_code)) |>
-  select(year, month, day, zip_code, count_resp, count_asth) 
-
-# Load dataset with pneumonia data
-
-dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
-                       col_types = cols(
-                                     `date` = col_date(format = "%m/%d/%Y"),
-                                     `total_ed_visits` = col_integer(),
-                                     `ili_pne_visits` = col_integer(),
-                                     `ili_pne_admissions` = col_integer())) |> 
-  separate(date, into=c("year", "month", "day")) |> 
-  mutate(day = as.numeric(day),
-         month = month.name[as.numeric(month)],
-         year = as.numeric(year)) |> 
-  rename(zip_code = mod_zcta) |> 
-  select(year, month, day, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions)
-
-# Merge two disease datasets
-
 all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "year", 'month', 'day'))
 
