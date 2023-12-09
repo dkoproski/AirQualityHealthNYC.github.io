@@ -14,8 +14,7 @@ Since 2008, the City of New York has actively maintained a dataset of up to date
 
 
 ## Disease Datasets
-(first disease dataset info here)
-The City of New York actively updates a public dataset containing the count of hospitalizations due to asthma, diarrhea, influenza-like illness, respiratory diseases and vomit for each zip code in NYC. Data collection began in 2016 and was last updated in early 2023. The data can be viewed [here](https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&PopulationSource=Syndromic) and subsets of the data can be selected and downloaded for use. 
+Health data was extracted from [NYC OpenData](https://data.cityofnewyork.us/Health/Emergency-Department-Visits-and-Admissions-for-Inf/2nwg-uqyg), this dataframe contains counts of emergency department visits, admissions and visits related to influenza-like and/or pneumonia illness, categorized by the modified ZIP code. The City of New York actively updates a public dataset containing the count of hospitalizations due to asthma, diarrhea, influenza-like illness, respiratory diseases and vomit for each zip code in NYC. Data collection began in 2016 and was last updated in early 2023. The data can be viewed [here](https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&PopulationSource=Syndromic) and subsets of the data can be selected and downloaded for use. 
 
 ## Zip Code Datasets
 

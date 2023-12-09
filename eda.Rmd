@@ -12,6 +12,7 @@ library(tidyverse)
 library(broom)
 library(leaflet)
 library(plotly)
+library(janitor)
 options(readr.show_col_types = FALSE)
 ```
 
@@ -164,44 +165,7 @@ After restricting our analysis to roughly 2020 to 2022, we generate visualizatio
 
 This makes sense intuitively, as we would expect higher emissions from heating and transportation to gather in urban regions due to colder temperatures, leading to higher levels of Nitrogen Dioxide and Carbon Monoxide. In fact, [epidemics of CO poisoning](https://pubmed.ncbi.nlm.nih.gov/9950394/) commonly occurs during winter months and sources include smoke from fires, fumes from heating systems burning fuels, and exhaust fumes from motor vehicles. On the other hand, according to the [American Lung Association](https://www.lung.org/clean-air/outdoors/what-makes-air-unhealthy/ozone#), high levels of Ozone are more likely to form in warmer temperatures, which is why harmful ozone levels primarily occur in the summer in most of the US because climate change is driving warmer temperatures.
 
-```{r, out.width = '100%', message = F}
-air_qual_df = read_csv("data/raw_data/alt_air_data.csv") |> 
-  separate(date, into=c("month", "day", "year")) |>
-  mutate(day = as.numeric(day),
-         month = month.name[as.numeric(month)],
-         year = as.numeric(year)) |> 
-  filter(!(year == '2020' & month == 'January'),
-         !(year == '2020' & month == 'February')) |> 
-  rename(zip = zip_code) |> 
-  select(year, month, day, zip, pollutant, value) |> 
-  group_by(day, month, year, zip, pollutant) |> 
-  summarize(value = mean(value))
-
-poll_plot = air_qual_df |> 
-  mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = "-"), 
-                   format = "%Y-%m-%d"),
-    pollutant = case_when(
-      pollutant =="CO" ~ "Carbon Monoxide (ppm)",
-      pollutant =="PM2.5" ~ "PM2.5 (μg/m3)",
-      pollutant =="Ozone" ~ "Ozone (ppm)",
-      pollutant =="NO2" ~ "Nitrogen Dioxide (ppb)"),
-    across(pollutant, ~factor(., levels=c("Carbon Monoxide (ppm)",
-                                          "Ozone (ppm)",
-                                          "Nitrogen Dioxide (ppb)",
-                                          "PM2.5 (μg/m3)"))),) |> 
-  ggplot(aes(x = date, y = value, color = pollutant)) +
-  geom_point() +
-  geom_smooth(color = "blue") +
-  facet_wrap(~ pollutant, ncol = 2, scales="free_y") +
-  ggtitle("Daily average of each pollutant by zip code") + 
-  scale_color_discrete()
-
-poll_plot
-```
-
-```{r message = FALSE, echo = FALSE}
+```{r, message = FALSE, results='hide'}
 daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
   mutate(borough = case_when(
     county == "New York" ~ "Manhattan",
@@ -213,12 +177,23 @@ daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
     pollutant= case_when(
     pollutant == "PM2.5" ~ "PM 2.5",
     pollutant == "Ozone" ~ "O3",
-    T ~ pollutant )) %>% 
-  filter(pollutant != "CO") %>%
+    T ~ pollutant ),
+    date = as.Date(date, format = "%m/%d/%Y")) %>% 
   mutate(
     pollutant = str_c(pollutant, " (", units, ")")
   )
+```
   
+```{r, message = FALSE, results='hide'}
+poll_plot = daily_air |> 
+  ggplot(aes(x = date, y = value, color = pollutant)) +
+  geom_point() +
+  geom_smooth(color = "blue") +
+  facet_wrap(~ pollutant, ncol = 2, scales="free_y") +
+  ggtitle("Daily average of each pollutant by site") + 
+  scale_color_discrete()
+
+poll_plot
 ```
 
 ### Distributions of NO2, O3 and PM2.5 by borough
@@ -227,6 +202,7 @@ Now that we have seen how these pollutant variables change over time, we want to
 
 ```{r}
 daily_air %>%
+  filter(!str_detect(pollutant, "CO")) %>%
   ggplot() + geom_boxplot(aes(x = borough, y = value, fill = borough)) + 
   labs(x = "Borough", y = "Measurement value", fill = "Borough") +
   theme(axis.text.x  = element_text(angle=15)) +
@@ -324,66 +300,11 @@ daily_neighborhood_data %>%
 
 ### How do disease variables change over time?
 
-Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. However, the trend for Ozone moves in the opposite direction, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a cross-correlation analysis as an attempt to test out the idea of lagging certain variables.
+Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. Colds, flus and other respiratory illnesses are common in colder months. Among these variables, [pneumonia](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3314701/) is commonly known have a higher occurrence during winter. This is partly attributed to the drop in temperature and rise in humidity levels, which can impair the immune system thus rendering individuals more vulnerable to infections. The body focuses on combating the cold and retaining warmth, making it more challenging to fend off infections such as pneumonia.
 
+However, we saw previously that Ozone trends in the opposite direction as other pollutants, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a cross-correlation analysis as an attempt to test out the idea of lagging certain variables.
 
-```{r, out.width = '100%', message = F, warning = F}
-
-# Load datasets we need for disease EDA
-
-dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
-                       col_types = cols(
-                          `date` = col_date(format = '%m/%d/%y'))) |> 
-  rename(zip_code = zip) |> 
-  filter(zip_code != 88888 & zip_code != "Citwide" & age_group == "All age groups") |> 
-  mutate(zip_code = as.numeric(zip_code)) |>
-  select(date, zip_code, count_resp, count_asth)
-
-dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
-                       col_types = cols(
-                                     `date` = col_date(format = "%m/%d/%Y"),
-                                     `total_ed_visits` = col_integer(),
-                                     `ili_pne_visits` = col_integer(),
-                                     `ili_pne_admissions` = col_integer())) |> 
-  rename(zip_code = mod_zcta) |> 
-  select(date, zip_code, total_ed_visits, ili_pne_visits, ili_pne_admissions)
-
-all_dis_df =
-  full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "date"))
-
-# Alter data to fit plot
-all_dis_plot_df = all_dis_df |>
-  pivot_longer(cols = c("count_resp", "count_asth", "ili_pne_visits", "ili_pne_admissions"), 
-               names_to = "variable",
-               values_to = "count")
-
-dis_plot = all_dis_plot_df |> 
-  mutate(variable = case_when(
-      variable =="count_resp" ~ "Respiratory diseases",
-      variable =="count_asth" ~ "Asthma",
-      variable =="ili_pne_visits" ~ "Pneumonia (ER visits)",
-      variable =="ili_pne_admissions" ~ "Pneumonia (admissions)"),
-      across(variable, ~factor(., levels=c("Asthma","Respiratory diseases",
-                                           "Pneumonia (ER visits)",
-                                           "Pneumonia (admissions)"))))|> 
-  ggplot(aes(x = date, y = count, color = variable)) +
-  geom_point() +
-  geom_smooth(color = "blue") +
-  facet_wrap(~ variable, ncol = 2, scales="free_y") +
-  ggtitle("Daily counts of disease variables by zip") + 
-  scale_color_discrete()
-
-dis_plot
-```
-
-# Investigating the lagged association of Ozone with variables related to respiratory diseases
-
-## Cross correlation analysis
-
-```{r, out.width='100%', results = 'hide', message = F}
-
-# Datasets we need
-
+```{r, message = FALSE, results='hide', warning = F}
 dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
                        col_types = cols(
                           `date` = col_date(format = '%m/%d/%y'))) |> 
@@ -412,6 +333,113 @@ dis_pneu_df = read_csv(here::here("data/raw_data/disease_hospital_admin.csv"),
 
 # Merge two disease datasets
 
+all_dis_df =
+  full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "year", 'month', 'day'))
+```
+
+```{r, message = FALSE, results='hide', warning = F}
+dis_plot = all_dis_df |>
+  pivot_longer(cols = c("count_resp", "count_asth", "ili_pne_visits", "ili_pne_admissions"), 
+               names_to = "variable",
+               values_to = "count") |> 
+  mutate(variable = case_when(
+      variable =="count_resp" ~ "Respiratory diseases",
+      variable =="count_asth" ~ "Asthma",
+      variable =="ili_pne_visits" ~ "Pneumonia (ER visits)",
+      variable =="ili_pne_admissions" ~ "Pneumonia (admissions)"),
+      across(variable, ~factor(., levels=c("Asthma","Respiratory diseases",
+                                           "Pneumonia (ER visits)",
+                                           "Pneumonia (admissions)"))),
+      month_num = match(month, month.name),
+         date = as.Date(paste(year, month_num, day, sep = '-'),
+                        format = '%Y-%m-%d'))|> 
+  ggplot(aes(x = date, y = count, color = variable)) +
+  geom_point() +
+  geom_smooth(color = "blue") +
+  facet_wrap(~ variable, ncol = 2, scales="free_y") +
+  ggtitle("Daily counts of disease variables by site") + 
+  scale_color_discrete()
+
+dis_plot
+```
+
+### Distributions of illness counts by illness/disease
+
+```{r, out.width = '100%', message = F, warning = F}
+# loading zip code data
+zip_shapes <- read_csv(here::here('data/cleaned_shapes/nyc_zip_codes.csv')) %>%
+  clean_names()
+
+# merging disease with zip code data to add neigh & borough data
+
+all_dis_df <- left_join(all_dis_df, zip_shapes, by = 'zip_code') %>%
+  mutate(
+    #these zip codes needed manual inputs
+    #bc not in zip_shapes file
+    neighborhood = case_when(
+      zip_code == '10069' ~ 'Upper West Side',
+      zip_code == '11109' ~ 'Northwest Queens',
+      zip_code == '10282' ~ 'Lower Manhattan',
+      zip_code == '10271' ~ 'Lower Manhattan',
+      zip_code == '10278' ~ 'Lower Manhattan',
+      zip_code == '10279' ~ 'Lower Manhattan',
+      #zip_code == '11003' ~ 10000 (deal w these)
+      #zip_code == '11040'
+      TRUE ~ neighborhood),
+    
+    borough = case_when(
+      zip_code == '10069' ~ 'Manhattan',
+      zip_code == '11109' ~ 'Queens',
+      zip_code == '10282' ~ 'Manhattan',
+      zip_code == '10271' ~ 'Manhattan',
+      zip_code == '10278' ~ 'Manhattan',
+      zip_code == '10279' ~ 'Manhattan',
+      TRUE ~ borough)) %>%
+  
+  #removing these zip codes bc
+  #not apart of the 5 boroughs
+  filter(!(zip_code == '10000'),
+         !(zip_code == '11003'),
+         !(zip_code == '11040'))
+
+disease_eda <- all_dis_df %>%
+  pivot_longer(cols = 'count_resp':'ili_pne_admissions',
+               names_to = 'illness_counts',
+               values_to = 'count') %>%
+  mutate(month_num = match(month, month.name),
+         date = as.Date(paste(year, month_num, day, sep = '-'),
+                        format = '%Y-%m-%d'),
+         
+         illness_counts = case_when(
+           illness_counts == 'total_ed_visits' ~ 'ED visits (overall)',
+           illness_counts == 'ili_pne_visits' ~ 'Pneumonia (ER visits)',
+           illness_counts == 'ili_pne_admissions' ~ 'Pneumonia (ER admissions)',
+           illness_counts == 'count_resp' ~ 'Respiratory diseases',
+           illness_counts == 'count_asth' ~ 'Asthma'))
+
+
+#distribution of illness counts
+disease_eda %>%
+  ggplot(aes(x = count, fill = illness_counts)) +
+  geom_histogram(bins = 15) + 
+  facet_wrap(~illness_counts, scales = 'free')
+```
+
+
+### Distribution of illness counts by borough
+
+```{r, out.width = '100%', message = F, warning = F}
+#distribution of illness counts by neighborhood
+disease_eda %>%
+  ggplot(aes(x = borough, y = count, fill = borough)) +
+  geom_boxplot() +
+  facet_wrap(~illness_counts, scales = 'free') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+# Investigating the lagged association of Ozone with variables related to respiratory diseases
+
+```{r, out.width='100%', results = 'hide', message = F}
 all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "year", 'month', 'day'))
 

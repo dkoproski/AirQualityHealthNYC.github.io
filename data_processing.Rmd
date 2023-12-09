@@ -18,12 +18,15 @@ options(readr.show_col_types = FALSE)
 
 # Air Quality datasets
 
-## Data cleaning done on neighborhood-level air quality dataset
+## Data Cleaning - neighborhood-level 
 
 This dataset has neighborhood-level air quality data. It has 6300 rows and 16 columns.
+<<<<<<< HEAD
 
 This code chunk fixes the projection used to map the neighborhood-level air quality dataset, and calculates a point as the center of the neighborhood. This will be used for maps later on.
 
+=======
+>>>>>>> 808e185933410e4efeb7eac853ef1f791859c7b6
 ```{r eval=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(sf)
@@ -103,7 +106,7 @@ left_join(geo_joins_sites, geo_join_neighborhoods) %>%
   write_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
 ```
 
-## Daily air quality data at the neighborhood level
+## Daily Air Quality Data -  Neighborhood Level
 
 We used the dataset just created to summarize pollutant measurements at the neighborhood level. After doing this, we had daily data on pollutants at the neighborhood level, which allowed for regression.
 
@@ -147,10 +150,22 @@ write_csv(daily_neighborhood_data,
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Disease dataset
 
-### *Merging hospitalization/emergency department data involving asthma counts, respiratory diseases and pneumonia*
-
+## Merging hospitalization/emergency department data 
 ```{r, message = FALSE}
 # Load dataset with respiratory and asthma counts (missing some zipcodes)
 
@@ -186,7 +201,8 @@ all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "year", 'month', 'day'))
 ```
 
-### *Merging hospitalization/emergency department data with zip code data containing neighborhood and borough information*
+## Merging hospitalization/emergency department data with zip code data 
+This contains neighborhood and borough information. 
 
 ```{r, message = FALSE}
 #loading zip code data
@@ -227,7 +243,7 @@ all_dis_df <- left_join(all_dis_df, zip_shapes, by = 'zip_code') %>%
 ```
 
 
-# Disease EDA dataset
+## Disease Dataset - EDA
 
 ```{r, message = FALSE}
 disease_eda <- all_dis_df %>%
@@ -247,9 +263,10 @@ disease_eda <- all_dis_df %>%
 ```
 
 
-# Observing specific neighborhoods
 
-### *Creating neighborhood-level dataset for disease counts*
+# Merging Air Quality and Disease Datasets
+## Disease Count Dataset - Neighborhood-level
+Observing specific neighborhoods
 
 ```{r, message = FALSE}
 #loading neighborhood sites data
@@ -286,16 +303,7 @@ daily_disease_neigh <- bind_rows(store_data[[1]], store_data[[2]]) %>%
 ```
 
 
-# Air quality data
-
-```{r, message = FALSE}
-
-```
-
-
-
-
-# Merging air quality data with disease data
+#### Merging air quality data with disease data
 
 ```{r, message = FALSE}
 #altering format
@@ -325,26 +333,10 @@ disease_air <- full_join(daily_disease_neigh, air_neighb, by = c('date', "neighb
 ```
 
 
-
-
 Old code below:..
 
 # Air quality dataset
-
-```{r, eval = F}
-air_qual_df = read_csv("data/raw_data/alt_air_data.csv") |> 
-  separate(date, into=c("month", "day", "year")) |>
-  mutate(day = as.numeric(day),
-         month = month.name[as.numeric(month)],
-         year = as.numeric(year)) |> 
-  filter(!(year == '2020' & month == 'January'),
-         !(year == '2020' & month == 'February')) |> 
-  select(year, month, day, zip_code, pollutant, value) |> 
-  group_by(day, month, year, zip_code, pollutant) |> 
-  summarize(value = mean(value))
-```
-
-# Merging air quality data with disease data
+## Merging air quality data with disease data
 
 ``` {r, eval = F}
 # Finally merge disease and air_qual data together

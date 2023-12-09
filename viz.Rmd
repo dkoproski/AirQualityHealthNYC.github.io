@@ -7,8 +7,6 @@ output:
     code_folding: hide
 ---
 
-# Maps
-
 Visualizations of the geographic distribution of air pollutants will help inform our later analyses by showing which locations/zip codes are impacted the most by air pollution. Three air pollutants are mapped on this page: Ozone (O3), PM2.5 (fine particles) and Nitrogen Dioxide (NO2). Ozone and Nitrogen dioxide are measured in parts per billion (PPB), while PM2.5 is measured in micrograms per meter cubed ($mcg/m^3$). While all years are not examined later, data is mapped for all years for the sake of completeness.
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
