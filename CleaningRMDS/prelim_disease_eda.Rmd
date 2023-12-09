@@ -297,8 +297,8 @@ daily_ill_counts_neigh %>%
 
 ```{r}
 #focusing on dates between March 1, 2020 and November 2022
-disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
-  filter(date >= '2020-03-01' & date < '2022-12-01')
+#disease_air <- full_join(daily_ill_counts_neigh, air_neighb, by = c('date', "neighborhood")) %>%
+#  filter(date >= '2020-03-01' & date < '2022-12-01')
 ```
 
 ```{r}
