@@ -278,7 +278,7 @@ bootstrap_results %>%
 
 - The predicted number of `sqrt(pneumonia visits)` is on the rise, although the difference between 2020 (reference group) and 2021 is not significant.
 
-```{r}
+```{r out.width = '100%', results = 'hide', message = FALSE, warning = FALSE}
 bootstrap_results %>%
   filter(str_detect(estimate, "year") & !str_detect(estimate, ":")) %>%
   mutate(estimate = str_sub(estimate, 5)) %>% 
@@ -294,7 +294,7 @@ bootstrap_results %>%
 
 - Summer season has a significantly lower `sqrt(pneumonia visits)` than Fall (the reference group), while Spring is the highest, followed by Winter.
 
-```{r}
+```{r out.width = '100%', results = 'hide', message = FALSE, warning = FALSE}
 bootstrap_results %>%
   filter(str_detect(estimate, "season") & !str_detect(estimate, ":")) %>%
   mutate(estimate = str_sub(estimate, 7)) %>% 
