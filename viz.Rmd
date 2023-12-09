@@ -18,16 +18,12 @@ library(plotly)
 library(glue)
 library(leaflet.extras)
 
-air_df = read_csv("data/cleaned_data/air_quality_zips.csv")
 df_air_geo = 
-  read_csv("data/cleaned_shapes/zip_shapes.csv") |> 
-  select(zip, intptlat10, intptlon10) |> 
-  left_join(read_csv("data/cleaned_data/air_quality_zips.csv"), by = "zip") |> 
-  mutate(lat = intptlat10,
-         lon = intptlon10) |> 
-  select(-intptlat10, -intptlon10)
+  read_csv("data/cleaned_data/uhf_airquality.csv") |> 
+  mutate(lat = intplat10,
+         lon = intplon10) |> 
+  select(-intplat10, -intplon10)
 ```
-
 
 ## 2009-2021: Ozone levels (O3)
 
@@ -40,13 +36,14 @@ o3_data = df_air_geo |>
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          year = year(start_date),
          name = str_remove(name, "(due to).*")) |> 
-  select(zip, name, measure, measure_info, year, data_value, lat, lon) |> 
-  group_by(zip, name, year, lat, lon) |> 
-  summarize(zipmean = mean(data_value)) 
+  select(geo_place_name, name, measure, measure_info, year, data_value, lat, lon) |> 
+  group_by(geo_place_name, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value)) |> 
+  filter(year != 2009)
 
 # Create yearly dataframes
 yearly_data_frames <- list()
-for (k in 2009:2021) {
+for (k in 2010:2021) {
   year_data = o3_data |> 
     filter(year == k)
   df_name = paste0("o3_", k)
@@ -69,7 +66,7 @@ for(year in year_i) {
   
   
   label_text <- glue(
-    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
     "<b>Zip mean: </b> {yeardata$zipmean} ppb<br/>") |> 
     lapply(htmltools::HTML)
@@ -109,13 +106,14 @@ pm25_data = df_air_geo |>
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          year = year(start_date),
          name = str_remove(name, "(due to).*")) |> 
-  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
-  group_by(zip, name, year, lat, lon) |> 
-  summarize(zipmean = mean(data_value))
+  select(geo_place_name, name, measure, measure_info, year, data_value, lat, lon) |> 
+  group_by(geo_place_name, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value)) |> 
+  filter(year != 2008 & year != 2009)
 
 # Create yearly dataframes
 yearly_data_frames <- list()
-for (k in 2008:2021) {
+for (k in 2010:2021) {
   year_data = pm25_data |> 
     filter(year == k)
   df_name = paste0("pm25_", k)
@@ -138,7 +136,7 @@ for(year in year_i) {
   
   
   label_text <- glue(
-    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
     "<b>Zip mean: </b> {round(yeardata$zipmean,3)} mcg/m3<br/>") |> 
     lapply(htmltools::HTML)
@@ -178,13 +176,14 @@ no2_data = df_air_geo |>
   mutate(start_date = as.Date(start_date, format = "%m/%d/%Y"),
          year = year(start_date),
          name = str_remove(name, "(due to).*")) |> 
-  select(zip, name, measure, measure_info, year, data_value, borough, lat, lon) |> 
-  group_by(zip, name, year, lat, lon) |> 
-  summarize(zipmean = mean(data_value))
+  select(geo_place_name, name, measure, measure_info, year, data_value, lat, lon) |> 
+  group_by(geo_place_name, name, year, lat, lon) |> 
+  summarize(zipmean = mean(data_value)) |> 
+  filter(year != 2008 & year != 2009)
 
 # Create yearly dataframes
 yearly_data_frames <- list()
-for (k in 2008:2021) {
+for (k in 2010:2021) {
   year_data = no2_data |> 
     filter(year == k)
   df_name = paste0("no2_", k)
@@ -207,7 +206,7 @@ for(year in year_i) {
   
   
   label_text <- glue(
-    "<b>Zipcode: </b> {yeardata$zip}<br/>",
+    "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
     "<b>Zip mean: </b> {round(yeardata$zipmean,3)} ppb<br/>") |> 
     lapply(htmltools::HTML)
