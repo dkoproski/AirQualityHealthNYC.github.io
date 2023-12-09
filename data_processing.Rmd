@@ -328,21 +328,7 @@ disease_air <- full_join(daily_disease_neigh, air_neighb, by = c('date', "neighb
 Old code below:..
 
 # Air quality dataset
-
-```{r, eval = F}
-air_qual_df = read_csv("data/raw_data/alt_air_data.csv") |> 
-  separate(date, into=c("month", "day", "year")) |>
-  mutate(day = as.numeric(day),
-         month = month.name[as.numeric(month)],
-         year = as.numeric(year)) |> 
-  filter(!(year == '2020' & month == 'January'),
-         !(year == '2020' & month == 'February')) |> 
-  select(year, month, day, zip_code, pollutant, value) |> 
-  group_by(day, month, year, zip_code, pollutant) |> 
-  summarize(value = mean(value))
-```
-
-# Merging air quality data with disease data
+## Merging air quality data with disease data
 
 ``` {r, eval = F}
 # Finally merge disease and air_qual data together
