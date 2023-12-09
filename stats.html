@@ -352,6 +352,13 @@ div.tocify {
     GitHub
   </a>
 </li>
+<li>
+  <a href="https://www.youtube.com/YOUR_CHANNEL_OR_VIDEO_LINK">
+    <span class="fa fa-youtube"></span>
+     
+    Video
+  </a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -421,7 +428,7 @@ disease_air = disease_air %&gt;%
          lagged_pm = tlag(PM2.5, 1, time = date)) %&gt;%
   rename( total_ed_visits = `ED visits (overall)`,
           ili_pne_visits = `Pneumonia (ER visits)`)</code></pre>
-<p>We will now use the merged dataset for modelling. For out dataset: we
+<p>We will now use the merged dataset for modelling. For our dataset, we
 selected four neighborhoods we were interested in: Washington Heights,
 Willowbrook, Hunts Point - Mott Haven, and Fresh Meadows. These
 neighborhoods all have at least one sensor for O3 and PM 2.5, and are
@@ -448,7 +455,7 @@ disease_air %&gt;%
          &quot;Sqrt(Pneumonia visits) has a more favorable distribution for regression&quot;,
        y = &quot;Count&quot;,
        x = &quot;Sqrt(Pneumonia visits)&quot;)</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 </div>
 <div id="choosing-predictors" class="section level2">
 <h2>Choosing predictors</h2>
@@ -491,7 +498,7 @@ process revealed that the time of the year was a better predictor of
   mutate(model = fct_inorder(model)) %&gt;%
   ggplot(aes(x = model, y = rmse)) + geom_violin() + 
   labs(title = &quot;RMSE of models predicting sqrt(pneumonia visits)&quot;)</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
 </div>
 <div id="modelling" class="section level2">
 <h2>Modelling</h2>
@@ -510,7 +517,7 @@ disease_air %&gt;%
   ggplot(aes(x = pred, y = resid)) + geom_point() + geom_smooth(se = F) + 
   labs(title = &quot;Our model fails diagnostics&quot;, 
        x = &quot;Predicted sqrt(pneumonia visits)&quot;, y = &quot;Residuals&quot;)</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
 <pre class="r"><code>set.seed(42)
 bootstrap_results = 
   disease_air %&gt;%
@@ -581,7 +588,7 @@ highest of all values.</li>
   labs(title = &quot;Neighborhood model coefficients&quot;,
        subtitle = &quot;Reference = Fresh Meadows&quot;, 
        x = &quot;Coefficient&quot;, y = &quot;Estimate&quot;)</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-11-1.png" width="100%" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-11-1.png" width="100%" /></p>
 <ul>
 <li>The predicted number of <code>sqrt(pneumonia visits)</code> is on
 the rise, although the difference between 2020 (reference group) and
@@ -598,7 +605,7 @@ the rise, although the difference between 2020 (reference group) and
   labs(title = &quot;Year model coefficients&quot;,
        subtitle = &quot;Reference = 2020&quot;, 
        x = &quot;Coefficient&quot;, y = &quot;Estimate&quot;)</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <ul>
 <li>Summer season has a significantly lower
 <code>sqrt(pneumonia visits)</code> than Fall (the reference group),
@@ -615,7 +622,7 @@ while Spring is the highest, followed by Winter.</li>
   labs(title = &quot;Season model coefficients&quot;,
        subtitle = &quot;Reference = Fall&quot;, 
        x = &quot;Coefficient&quot;, y = &quot;Estimate&quot;)</code></pre>
-<p><img src="Stats_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="stats_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 </div>
 
 
