@@ -274,7 +274,7 @@ neighborhoods = c("Inwood and Washington Heights", "Lower East Side",
 
 
 
-daily_disease_nb = disease_eda %>%
+daily_disease_neigh = disease_eda %>%
   filter(neighborhood %in% neighborhoods) %>%
   group_by(date, borough, neighborhood, illness_counts) %>% 
   summarize(total_counts = sum(count, na.remove = T)) %>%
@@ -290,7 +290,13 @@ daily_disease_nb = disease_eda %>%
   date = as.Date(date, format = '%Y-%m-%d'))
 ```
 
+
+
+
+
+
 # Merging Air Quality and Disease Datasets
+
 #### Merging air quality data with disease data
 
 ```{r, message = FALSE}
@@ -317,8 +323,10 @@ disease_air <- full_join(daily_disease_neigh, air_neighb, by = c('date', "neighb
            month %in% c('September', 'October', 'November') ~ 'Fall',
            month %in% c('December', 'January', 'February') ~ 'Winter',
            month %in% c('March', 'April', 'May') ~ 'Spring'))
-
 ```
 
 
 
+
+
+# Regression data
