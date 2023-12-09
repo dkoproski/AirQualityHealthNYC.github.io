@@ -157,7 +157,7 @@ In the final dataset, every one of the `r `nrow(disease_air)` rows is a date-nei
 
 We first look at the response variable we'll focus on: visits to the hospital due to pneumonia. This variable is discrete and we found that a square root transformation yielded a more Normal distribution
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 disease_air = disease_air %>%
   mutate(sqrt_pne_visits = sqrt(ili_pne_visits))
 
@@ -215,7 +215,7 @@ disease_air %>%
        x = "Predicted sqrt(pneumonia visits)", y = "Residuals")
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 set.seed(42)
 bootstrap_results = 
   disease_air %>%
@@ -248,9 +248,9 @@ bootstrap_results %>%
   knitr::kable(digits = 2)
 ```
 
-Additionally, we are able to interpret the coefficients (holding all else constant:
+Additionally, we are able to interpret the coefficients (holding all else constant):
 
-- Using Fresh Meadows as the reference, we see that Willlowbrook has a similar effect on the predicted value of `sqrt(pneumonia)`, because its confidence interval includes 0. Washington Heights is the higuest of all values.
+- Using Fresh Meadows as the reference, we see that Willlowbrook has a similar effect on the predicted value of `sqrt(pneumonia)`, because its confidence interval includes 0. Washington Heights is the highest of all values.
 
 ```{r}
 bootstrap_results %>%
@@ -266,7 +266,7 @@ bootstrap_results %>%
        x = "Coefficient", y = "Estimate")
 ```
 
-- The predicted number of `sqrt(pneumonia cases)` is on the rise, although the diference between 2020 (reference group) and 2021 is not significant.
+- The predicted number of `sqrt(pneumonia cases)` is on the rise, although the difference between 2020 (reference group) and 2021 is not significant.
 
 ```{r}
 bootstrap_results %>%

@@ -7,7 +7,7 @@ output:
     code_folding: hide
 ---
 
-Visualizations of the geographic distribution of air pollutants will help inform our later analyses by showing which locations/zip codes are impacted the most by air pollution. Three air pollutants are mapped on this page: Ozone (O3), PM2.5 (fine particles) and Nitrogen Dioxide (NO2). Ozone and Nitrogen dioxide are measured in parts per billion (PPB), while PM2.5 is measured in micrograms per meter cubed ($mcg/m^3$). While all years are not examined later, data is mapped for all years for the sake of completeness.
+Visualizations of the geographic distribution of air pollutants will help inform our later analyses by showing which locations/sites are impacted the most by air pollution. Three air pollutants are mapped on this page: Ozone (O3), fine particles (PM2.5) and Nitrogen Dioxide (NO2). Ozone and Nitrogen dioxide are measured in parts per billion (ppb), while PM2.5 is measured in micrograms per meter cubed ($mcg/m^3$). The points on these maps show where the measurements have been taken from. Feel free to select a year between 2010 and 2021 from each map and uncheck the heatmap overlay if desired. You may also hover over each point to know more about the location, year and annual average.
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 library(tidyverse)
@@ -25,7 +25,7 @@ df_air_geo =
 
 ## 2010-2021: Ozone levels (O3)
 
-Based on the heatmap, it appears that ozone levels are generally at their highest in Lower Manhattan, particularly in 2016 and 2019. High O3 levels are also seen in coastal areas such as Breezy Point (11697). This makes sense since ozone forms at ground level when nitrogen oxides (such as NO2) react with sunlight. There does not appear to be any trend in ozone levels between 2009 and 2021 and levels seem to oscillate without any pattern. 
+Based on the heatmap, it appears that ozone levels are generally at their highest in Lower Manhattan, particularly in Chelsea (Clinton) and Gramercy Park (Murray Hill). High O3 levels are also seen in coastal areas such as the Rockaway Peninsula, where the Gateway National Recreation Area is located. This makes sense since ozone forms at ground level when nitrogen oxides (such as NO2) react with sunlight, a process that accelerates in warmer temperatures and with increased UV-light exposure. From our map, there does not appear to be any apparent trend in ozone levels between 2010 and 2021 and levels seem to oscillate without any pattern. 
 
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract ozone data
@@ -66,7 +66,7 @@ for(year in year_i) {
   label_text <- glue(
     "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
-    "<b>Zip mean: </b> {yeardata$zipmean} ppb<br/>") |> 
+    "<b>Mean: </b> {yeardata$zipmean} ppb<br/>") |> 
     lapply(htmltools::HTML)
   
   
@@ -94,7 +94,7 @@ m
 
 ## 2010-2021: Fine Particles PM2.5
 
-Similar to ozone, some of the highest levels of PM2.5 are seen in Lower Manhattan. Unlike O3, however, PM2.5 concentrations generally look to decrease from 2008-2021. This reflects similar trends seen in previous EDA performed on the data. That being said, there is some year-to-year variability and some clusters of zip codes exhibit high levels as late as 2021.
+From our map, we see that some of the highest levels of PM2.5 are seen in Lower Manhattan. This makes sense, as we would anticipate that traffic congestion would lead to rising vehicle emissions and subsequently higher concentrations of PM2.5. Unlike O3, however, PM2.5 concentrations generally look to decrease from 2010-2021, especially in neighborhoods that are away from the city. This reflects similar trends seen in previous EDA performed on the data. PM2.5 seems to be the lowest in 2020, which could be due to lower congestion levels during COVID. That being said, there is some year-to-year variability and some clusters of zip codes exhibit high levels as late as 2021.
 
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract pm2.5 data
@@ -135,7 +135,7 @@ for(year in year_i) {
   label_text <- glue(
     "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
-    "<b>Zip mean: </b> {round(yeardata$zipmean,3)} mcg/m3<br/>") |> 
+    "<b>Mean: </b> {round(yeardata$zipmean,3)} mcg/m3<br/>") |> 
     lapply(htmltools::HTML)
   
   
@@ -164,7 +164,7 @@ m
 
 ## 2010-2021: Nitrogen dioxide (NO2)
 
-From the map, NO2 levels seem to be at their highest throughout Manhattan. It appears that levels in Manhattan and all surrounding boroughs decrease between 2008 and 2021. 
+Similar to PM2.5, NO2 levels seem to be at their highest throughout Manhattan, especially in Lower Manhattan. It appears that NO2 levels in boroughs surrounding Manhattan decrease between 2010 and 2021, with South Beach and the Rockaway Peninsula showing lowest NO2 levels throughout the years.
 
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract NO2 data
@@ -205,7 +205,7 @@ for(year in year_i) {
   label_text <- glue(
     "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
-    "<b>Zip mean: </b> {round(yeardata$zipmean,3)} ppb<br/>") |> 
+    "<b>Mean: </b> {round(yeardata$zipmean,3)} ppb<br/>") |> 
     lapply(htmltools::HTML)
   
   
