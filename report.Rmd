@@ -245,6 +245,42 @@ disease_eda <- disease_data %>%
            illness_counts == 'count_asth' ~ 'Asthma'))
 ```
 
+DF for time series
+```{r}
+sites_neighb <- read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
+
+#neighborhoods of interest
+neighborhoods = c("Washington Heights", "Union Square - Lower East Side",
+                  "Willowbrook", "Hunts Point - Mott Haven", "Fresh Meadows")
+
+store_data = vector("list", length = 5)
+
+for (i in 1:length(neighborhoods)) {
+  
+  n = neighborhoods[i]
+  
+  n_zips = sites_neighb %>%
+  filter(geo_place_name == n) %>%
+  pull(zip_code)
+  
+  counts_data = disease_eda %>%
+    filter(zip_code %in% n_zips) %>%
+    group_by(date, illness_counts) %>%
+    summarize(total_counts = sum(count)) %>%
+    mutate(neighborhood = n)
+  
+  store_data[[i]] = counts_data}
+
+#combining data above
+daily_ill_counts_neigh <- bind_rows(store_data[[1]], store_data[[2]]) %>%
+  bind_rows(store_data[[3]]) %>%
+  bind_rows(store_data[[4]]) %>%
+  bind_rows(store_data[[5]]) %>%
+  mutate(date = as.Date(date, format = '%Y-%m-%d'))
+```
+
+
+
 ### Exploratory Analysis and Visualizations
 
 O3, PM2.5, and NO2 were the air pollutants chosen for our descriptive and statistical analysis. 
@@ -704,7 +740,7 @@ disease_eda %>%
   facet_wrap(~illness_counts, scales = 'free')
 ```
 
-####
+#### Boxplot Disease Counts
 ```{r}
 #distribution of illness counts by neighborhood
 disease_eda %>%
@@ -713,6 +749,47 @@ disease_eda %>%
   facet_wrap(~illness_counts, scales = 'free') +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+#### Time Series Disease Counts 
+```{r}
+#time series...
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'Asthma') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+#lots of zeros
+```
+
+```{r}
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'Respiratory diseases') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+#lots of zeros
+```
+
+```{r}
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'Pneumonia (ER visits)') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+
+#decide against pneumonia (ER admissions) bc visits would be higher
+#more likely to have more zeros in admissions, and EDA showed it. 
+```
+
+```{r}
+daily_ill_counts_neigh %>%
+  filter(illness_counts == 'ED visits (overall)') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
+
+
 
 ## **Statistical Results** 
 Cross correlation analysis was used to examine the relationship between O3 and pneumonia ER visits. From the cross-correlation plots, the positive and negative correlations determined the lag between O3 levels and and pneumonia ER visits was about 117 days. The lag was added as an additional predictor in the linear regression model. There was a negative correlation in pneumonia ER visits and O3 regression model before the lag was added. However, after adding the lag, a positive correlation emerged between pneumonia ER visits and O3. 
