@@ -437,6 +437,14 @@ disease_eda %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+<<<<<<< HEAD
+### Time series plots for select neighborhoods
+
+
+
+
+=======
+>>>>>>> bbb0aff2b3f70f740881ab75e3ff537a8d267e9c
 # Investigating the lagged association of Ozone with variables related to respiratory diseases
 
 ```{r, out.width='100%', results = 'hide', message = F}
