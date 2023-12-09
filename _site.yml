@@ -12,7 +12,7 @@ navbar:
     - text: "Interactive Maps"
       href: viz.html  
     - text: "Statistical Analysis"
-      href: stats.html
+      href: statistics.html
     - text: "Final Report"
       href: report.html
     - text: "Video"
