@@ -151,7 +151,7 @@ disease_air = disease_air %>%
           ili_pne_visits = `Pneumonia (ER visits)`)
 ```
 
-We will now use the merged dataset for modelling. For out dataset: we selected four neighborhoods we were interested in: Washington Heights, Willowbrook, Hunts Point - Mott Haven, and Fresh Meadows. These neighborhoods all have at least one sensor for O3 and PM 2.5, and are all in different boroughs, which are part of the reason why we picked them.
+We will now use the merged dataset for modelling. For our dataset, we selected four neighborhoods we were interested in: Washington Heights, Willowbrook, Hunts Point - Mott Haven, and Fresh Meadows. These neighborhoods all have at least one sensor for O3 and PM 2.5, and are all in different boroughs, which are part of the reason why we picked them.
 
 In the final dataset, every one of the `r nrow(disease_air)` rows is a date-neighborhood combination, for dates between March 2020 and November 2022. An important nuance of this modelling section is that we lagged ozone and PM 2.5 readings by one day, which is [the believed time it can take for those pollutants to have an effect on your respiratory health.](https://www.airnow.gov/sites/default/files/2018-04/aqi_brochure_02_14_0.pdf)
 
