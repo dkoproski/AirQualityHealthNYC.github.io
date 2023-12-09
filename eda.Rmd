@@ -324,7 +324,9 @@ daily_neighborhood_data %>%
 
 ### How do disease variables change over time?
 
-Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. However, the trend for Ozone moves in the opposite direction, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a cross-correlation analysis as an attempt to test out the idea of lagging certain variables.
+Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. Colds, flus and other respiratory illnesses are common in colder months. Among these variables, [pneumonia](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3314701/) is commonly known have a higher occurrence during winter. This is partly attributed to the drop in temperature and rise in humidity levels, which can impair the immune system thus rendering individuals more vulnerable to infections. The body focuses on combating the cold and retaining warmth, making it more challenging to fend off infections such as pneumonia.
+
+However, we saw previously that Ozone trends in the opposite direction as other pollutants, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a cross-correlation analysis as an attempt to test out the idea of lagging certain variables.
 
 
 ```{r, out.width = '100%', message = F, warning = F}
