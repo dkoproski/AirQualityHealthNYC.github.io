@@ -256,7 +256,7 @@ bootstrap_results %>%
   knitr::kable(digits = 2)
 ```
 
-## Coefficients
+## Interpreting coefficients
 
 Additionally, we are able to interpret the coefficients (holding all else constant):
 
