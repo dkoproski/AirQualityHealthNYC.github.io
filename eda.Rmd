@@ -184,7 +184,7 @@ daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
   )
 ```
   
-```{r, message = FALSE, results='hide'}
+```{r, out.width='100%', message = FALSE, results='hide'}
 poll_plot = daily_air |> 
   ggplot(aes(x = date, y = value, color = pollutant)) +
   geom_point() +
@@ -200,7 +200,7 @@ poll_plot
 
 Now that we have seen how these pollutant variables change over time, we want to know whether they differ by borough. We see that at the borough-level, the daily measurements are similar for all pollutants. 
 
-```{r}
+```{r, out.width='100%',}
 daily_air %>%
   filter(!str_detect(pollutant, "CO")) %>%
   ggplot() + geom_boxplot(aes(x = borough, y = value, fill = borough)) + 
@@ -258,7 +258,7 @@ daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
   mutate(date = as.Date(date, format = "%m/%d/%Y"))
 ```
 
-```{r}
+```{r, out.width='100%'}
 daily_neighborhood_data %>%
   filter(pollutant == "NO2 (ppb)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
@@ -271,7 +271,7 @@ daily_neighborhood_data %>%
 ```
 
 
-```{r}
+```{r, out.width='100%'}
 daily_neighborhood_data %>%
   filter(pollutant == "O3 (ppm)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
@@ -283,7 +283,7 @@ daily_neighborhood_data %>%
        y = "Mean measurement (ppm)", color = "Neighborhood")
 ```
 
-```{r}
+```{r, out.width='100%'}
 daily_neighborhood_data %>%
   filter(pollutant == "PM 2.5 (ug/m3 LC)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
@@ -337,7 +337,7 @@ all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c("zip_code", "year", 'month', 'day'))
 ```
 
-```{r, message = FALSE, results='hide', warning = F}
+```{r, out.width='100%', message = FALSE, results='hide', warning = F}
 dis_plot = all_dis_df |>
   pivot_longer(cols = c("count_resp", "count_asth", "ili_pne_visits", "ili_pne_admissions"), 
                names_to = "variable",

@@ -13,6 +13,8 @@ library(plotly)
 library(glue)
 library(leaflet.extras)
 library(janitor)
+library(statar)
+library(modelr)
 options(readr.show_col_types = FALSE)
 ```
 
@@ -371,7 +373,23 @@ combined_boxplot_fig
 
 A heat map of the air pollutants with a year selector was constructed to monitor and understand the air quality in NYC. High concentrations of the selected pollutant were indicated by red and maroon, while lower concentrations were shown in green. The PM2.5 heat map showed a greater amount of PM2.5 levels in Lower Manhattan throughout the years. Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Outer boroughs such as Brooklyn showed consistently high concentrations of O3 levels from 2009 to 2021. NO2 displayed a decrease in concentration however it was less noticeable. 
 
-**2010-2021: Ozone (O3) Levels**
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(leaflet)
+library(plotly)
+library(glue)
+library(leaflet.extras)
+
+df_air_geo = 
+  read_csv("data/cleaned_data/uhf_airquality.csv") |> 
+  mutate(lat = intplat10,
+         lon = intplon10) |> 
+  select(-intplat10, -intplon10)
+```
+
+**2010-2021: Ozone levels (O3)**
+
+Based on the heatmap, it appears that ozone levels are generally at their highest in Lower Manhattan, particularly in Chelsea (Clinton) and Gramercy Park (Murray Hill). High O3 levels are also seen in coastal areas such as the Rockaway Peninsula, where the Gateway National Recreation Area is located. This makes sense since ozone forms at ground level when nitrogen oxides (such as NO2) react with sunlight, a process that accelerates in warmer temperatures and with increased UV-light exposure. From our map, there does not appear to be any apparent trend in ozone levels between 2010 and 2021 and levels seem to oscillate without any pattern. This is lower than the standard of 70 ppb by [the U.S. Environmental Protection Agency (EPA)](https://www.epa.gov/sites/default/files/2015-10/documents/overview_of_2015_rule.pdf). A standard of 70 ppb is below the level that causes adverse health effects in the clinical studies, which essentially eliminates exposures that have been shown to cause adverse health effects, protecting 99.5% of children from even single exposures to ozone at 70 ppb. The highest mean from our data is 40.3 ppb, which is much lower than the standard.
 
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract ozone data
@@ -387,7 +405,7 @@ o3_data = df_air_geo |>
 
 # Create yearly dataframes
 yearly_data_frames <- list()
-for (k in 2009:2021) {
+for (k in 2010:2021) {
   year_data = o3_data |> 
     filter(year == k)
   df_name = paste0("o3_", k)
@@ -397,8 +415,8 @@ for (k in 2009:2021) {
 
 # Create map
 
-palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000", "#660000")
-legend <- c("15-20", "20-25", "25-30", "30-35", "35-40", ">40")
+palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000")
+legend <- c("21.0-25.0", "25.1-30.0", "30.1-35.0", "35.1-40.0", ">40")
 
 m = leaflet() |> addTiles()
 
@@ -412,17 +430,16 @@ for(year in year_i) {
   label_text <- glue(
     "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
-    "<b>Zip mean: </b> {yeardata$zipmean} ppb<br/>") |> 
+    "<b>Mean: </b> {yeardata$zipmean} ppb<br/>") |> 
     lapply(htmltools::HTML)
   
   
   m = m |>
     addCircleMarkers(data = yeardata, lng = ~lon, lat = ~lat, radius = .5, opacity = 0.8, 
-                     color = ~ifelse(between(zipmean, 15, 20), "#39FF14", 
-                                     ifelse(between(zipmean, 20.1, 25), "#FFFF33", 
-                                            ifelse(between(zipmean, 25.1, 30),"#FF7F00",
-                                                   ifelse(between(zipmean, 30.1, 35), "#E31A1C",
-                                                          ifelse(between(zipmean, 35.1, 40), "#9F0000", "#660000"))))),
+                     color = ~ifelse(between(zipmean, 21, 25), "#39FF14", 
+                                     ifelse(between(zipmean, 25.001, 30), "#FFFF33", 
+                                            ifelse(between(zipmean, 30.001, 35),"#FF7F00",
+                                                   ifelse(between(zipmean, 35.001, 40), "#E31A1C","#9F0000")))),
                      label = label_text, group = as.character(year))
 }
 
@@ -438,7 +455,10 @@ m = m |>
 m
 ```
 
+
 **2010-2021: Fine Particles PM2.5**
+
+From our map, we see that some of the highest levels of PM2.5 are seen in Lower Manhattan. This makes sense, as we would anticipate that traffic congestion would lead to rising vehicle emissions and subsequently higher concentrations of PM2.5. Unlike O3, however, PM2.5 concentrations generally look to decrease from 2010-2021, especially in neighborhoods that are away from the city. This reflects similar trends seen in previous EDA performed on the data. PM2.5 seems to be the lowest in 2020, which could be due to lower congestion levels during COVID. That being said, there is some year-to-year variability and some clusters of zip codes exhibit high levels as late as 2021. Following the [standards by the U.S. Environmental Protection Agency (EPA)](https://www.epa.gov/sites/default/files/2016-04/documents/2012_aqi_factsheet.pdf), the primary annual PM2.5 standards is set to 12 micrograms per cubic meter (µg/m3). Exposure to fine particle pollution can cause premature death and harmful cardiovascular effects such as heart attacks and strokes, and is linked to a variety of other significant health problems. From our maps, we do observe areas with PM2.5 levels higher than this standard, especially in neighborhoods in Lower Manhattan. 
 
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract pm2.5 data
@@ -454,7 +474,7 @@ pm25_data = df_air_geo |>
 
 # Create yearly dataframes
 yearly_data_frames <- list()
-for (k in 2008:2021) {
+for (k in 2010:2021) {
   year_data = pm25_data |> 
     filter(year == k)
   df_name = paste0("pm25_", k)
@@ -465,7 +485,7 @@ for (k in 2008:2021) {
 # Create map
 
 palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000", "#660000")
-legend <- c("5-7", "7-9", "9-11", "11-13", "13-15", ">15")
+legend <- c("5.0-7.0", "7.1-9.0", "9.1-11.0", "11.1-13.0", "13.1-15.0", ">15")
 
 m = leaflet() |> addTiles()
 
@@ -479,17 +499,17 @@ for(year in year_i) {
   label_text <- glue(
     "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
-    "<b>Zip mean: </b> {round(yeardata$zipmean,3)} mcg/m3<br/>") |> 
+    "<b>Mean: </b> {round(yeardata$zipmean,3)} mcg/m3<br/>") |> 
     lapply(htmltools::HTML)
   
   
   m = m |>
     addCircleMarkers(data = yeardata, lng = ~lon, lat = ~lat, radius = .5, opacity = 0.8, 
                      color = ~ifelse(between(zipmean, 5, 7), "#39FF14", 
-                                     ifelse(between(zipmean, 7.1, 9), "#FFFF33", 
-                                            ifelse(between(zipmean, 9.1, 11),"#FF7F00",
-                                                   ifelse(between(zipmean, 11.1, 13), "#E31A1C",
-                                                          ifelse(between(zipmean, 13.1, 15), "#9F0000", "#660000"))))),
+                                     ifelse(between(zipmean, 7.001, 9), "#FFFF33", 
+                                            ifelse(between(zipmean, 9.001, 11),"#FF7F00",
+                                                   ifelse(between(zipmean, 11.001, 13), "#E31A1C",
+                                                          ifelse(between(zipmean, 13.001, 15), "#9F0000", "#660000"))))),
                      label = label_text, group = as.character(year))
 }
 
@@ -505,7 +525,10 @@ m = m |>
 m
 ```
 
+
 **2010-2021: Nitrogen dioxide (NO2)**
+
+Similar to PM2.5, NO2 levels seem to be at their highest throughout Manhattan, especially in Lower Manhattan. It appears that NO2 levels in boroughs surrounding Manhattan decrease between 2010 and 2021, with South Beach and the Rockaway Peninsula showing lowest NO2 levels throughout the years. The [official level of the annual NO2 standard](https://www.epa.gov/no2-pollution/timeline-nitrogen-dioxide-no2-national-ambient-air-quality-standards-naaqs#:~:text=The%20official%20level%20of%20the,to%20the%201%2Dhour%20standard.&text=The%20form%20of%20the%201,daily%20maximum%20NO2%20concentrations.) is 53 ppb, and our maximum NO2 levels among all neighborhoods and years is 39.8 ppb.
 
 ```{r, out.width = '100%', message = FALSE, warning = FALSE}
 # Extract NO2 data
@@ -521,7 +544,7 @@ no2_data = df_air_geo |>
 
 # Create yearly dataframes
 yearly_data_frames <- list()
-for (k in 2008:2021) {
+for (k in 2010:2021) {
   year_data = no2_data |> 
     filter(year == k)
   df_name = paste0("no2_", k)
@@ -532,7 +555,7 @@ for (k in 2008:2021) {
 # Create map
 
 palette <- c("#39FF14", "#FFFF33", "#FF7F00", "#E31A1C", "#9F0000", "#660000")
-legend <- c("8-15", "15-22", "22-29", "29-36", "36-43", "43-50")
+legend <- c("5.0-10.0", "10.1-15.0", "15.0-20.1", "20.1-25.0", "25.1-30.0", ">30")
 
 m = leaflet() |> addTiles()
 
@@ -546,17 +569,17 @@ for(year in year_i) {
   label_text <- glue(
     "<b>Neighborhood: </b> {yeardata$geo_place_name}<br/>",
     "<b>Year: </b> {yeardata$year}<br/>",
-    "<b>Zip mean: </b> {round(yeardata$zipmean,3)} ppb<br/>") |> 
+    "<b>Mean: </b> {round(yeardata$zipmean,3)} ppb<br/>") |> 
     lapply(htmltools::HTML)
   
   
   m = m |>
     addCircleMarkers(data = yeardata, lng = ~lon, lat = ~lat, radius = .5, opacity = 0.8, 
-                     color = ~ifelse(between(zipmean, 8, 15), "#39FF14", 
-                                     ifelse(between(zipmean, 15.1, 22), "#FFFF33", 
-                                            ifelse(between(zipmean, 22.1, 29),"#FF7F00",
-                                                   ifelse(between(zipmean, 29.1, 36), "#E31A1C",
-                                                          ifelse(between(zipmean, 36.1, 43), "#9F0000", "#660000"))))),
+                     color = ~ifelse(between(zipmean, 5, 10), "#39FF14", 
+                                     ifelse(between(zipmean, 10.001, 15), "#FFFF33", 
+                                            ifelse(between(zipmean, 15.001, 20),"#FF7F00",
+                                                   ifelse(between(zipmean, 20.001, 25), "#E31A1C",
+                                                          ifelse(between(zipmean, 25.001, 30), "#9F0000", "#660000"))))),
                      label = label_text, group = as.character(year))
 }
 
@@ -741,9 +764,33 @@ disease_eda %>%
 ```
 
 #### Time Series Disease Counts 
+```{r, message = FALSE}
+#neighborhoods of interest
+neighborhoods = c("Inwood and Washington Heights", "Lower East Side",
+                  "Mid-Island", "Hunts Point and Mott Haven", "Central Queens")
+
+
+
+daily_disease_neigh = disease_eda %>%
+  filter(neighborhood %in% neighborhoods) %>%
+  group_by(date, borough, neighborhood, illness_counts) %>% 
+  summarize(total_counts = sum(count, na.remove = T)) %>%
+  #need neighborhood names to match
+  mutate(neighborhood = case_when( 
+    neighborhood == "Inwood and Washington Heights" ~ "Washington Heights",
+    neighborhood == "Lower East Side"  ~  "Union Square - Lower East Side",
+    neighborhood ==  "Mid-Island" ~ "Willowbrook",
+    neighborhood == "Hunts Point and Mott Haven" ~ 
+      "Hunts Point - Mott Haven",
+    neighborhood == "Central Queens" ~"Fresh Meadows"
+  ),
+  date = as.Date(date, format = '%Y-%m-%d'))
+```
+
+
 ```{r, warning = FALSE}
 #time series...
-daily_ill_counts_neigh %>%
+daily_disease_neigh %>%
   filter(illness_counts == 'Asthma') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
@@ -752,7 +799,7 @@ daily_ill_counts_neigh %>%
 ```
 
 ```{r, warning = FALSE}
-daily_ill_counts_neigh %>%
+daily_disease_neigh %>%
   filter(illness_counts == 'Respiratory diseases') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
@@ -761,7 +808,7 @@ daily_ill_counts_neigh %>%
 ```
 
 ```{r, warning = FALSE}
-daily_ill_counts_neigh %>%
+daily_disease_neigh %>%
   filter(illness_counts == 'Pneumonia (ER visits)') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
@@ -772,7 +819,7 @@ daily_ill_counts_neigh %>%
 ```
 
 ```{r, warning = FALSE}
-daily_ill_counts_neigh %>%
+daily_disease_neigh %>%
   filter(illness_counts == 'ED visits (overall)') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
@@ -785,7 +832,18 @@ daily_ill_counts_neigh %>%
 Cross correlation analysis was used to examine the relationship between O3 and pneumonia ER visits. From the cross-correlation plots, the positive and negative correlations determined the lag between O3 levels and and pneumonia ER visits was about 117 days. The lag was added as an additional predictor in the linear regression model. There was a negative correlation in pneumonia ER visits and O3 regression model before the lag was added. However, after adding the lag, a positive correlation emerged between pneumonia ER visits and O3. 
 
 ```{r}
-disease_air <- full_join(daily_ill_counts_neigh, air_neighb, 
+#altering format
+daily_disease_neigh = daily_disease_neigh %>%
+  pivot_wider(names_from = illness_counts, values_from = total_counts)
+
+#loading fixed air quality data
+air_neighb <- read_csv(here::here('data/cleaned_data/air_neighborhood.csv'))
+
+#altering format
+air_neighb = air_neighb %>%
+  pivot_wider(names_from = pollutant, values_from = mean_value)
+
+disease_air <- full_join(daily_disease_neigh, air_neighb, 
                          by = c('date', "neighborhood")) %>%
   filter(date >= '2020-03-01' & date < '2022-12-01') %>%
   mutate(year = as.factor(format(date, format = '%Y')),
