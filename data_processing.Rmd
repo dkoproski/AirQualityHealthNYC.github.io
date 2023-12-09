@@ -297,7 +297,7 @@ daily_disease_neigh = disease_eda %>%
 
 # Merging Air Quality and Disease Datasets
 
-#### Merging air quality data with disease data
+Now, having daily disease data and daily air quality data at the neighborhood level allows for a smooth merging of datasets. The final merged dataset contains daily information on illness counts and pollutants by neighborhoods. We also added a season variable to aid our regression analysis.
 
 ```{r, message = FALSE}
 #altering format
