@@ -1033,6 +1033,13 @@ bootstrap_results %>%
 - Are they what you expect? 
 - What insights into the data can you make?
 
+In our data analysis, we found that the model using time variables instead of pollutants to predict `sqrt(pneumonia visits)` was better (as in, lower RMSE). Which means time is more highly correlated to `sqrt(pneumonia visits)` than the lagged pollutant levels. This was unexpected considering the amount of literature on pollutants causing respiratory health complications. 
+
+One reason for this result could be that time is indeed better for predicting `sqrt(pneumonia visits)`: it is already correlated to the pollutant levels (we know this from the EDA) and carries additional information about overall weather. Another reason could be that the linear model is misspecified, because the response is a count (Poisson distribution) and not a Normal distribution. This, combined with the fact that the pollutant levels are continuous variables while the time variables are categorical, might cause higher residuals.
+
+We found that `neighborhood` is a relevant predictor for `sqrt(pneumonia visits)`. A possible reason for this can be the specific conditions of each neighborhood (water quality or number of green areas), but it could also just reflect the fact that some neighborhoods are more densely populated than others. This could be addressed in future research. Whichever the case, we found that Washington Heights is associated with higher `sqrt(pneumonia visits)`, which is relevant given the location of Columbia University’s medical campus. 
+
+Regarding time variables, we found that the Spring season is associated with higher counts of `sqrt(pneumonia visits)`, while the Summer is associated with the least. This agrees with literature that colder seasons (Winter and Spring, our two highest estimates) are associated with respiratory issues. We also found that 2022 was associated with higher `sqrt(pneumonia visits)`, while 2020 was associated with the lower `sqrt(pneumonia visits)`. This could be because of pneumonia cases going up, but could also be a reflection of people isolating during 2020 and not doing so as often anymore. 
 
 ### Limitations
 
