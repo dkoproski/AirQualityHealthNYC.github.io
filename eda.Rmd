@@ -425,7 +425,9 @@ disease_eda <- all_dis_df %>%
 disease_eda %>%
   ggplot(aes(x = count, fill = illness_counts)) +
   geom_histogram(bins = 15) + 
-  facet_wrap(~illness_counts, scales = 'free')
+  facet_wrap(~illness_counts, scales = 'free') +
+  theme(legend.position = "none") 
+
 ```
 
 

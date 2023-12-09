@@ -153,7 +153,9 @@ disease_air = disease_air %>%
 
 We will now use the merged dataset for modelling. For out dataset: we selected four neighborhoods we were interested in: Washington Heights, Willowbrook, Hunts Point - Mott Haven, and Fresh Meadows. These neighborhoods all have at least one sensor for O3 and PM 2.5, and are all in different boroughs, which are part of the reason why we picked them.
 
-In the final dataset, every one of the `r `nrow(disease_air)` rows is a date-neighborhood combination, for dates between March 2020 and November 2022. An important nuance of this modelling section is that we lagged ozone and PM 2.5 readings by one day, which is [the believed time it can take for those pollutants to have an effect on your respiratory health.](https://www.airnow.gov/sites/default/files/2018-04/aqi_brochure_02_14_0.pdf)
+In the final dataset, every one of the `r nrow(disease_air)` rows is a date-neighborhood combination, for dates between March 2020 and November 2022. An important nuance of this modelling section is that we lagged ozone and PM 2.5 readings by one day, which is [the believed time it can take for those pollutants to have an effect on your respiratory health.](https://www.airnow.gov/sites/default/files/2018-04/aqi_brochure_02_14_0.pdf)
+
+## Response variable: Pneumonia ER visits
 
 We first look at the response variable we'll focus on: visits to the hospital due to pneumonia. This variable is discrete and we found that a square root transformation yielded a more Normal distribution
 
@@ -169,11 +171,13 @@ disease_air %>%
        x = "Sqrt(Pneumonia visits)")
 ```
 
-Our next challenge is choosing which variables to use as predictors of `sqrt(pneumonia visits)`. We know from our exploratory data analysis that pollutant levels are associated with date, so including both in the model would be a muticollinarity issue. However, the exploratory data analysis did not reveal an association between boroughs (location) and pollutants, so using both in a model would be appropriate. 
+## Choosing predictors
 
-We decide be can compare the predictive ability of time and the lagged pollutants by comparing the cross validation root mean square error for 100 cross validation samples. The two models compared will both use `neighborhood` as the predictor, but one will have `season` and `year` (and the interaction between the two), and the other will have lagged ozone and PM 2.5 readings. this process revealed that the time of the year was a better predictor of `sqrt(pneumonia visits)` than the lagged pollutants.
+Our next challenge is choosing which variables to use as predictors of `sqrt(pneumonia visits)`. We know from our exploratory data analysis that pollutant levels are associated with date, so including both in the model would be a multicollinearity issue. However, the exploratory data analysis did not reveal an association between boroughs (location) and pollutants, so using both in a model would be appropriate. 
 
-```{r}
+We decided to compare the predictive ability of time and the lagged pollutants by comparing the cross validation root mean square error for 100 cross validation samples. The two models compared will both use `neighborhood` as the predictor, but one will have `season` and `year` (and the interaction between the two), and the other will have lagged ozone and PM 2.5 readings. this process revealed that the time of the year was a better predictor of `sqrt(pneumonia visits)` than the lagged pollutants.
+
+```{r, out.width = '100%', results = 'hide', message = FALSE, warning = FALSE}
 modelr::crossv_mc(disease_air, 100) %>%
   mutate(
     pollutants = map(train, \(df) lm(sqrt_pne_visits ~ lagged_ozone + 
@@ -200,9 +204,11 @@ modelr::crossv_mc(disease_air, 100) %>%
   labs(title = "RMSE of models predicting sqrt(pneumonia visits)")
 ```
 
+## Modelling 
+
 After this, we fit the selected model on the entire dataset, and notice that the diagnostics are not good: the residuals clearly have some relationship to the predicted values, but in reality should be nothing more than noise. This motivates bootstrap so we can have interpretable confidence intervals.
 
-```{r}
+```{r, out.width = '100%', results = 'hide', message = FALSE, warning = FALSE}
 fit = lm(sqrt_pne_visits ~ year + season + 
                             year*season + neighborhood, 
          data = disease_air)
@@ -240,7 +246,9 @@ pivot_longer(everything(),
     mean = mean(value))
 ```
 
-We did bootstrap with 5,000 samples, and got an estimated $r^2$ and 95% confidence interval of:
+### Bootstrapping 
+
+We did bootstrapping with 5,000 samples, and got an estimated $R^2$ and 95% confidence interval of:
 
 ```{r}
 bootstrap_results %>%
@@ -248,11 +256,13 @@ bootstrap_results %>%
   knitr::kable(digits = 2)
 ```
 
+## Interpreting coefficients
+
 Additionally, we are able to interpret the coefficients (holding all else constant):
 
-- Using Fresh Meadows as the reference, we see that Willlowbrook has a similar effect on the predicted value of `sqrt(pneumonia)`, because its confidence interval includes 0. Washington Heights is the highest of all values.
+- Using Fresh Meadows as the reference, we see that Willowbrook has a similar effect on the predicted value of `sqrt(pneumonia)`, because its confidence interval includes 0. Washington Heights is the highest of all values.
 
-```{r}
+```{r, out.width = '100%', results = 'hide', message = FALSE, warning = FALSE}
 bootstrap_results %>%
   filter(str_detect(estimate, "neighborhood")) %>%
   mutate(estimate = str_sub(estimate, 13)) %>% 
@@ -266,7 +276,7 @@ bootstrap_results %>%
        x = "Coefficient", y = "Estimate")
 ```
 
-- The predicted number of `sqrt(pneumonia cases)` is on the rise, although the difference between 2020 (reference group) and 2021 is not significant.
+- The predicted number of `sqrt(pneumonia visits)` is on the rise, although the difference between 2020 (reference group) and 2021 is not significant.
 
 ```{r}
 bootstrap_results %>%
@@ -282,7 +292,7 @@ bootstrap_results %>%
        x = "Coefficient", y = "Estimate")
 ```
 
-- Summer season has a significantly lower `sqrt(pneumonia cases)` than Fall (the reference group), while Spring is the highest, and Winter is the second highest.
+- Summer season has a significantly lower `sqrt(pneumonia visits)` than Fall (the reference group), while Spring is the highest, followed by Winter.
 
 ```{r}
 bootstrap_results %>%
