@@ -518,7 +518,7 @@ daily_disease_neigh %>%
 
 
 
-# Investigating the lagged association of Ozone with variables related to respiratory diseases
+# **Investigating the lagged association of Ozone with variables related to respiratory diseases**
 
 ```{r, out.width='100%', results = 'hide', message = F}
 all_dis_df =
