@@ -427,14 +427,15 @@ Willowbrook, Hunts Point - Mott Haven, and Fresh Meadows. These
 neighborhoods all have at least one sensor for O3 and PM 2.5, and are
 all in different boroughs, which are part of the reason why we picked
 them.</p>
-<p>In the final dataset, every one of the
-<code>r</code>nrow(disease_air)` rows is a date-neighborhood
-combination, for dates between March 2020 and November 2022. An
-important nuance of this modelling section is that we lagged ozone and
-PM 2.5 readings by one day, which is <a
+<p>In the final dataset, every one of the 4020 rows is a
+date-neighborhood combination, for dates between March 2020 and November
+2022. An important nuance of this modelling section is that we lagged
+ozone and PM 2.5 readings by one day, which is <a
 href="https://www.airnow.gov/sites/default/files/2018-04/aqi_brochure_02_14_0.pdf">the
 believed time it can take for those pollutants to have an effect on your
 respiratory health.</a></p>
+<div id="response-variable-pneumonia-er-visits" class="section level2">
+<h2>Response variable: Pneumonia ER visits</h2>
 <p>We first look at the response variable we’ll focus on: visits to the
 hospital due to pneumonia. This variable is discrete and we found that a
 square root transformation yielded a more Normal distribution</p>
@@ -447,18 +448,21 @@ disease_air %&gt;%
          &quot;Sqrt(Pneumonia visits) has a more favorable distribution for regression&quot;,
        y = &quot;Count&quot;,
        x = &quot;Sqrt(Pneumonia visits)&quot;)</code></pre>
-<p><img src="stats_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="choosing-predictors" class="section level2">
+<h2>Choosing predictors</h2>
 <p>Our next challenge is choosing which variables to use as predictors
 of <code>sqrt(pneumonia visits)</code>. We know from our exploratory
 data analysis that pollutant levels are associated with date, so
-including both in the model would be a muticollinarity issue. However,
+including both in the model would be a multicollinearity issue. However,
 the exploratory data analysis did not reveal an association between
 boroughs (location) and pollutants, so using both in a model would be
 appropriate.</p>
-<p>We decide be can compare the predictive ability of time and the
-lagged pollutants by comparing the cross validation root mean square
-error for 100 cross validation samples. The two models compared will
-both use <code>neighborhood</code> as the predictor, but one will have
+<p>We decided to compare the predictive ability of time and the lagged
+pollutants by comparing the cross validation root mean square error for
+100 cross validation samples. The two models compared will both use
+<code>neighborhood</code> as the predictor, but one will have
 <code>season</code> and <code>year</code> (and the interaction between
 the two), and the other will have lagged ozone and PM 2.5 readings. this
 process revealed that the time of the year was a better predictor of
@@ -487,7 +491,10 @@ process revealed that the time of the year was a better predictor of
   mutate(model = fct_inorder(model)) %&gt;%
   ggplot(aes(x = model, y = rmse)) + geom_violin() + 
   labs(title = &quot;RMSE of models predicting sqrt(pneumonia visits)&quot;)</code></pre>
-<p><img src="stats_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-7-1.png" width="100%" /></p>
+</div>
+<div id="modelling" class="section level2">
+<h2>Modelling</h2>
 <p>After this, we fit the selected model on the entire dataset, and
 notice that the diagnostics are not good: the residuals clearly have
 some relationship to the predicted values, but in reality should be
@@ -503,8 +510,7 @@ disease_air %&gt;%
   ggplot(aes(x = pred, y = resid)) + geom_point() + geom_smooth(se = F) + 
   labs(title = &quot;Our model fails diagnostics&quot;, 
        x = &quot;Predicted sqrt(pneumonia visits)&quot;, y = &quot;Residuals&quot;)</code></pre>
-<pre><code>## `geom_smooth()` using method = &#39;gam&#39; and formula = &#39;y ~ s(x, bs = &quot;cs&quot;)&#39;</code></pre>
-<p><img src="stats_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-8-1.png" width="100%" /></p>
 <pre class="r"><code>set.seed(42)
 bootstrap_results = 
   disease_air %&gt;%
@@ -527,8 +533,10 @@ pivot_longer(everything(),
     ci_lower = quantile(value, 0.025, na.rm = T), 
     ci_upper = quantile(value, 0.975, na.rm = T),
     mean = mean(value))</code></pre>
-<p>We did bootstrap with 5,000 samples, and got an estimated <span
-class="math inline">\(r^2\)</span> and 95% confidence interval of:</p>
+<div id="bootstrapping" class="section level3">
+<h3>Bootstrapping</h3>
+<p>We did bootstrapping with 5,000 samples, and got an estimated <span
+class="math inline">\(R^2\)</span> and 95% confidence interval of:</p>
 <pre class="r"><code>bootstrap_results %&gt;%
   filter(estimate == &quot;r.squared&quot;) %&gt;%
   knitr::kable(digits = 2)</code></pre>
@@ -550,10 +558,14 @@ class="math inline">\(r^2\)</span> and 95% confidence interval of:</p>
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+<div id="coefficients" class="section level2">
+<h2>Coefficients</h2>
 <p>Additionally, we are able to interpret the coefficients (holding all
 else constant):</p>
 <ul>
-<li>Using Fresh Meadows as the reference, we see that Willlowbrook has a
+<li>Using Fresh Meadows as the reference, we see that Willowbrook has a
 similar effect on the predicted value of <code>sqrt(pneumonia)</code>,
 because its confidence interval includes 0. Washington Heights is the
 highest of all values.</li>
@@ -569,16 +581,11 @@ highest of all values.</li>
   labs(title = &quot;Neighborhood model coefficients&quot;,
        subtitle = &quot;Reference = Fresh Meadows&quot;, 
        x = &quot;Coefficient&quot;, y = &quot;Estimate&quot;)</code></pre>
-<pre><code>## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-## ℹ Please use `linewidth` instead.
-## This warning is displayed once every 8 hours.
-## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-## generated.</code></pre>
-<p><img src="stats_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-11-1.png" width="100%" /></p>
 <ul>
-<li>The predicted number of <code>sqrt(pneumonia cases)</code> is on the
-rise, although the difference between 2020 (reference group) and 2021 is
-not significant.</li>
+<li>The predicted number of <code>sqrt(pneumonia visits)</code> is on
+the rise, although the difference between 2020 (reference group) and
+2021 is not significant.</li>
 </ul>
 <pre class="r"><code>bootstrap_results %&gt;%
   filter(str_detect(estimate, &quot;year&quot;) &amp; !str_detect(estimate, &quot;:&quot;)) %&gt;%
@@ -591,11 +598,11 @@ not significant.</li>
   labs(title = &quot;Year model coefficients&quot;,
        subtitle = &quot;Reference = 2020&quot;, 
        x = &quot;Coefficient&quot;, y = &quot;Estimate&quot;)</code></pre>
-<p><img src="stats_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <ul>
 <li>Summer season has a significantly lower
-<code>sqrt(pneumonia cases)</code> than Fall (the reference group),
-while Spring is the highest, and Winter is the second highest.</li>
+<code>sqrt(pneumonia visits)</code> than Fall (the reference group),
+while Spring is the highest, followed by Winter.</li>
 </ul>
 <pre class="r"><code>bootstrap_results %&gt;%
   filter(str_detect(estimate, &quot;season&quot;) &amp; !str_detect(estimate, &quot;:&quot;)) %&gt;%
@@ -608,7 +615,8 @@ while Spring is the highest, and Winter is the second highest.</li>
   labs(title = &quot;Season model coefficients&quot;,
        subtitle = &quot;Reference = Fall&quot;, 
        x = &quot;Coefficient&quot;, y = &quot;Estimate&quot;)</code></pre>
-<p><img src="stats_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="Stats_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
 
 
 
