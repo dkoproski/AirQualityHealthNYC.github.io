@@ -43,7 +43,7 @@ Ambient PM2.5 attributed deaths increased from 3.5 million in 1990 to 4.2 millio
 The initial air quality dataset was obtained from [NYC Open Data](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r), showing comprehensive information on air pollutants in NYC from 2008 to 2021. The year range 2010 to 2021 was chosen for analysis. A subsequent air quality data set was obtained from [EPA](https://www.epa.gov/outdoor-air-quality-data/download-daily-data). 
 [add info about dataset]
 
-The initial health data set obtained from [NYC OpenData](https://data.cityofnewyork.us/Health/Emergency-Department-Visits-and-Admissions-for-Inf/2nwg-uqyg), specified emergency department visits, admissions and visits related to influenza-like and/or pneumonia illness, categorized by the modified ZIP code. A secondary disease data set from [NYC Health](https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&PopulationSource=Syndromic) detailed the number of hospitalizations attributed to asthma, diarrhea, influenza-like illness, respiratory diseases, and vomiting for each zip code. The data collection period occurred during 2016 to early 2023. Since this data is very large, we had to restrict the dates of data collection prior to downloading a CSV file.
+The initial health data set obtained from [NYC Open Data](https://data.cityofnewyork.us/Health/Emergency-Department-Visits-and-Admissions-for-Inf/2nwg-uqyg), specified emergency department visits, admissions and visits related to influenza-like and/or pneumonia illness, categorized by the modified ZIP code. A secondary disease data set from [NYC Health](https://a816-health.nyc.gov/hdi/epiquery/visualizations?PageType=ps&PopulationSource=Syndromic) detailed the number of hospitalizations attributed to asthma, diarrhea, influenza-like illness, respiratory diseases, and vomiting for each zip code. The data collection period occurred during 2016 to early 2023. Since this data is very large, we had to restrict the dates of data collection prior to downloading a CSV file.
 
 While all of our datasets contained some level of location data, we needed additional information on zip codes and neighborhoods to perform our analyses. In particular, we needed to standardize zip codes throughout all of our datasets while also adding latitude and longitude for our leaflet maps. Information on zip codes was found [in this github repo](https://github.com/erikgregorywebb/nyc-housing/blob/master/Data/nyc-zip-codes.csv), while zip code shapefiles were found [here](https://catalog.data.gov/dataset/tiger-line-shapefile-2019-2010-nation-u-s-2010-census-5-digit-zip-code-tabulation-area-zcta5-na). We also used shapefiles, available [here](https://github.com/nycehs/NYC_geography/tree/master/UHF_42_DOHMH_2009), to plot the air quality values into maps and for regressions of daily observsations.
 
@@ -723,6 +723,7 @@ daily_neighborhood_data %>%
 ```
 
 #### Histogram of illness
+The distribution of disease counts and ER visits/admissions was graphed. A right skewedness was seen in all histograms. 
 ```{r, warning = FALSE}
 #distribution of illness counts
 disease_eda %>%
@@ -732,6 +733,8 @@ disease_eda %>%
 ```
 
 #### Boxplot Disease Counts
+Boxplots of each disease or admission visits were plotted by borough. Each disease or admission visit had similar distributions, however, Brooklyn and Bronx showed higher ED visits.  
+ 
 ```{r, warning = FALSE}
 #distribution of illness counts by neighborhood
 disease_eda %>%
