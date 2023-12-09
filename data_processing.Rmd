@@ -21,6 +21,12 @@ options(readr.show_col_types = FALSE)
 ## Data Cleaning - neighborhood-level 
 
 This dataset has neighborhood-level air quality data. It has 6300 rows and 16 columns.
+<<<<<<< HEAD
+
+This code chunk fixes the projection used to map the neighborhood-level air quality dataset, and calculates a point as the center of the neighborhood. This will be used for maps later on.
+
+=======
+>>>>>>> 808e185933410e4efeb7eac853ef1f791859c7b6
 ```{r eval=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(sf)
