@@ -121,7 +121,7 @@ daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
 ```
 
 DF for time series by neighboorhood 
-```{r}
+```{r, warning = FALSE}
 #this data maps measurement sites to neighborhoods
 
 sites_nghbors = read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
@@ -158,7 +158,7 @@ for (i in 1:length(neighborhoods)) {
 }
 ```
 
-```{r}
+```{r, warning = FALSE}
 daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
   bind_rows(store_data[[3]]) %>%
   bind_rows(store_data[[4]]) %>%
@@ -167,7 +167,7 @@ daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
 ```
 
 DF EDA Disease 
-```{r}
+```{r, warning = FALSE}
 #loading disease data
 disease_zip <- read_csv(here::here('data/cleaned_data/disease_zip.csv'))
 #loading zip code data
@@ -246,7 +246,7 @@ disease_eda <- disease_data %>%
 ```
 
 DF for time series
-```{r}
+```{r, warning = FALSE, message = FALSE}
 sites_neighb <- read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
 
 #neighborhoods of interest
@@ -288,7 +288,7 @@ O3, PM2.5, and NO2 were the air pollutants chosen for our descriptive and statis
 #### Histogram and boxplot of air quality from 2010-2021
 An interactive histogram showing each air pollutant concentration, overlaid from the years 2009-2021, was constructed to depict frequency distribution and central tendency. Additionally, the spread, central tendency, and presence of outliers were shown in an interactive box plot based on air pollutant and year. PM2.5 and NO2 concentrations continuously declined from 2009 to 2021, as evident on the layered histogram and box plots. PM2.5 showed an emphasized decrease in concentration, with the lowest median concentration exhibited in 2020.O3 concentrations initially increased from 2010 to 2016, but seemed to stabilize around 30 ppb with observed measurement decreases from 2017 to 2021. 
 
-```{r}
+```{r, warning = FALSE}
 all_years = sort(unique(c(as.numeric(df_histo_pm2.5$year),
                            as.numeric(df_histo_NO2$year),
                            as.numeric(df_histo_ozone$year))))
@@ -336,7 +336,7 @@ combined_fig = combined_fig |>
 combined_fig
 ```
 
-```{r}
+```{r, warning = FALSE}
 add_yearly_boxplots = function(data, years, name_prefix, visible) {
   for(year_value in years) {
     year_data = filter(data, year == as.character(year_value))
@@ -682,7 +682,7 @@ dis_plot
 #### Boxplots of daily air pollutants by borough
 The frequency distribution of daily air pollutant concentrations in regard to borough was shown in boxplots. NO2 and PM2.5 showed consistent daily medians throughout each borough. O3 showed a slightly elevated daily concentration median in Staten Island compared to other boroughs. 
 
-```{r}
+```{r, warning = FALSE}
 daily_air %>%
   ggplot() + geom_boxplot(aes(x = borough, y = value, fill = borough)) + 
   labs(x = "Borough", y = "Measurement value", fill = "Borough") +
@@ -693,7 +693,7 @@ daily_air %>%
 #### Time series plots on daily air pollutants by neighborhood 
 In the context of these time series plots, the daily mean measurement of each pollutant, categorized by neighborhoods, was derived and depicted as a distinctive line. Coherent patterns were observed for each pollutant in these neighborhoods. NO2 displayed its pinnacle reach during the winter and spring transitions, where as O3 sowed its highest vales in the summer months. These visual representation shows and highlights the nuanced temporal fluctuation between the pollutants. 
 
-```{r}
+```{r, warning = FALSE}
 daily_neighborhood_data %>%
   filter(pollutant == "NO2 (ppb)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
@@ -706,7 +706,7 @@ daily_neighborhood_data %>%
 ```
 
 
-```{r}
+```{r, warning = FALSE}
 daily_neighborhood_data %>%
   filter(pollutant == "O3 (ppm)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
@@ -718,7 +718,7 @@ daily_neighborhood_data %>%
        y = "Mean measurement (ppm)", color = "Neighborhood")
 ```
 
-```{r}
+```{r, warning = FALSE}
 daily_neighborhood_data %>%
   filter(pollutant == "PM 2.5 (ug/m3 LC)") %>%
   ggplot() + geom_line(aes(x = date, y = mean_value,
@@ -731,7 +731,7 @@ daily_neighborhood_data %>%
 ```
 
 #### Histogram of illness
-```{r}
+```{r, warning = FALSE}
 #distribution of illness counts
 disease_eda %>%
   ggplot(aes(x = count, fill = illness_counts)) +
@@ -740,7 +740,7 @@ disease_eda %>%
 ```
 
 #### Boxplot Disease Counts
-```{r}
+```{r, warning = FALSE}
 #distribution of illness counts by neighborhood
 disease_eda %>%
   ggplot(aes(x = borough, y = count, fill = borough)) +
@@ -750,7 +750,7 @@ disease_eda %>%
 ```
 
 #### Time Series Disease Counts 
-```{r}
+```{r, warning = FALSE}
 #time series...
 daily_ill_counts_neigh %>%
   filter(illness_counts == 'Asthma') %>%
@@ -760,7 +760,7 @@ daily_ill_counts_neigh %>%
 #lots of zeros
 ```
 
-```{r}
+```{r, warning = FALSE}
 daily_ill_counts_neigh %>%
   filter(illness_counts == 'Respiratory diseases') %>%
   ggplot(aes(x = date, y = total_counts,
@@ -769,7 +769,7 @@ daily_ill_counts_neigh %>%
 #lots of zeros
 ```
 
-```{r}
+```{r, warning = FALSE}
 daily_ill_counts_neigh %>%
   filter(illness_counts == 'Pneumonia (ER visits)') %>%
   ggplot(aes(x = date, y = total_counts,
@@ -780,7 +780,7 @@ daily_ill_counts_neigh %>%
 #more likely to have more zeros in admissions, and EDA showed it. 
 ```
 
-```{r}
+```{r, warning = FALSE}
 daily_ill_counts_neigh %>%
   filter(illness_counts == 'ED visits (overall)') %>%
   ggplot(aes(x = date, y = total_counts,

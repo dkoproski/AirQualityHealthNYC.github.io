@@ -669,20 +669,9 @@ disease_air &lt;- full_join(daily_disease_neigh, air_neighb, by = c(&#39;date&#3
 </div>
 <div id="air-quality-dataset" class="section level1">
 <h1>Air quality dataset</h1>
-<pre class="r"><code>air_qual_df = read_csv(&quot;data/raw_data/alt_air_data.csv&quot;) |&gt; 
-  separate(date, into=c(&quot;month&quot;, &quot;day&quot;, &quot;year&quot;)) |&gt;
-  mutate(day = as.numeric(day),
-         month = month.name[as.numeric(month)],
-         year = as.numeric(year)) |&gt; 
-  filter(!(year == &#39;2020&#39; &amp; month == &#39;January&#39;),
-         !(year == &#39;2020&#39; &amp; month == &#39;February&#39;)) |&gt; 
-  select(year, month, day, zip_code, pollutant, value) |&gt; 
-  group_by(day, month, year, zip_code, pollutant) |&gt; 
-  summarize(value = mean(value))</code></pre>
-</div>
 <div id="merging-air-quality-data-with-disease-data-1"
-class="section level1">
-<h1>Merging air quality data with disease data</h1>
+class="section level2">
+<h2>Merging air quality data with disease data</h2>
 <pre class="r"><code># Finally merge disease and air_qual data together
 
 air_qual_dis = 
@@ -701,6 +690,7 @@ air_qual_dis =
          o3_ppm = Ozone,
          no2_ppb = NO2) |&gt; 
   filter(!(year == &#39;2022&#39; &amp; month == &#39;December&#39;)) </code></pre>
+</div>
 </div>
 
 
