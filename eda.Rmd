@@ -12,6 +12,7 @@ library(tidyverse)
 library(broom)
 library(leaflet)
 library(plotly)
+library(janitor)
 options(readr.show_col_types = FALSE)
 ```
 
@@ -164,38 +165,32 @@ After restricting our analysis to roughly 2020 to 2022, we generate visualizatio
 
 This makes sense intuitively, as we would expect higher emissions from heating and transportation to gather in urban regions due to colder temperatures, leading to higher levels of Nitrogen Dioxide and Carbon Monoxide. In fact, [epidemics of CO poisoning](https://pubmed.ncbi.nlm.nih.gov/9950394/) commonly occurs during winter months and sources include smoke from fires, fumes from heating systems burning fuels, and exhaust fumes from motor vehicles. On the other hand, according to the [American Lung Association](https://www.lung.org/clean-air/outdoors/what-makes-air-unhealthy/ozone#), high levels of Ozone are more likely to form in warmer temperatures, which is why harmful ozone levels primarily occur in the summer in most of the US because climate change is driving warmer temperatures.
 
-```{r, out.width = '100%', message = F}
-air_qual_df = read_csv("data/raw_data/alt_air_data.csv") |> 
-  separate(date, into=c("month", "day", "year")) |>
-  mutate(day = as.numeric(day),
-         month = month.name[as.numeric(month)],
-         year = as.numeric(year)) |> 
-  filter(!(year == '2020' & month == 'January'),
-         !(year == '2020' & month == 'February')) |> 
-  rename(zip = zip_code) |> 
-  select(year, month, day, zip, pollutant, value) |> 
-  group_by(day, month, year, zip, pollutant) |> 
-  summarize(value = mean(value))
-
-poll_plot = air_qual_df |> 
+```{r, message = FALSE, results='hide'}
+daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
+  mutate(borough = case_when(
+    county == "New York" ~ "Manhattan",
+    county == "Bronx" ~ "Bronx",
+    county == "Kings" ~ "Brooklyn",
+    county == "Queens" ~ "Queens",
+    county == "Richmond" ~ "Staten Island"
+     ),
+    pollutant= case_when(
+    pollutant == "PM2.5" ~ "PM 2.5",
+    pollutant == "Ozone" ~ "O3",
+    T ~ pollutant ),
+    date = as.Date(date, format = "%m/%d/%Y")) %>% 
   mutate(
-    numeric_month = match(month, month.name),
-    date = as.Date(paste(year, numeric_month, day, sep = "-"), 
-                   format = "%Y-%m-%d"),
-    pollutant = case_when(
-      pollutant =="CO" ~ "Carbon Monoxide (ppm)",
-      pollutant =="PM2.5" ~ "PM2.5 (μg/m3)",
-      pollutant =="Ozone" ~ "Ozone (ppm)",
-      pollutant =="NO2" ~ "Nitrogen Dioxide (ppb)"),
-    across(pollutant, ~factor(., levels=c("Carbon Monoxide (ppm)",
-                                          "Ozone (ppm)",
-                                          "Nitrogen Dioxide (ppb)",
-                                          "PM2.5 (μg/m3)"))),) |> 
+    pollutant = str_c(pollutant, " (", units, ")")
+  )
+```
+  
+```{r}
+poll_plot = daily_air |> 
   ggplot(aes(x = date, y = value, color = pollutant)) +
   geom_point() +
   geom_smooth(color = "blue") +
   facet_wrap(~ pollutant, ncol = 2, scales="free_y") +
-  ggtitle("Daily average of each pollutant by zip code") + 
+  ggtitle("Daily average of each pollutant by neighborhood") + 
   scale_color_discrete()
 
 poll_plot
@@ -218,7 +213,6 @@ daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
   mutate(
     pollutant = str_c(pollutant, " (", units, ")")
   )
-  
 ```
 
 ### Distributions of NO2, O3 and PM2.5 by borough
@@ -227,6 +221,7 @@ Now that we have seen how these pollutant variables change over time, we want to
 
 ```{r}
 daily_air %>%
+  filter(!str_detect(pollutant, "CO")) %>%
   ggplot() + geom_boxplot(aes(x = borough, y = value, fill = borough)) + 
   labs(x = "Borough", y = "Measurement value", fill = "Borough") +
   theme(axis.text.x  = element_text(angle=15)) +
