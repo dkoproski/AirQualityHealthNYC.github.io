@@ -596,9 +596,11 @@ m
 ```
 
 
-#### Time series plots on daily counts of air pollutants and daily disease visits
+#### Plots for pollutant variables over time by site
 
-Time series plots were created for daily air concentrations. After restricting our analysis to roughly 2020 to 2022, we generate visualizations of the distributions of certain pollutants of interest. Trend and seasonal patterns of Carbon Monoxide (CO), Ozone (O3), and Nitrogen Dioxide (N02) showed oscillations throughout the year. Specifically, O3 showed the a greater difference and reached high levels during the summer month a opposed to NO2 which peaked in the winter. PM2.5 showed a steady concentration trend and did not display seasonal patterns. 
+Now that we have looked at how pollution levels change over the years, let's examine the pollution variables at a more granular level. In this data, we have 18,452 rows, where each row is a date-measurement site-pollutant combination.
+
+After restricting our analysis to roughly 2020 to 2022, visualizations of the distributions of certain pollutants of interest were generated. Throughout the year, we see oscillations in the levels of Ozone (O3) and Nitrogen Dioxide (NO2) throughout the year, with the former reaching its highest levels in the summer months and the latter peaking in the winter. Carbon Monoxide (CO) also exhibits oscillations, but to a much lower degree. PM2.5, a type of fine particulate matter with 2.5 microns or less in diameter, does not appear to exhibit a seasonal pattern. 
 
 This makes sense intuitively, as we would expect higher emissions from heating and transportation to gather in urban regions due to colder temperatures, leading to higher levels of Nitrogen Dioxide and Carbon Monoxide. In fact, [epidemics of CO poisoning](https://pubmed.ncbi.nlm.nih.gov/9950394/) commonly occurs during winter months and sources include smoke from fires, fumes from heating systems burning fuels, and exhaust fumes from motor vehicles. On the other hand, according to the [American Lung Association](https://www.lung.org/clean-air/outdoors/what-makes-air-unhealthy/ozone#), high levels of Ozone are more likely to form in warmer temperatures, which is why harmful ozone levels primarily occur in the summer in most of the US because climate change is driving warmer temperatures.
 
@@ -631,8 +633,101 @@ poll_plot = daily_air |>
 poll_plot
 ```
 
-Similarly, time series plot in regards to daily ER visit and disease counts were generated, showing that asthma and respiratory diseases did not have a seasonal pattern. However, pneumonia ER visits did peak during the winter months. Colds, flus and other respiratory illnesses are common in colder months. Among these variables, [pneumonia](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3314701/) is commonly known have a higher occurrence during winter. This is partly attributed to the drop in temperature and rise in humidity levels, which can impair the immune system thus rendering individuals more vulnerable to infections. The body focuses on combating the cold and retaining warmth, making it more challenging to fend off infections such as pneumonia.
- 
+
+#### Boxplots of daily air pollutants by borough
+
+The frequency distribution of daily air pollutant concentrations in regard to borough was shown in boxplots. NO2 and PM2.5 showed consistent daily medians throughout each borough. O3 showed a slightly elevated daily concentration median in Staten Island compared to other boroughs. 
+
+```{r, warning = FALSE}
+daily_air %>%
+  ggplot() + geom_boxplot(aes(x = borough, y = value, fill = borough)) + 
+  labs(x = "Borough", y = "Measurement value", fill = "Borough") +
+  theme(axis.text.x  = element_text(angle=15)) +
+  facet_wrap(~pollutant, scales = 'free')
+```
+
+
+#### Time series plots on daily air pollutants by neighborhood 
+
+In the context of these time series plots, the daily mean measurement of each pollutant, categorized by neighborhoods, was derived and depicted as a distinctive line. Coherent patterns were observed for each pollutant in these neighborhoods. NO2 displayed its pinnacle reach during the winter and spring transitions, where as O3 sowed its highest vales in the summer months. These visual representation shows and highlights the nuanced temporal fluctuation between the pollutants. 
+
+```{r}
+neighborhoods = c("Washington Heights", "Union Square - Lower East Side",
+                  "Willowbrook", "Hunts Point - Mott Haven", "Fresh Meadows")
+
+store_data = vector("list", length = 5)
+
+for (i in 1:length(neighborhoods)) {
+  
+  n = neighborhoods[i]
+  
+  n_zips = sites_nghbors %>%
+  filter(geo_place_name == n) %>%
+  pull(zip_code)
+  
+  daily_data = daily_air %>%
+    filter(zip_code %in% n_zips) %>%
+    group_by(date, pollutant) %>%
+    summarize(mean_value = mean(value),
+              mean_scaled = mean(scaled_value)) %>%
+    mutate(neighborhood = n)
+  
+  store_data[[i]] = daily_data
+  
+}
+
+daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
+  bind_rows(store_data[[3]]) %>%
+  bind_rows(store_data[[4]]) %>%
+  bind_rows(store_data[[5]]) %>%
+  mutate(date = as.Date(date, format = "%m/%d/%Y"))
+```
+
+
+```{r, warning = FALSE}
+daily_neighborhood_data %>%
+  filter(pollutant == "NO2 (ppb)") %>%
+  ggplot() + geom_line(aes(x = date, y = mean_value,
+                            group = neighborhood, color = neighborhood)) +
+  scale_color_manual(values = c("red", "blue", 
+                                    "green","orange", 
+                                    "black")) +
+  labs(title = "NO2 measurements per neighborhood", x = "Date", 
+       y = "Mean measurement (ppb)", color = "Neighborhood")
+```
+
+
+```{r, warning = FALSE}
+daily_neighborhood_data %>%
+  filter(pollutant == "O3 (ppm)") %>%
+  ggplot() + geom_line(aes(x = date, y = mean_value,
+                            group = neighborhood, color = neighborhood)) +
+  scale_color_manual(values = c("red", "blue", 
+                                    "green","orange", 
+                                    "black")) +
+  labs(title = "O3 measurements per neighborhood", x = "Date", 
+       y = "Mean measurement (ppm)", color = "Neighborhood")
+```
+
+```{r, warning = FALSE}
+daily_neighborhood_data %>%
+  filter(pollutant == "PM 2.5 (ug/m3 LC)") %>%
+  ggplot() + geom_line(aes(x = date, y = mean_value,
+                            group = neighborhood, color = neighborhood)) +
+  scale_color_manual(values = c("red", "blue", 
+                                    "black",
+                                    "green","orange")) +
+  labs(title = "PM 2.5 measurements per neighborhood", x = "Date", 
+       y = "Mean measurement (ug/m3 LC)", color = "Neighborhood")
+```
+
+
+#### Plots for illness variables over time by site
+
+Our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. Colds, flus and other respiratory illnesses are common in colder months. Among these variables, [pneumonia](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3314701/) is commonly known have a higher occurrence during winter. This is partly attributed to the drop in temperature and rise in humidity levels, which can impair the immune system thus rendering individuals more vulnerable to infections. The body focuses on combating the cold and retaining warmth, making it more challenging to fend off infections such as pneumonia.
+
+However, we saw previously that Ozone trends in the opposite direction as other pollutants, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a cross-correlation analysis at the end of this page, as an attempt to test out the idea of lagging certain variables.
+
 ```{r, out.width = '100%', message = F, warning = F}
 dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
                        col_types = cols(
@@ -690,86 +785,97 @@ dis_plot = all_dis_df |>
 dis_plot
 ```
 
-#### Boxplots of daily air pollutants by borough
-The frequency distribution of daily air pollutant concentrations in regard to borough was shown in boxplots. NO2 and PM2.5 showed consistent daily medians throughout each borough. O3 showed a slightly elevated daily concentration median in Staten Island compared to other boroughs. 
 
-```{r, warning = FALSE}
-daily_air %>%
-  ggplot() + geom_boxplot(aes(x = borough, y = value, fill = borough)) + 
-  labs(x = "Borough", y = "Measurement value", fill = "Borough") +
-  theme(axis.text.x  = element_text(angle=15)) +
-  facet_wrap(~pollutant, scales = 'free')
-```
+#### Histogram of illnesses counts
 
-#### Time series plots on daily air pollutants by neighborhood 
-In the context of these time series plots, the daily mean measurement of each pollutant, categorized by neighborhoods, was derived and depicted as a distinctive line. Coherent patterns were observed for each pollutant in these neighborhoods. NO2 displayed its pinnacle reach during the winter and spring transitions, where as O3 sowed its highest vales in the summer months. These visual representation shows and highlights the nuanced temporal fluctuation between the pollutants. 
+The distribution of disease counts and overall ER visits were graphed. Majority of illness counts are zero inflated, thus their distributions are right skewed. The only distribution with more variability is for ER visits (overall).
 
-```{r, warning = FALSE}
-daily_neighborhood_data %>%
-  filter(pollutant == "NO2 (ppb)") %>%
-  ggplot() + geom_line(aes(x = date, y = mean_value,
-                            group = neighborhood, color = neighborhood)) +
-  scale_color_manual(values = c("red", "blue", 
-                                    "green","orange", 
-                                    "black")) +
-  labs(title = "NO2 measurements per neighborhood", x = "Date", 
-       y = "Mean measurement (ppb)", color = "Neighborhood")
-```
+```{r, out.width = '100%', message = F, warning = F}
+# loading zip code data
+zip_shapes <- read_csv(here::here('data/cleaned_shapes/nyc_zip_codes.csv')) %>%
+  clean_names()
+
+# merging disease with zip code data to add neigh & borough data
+
+all_dis_df <- left_join(all_dis_df, zip_shapes, by = 'zip_code') %>%
+  mutate(
+    #these zip codes needed manual inputs
+    #bc not in zip_shapes file
+    neighborhood = case_when(
+      zip_code == '10069' ~ 'Upper West Side',
+      zip_code == '11109' ~ 'Northwest Queens',
+      zip_code == '10282' ~ 'Lower Manhattan',
+      zip_code == '10271' ~ 'Lower Manhattan',
+      zip_code == '10278' ~ 'Lower Manhattan',
+      zip_code == '10279' ~ 'Lower Manhattan',
+      #zip_code == '11003' ~ 10000 (deal w these)
+      #zip_code == '11040'
+      TRUE ~ neighborhood),
+    
+    borough = case_when(
+      zip_code == '10069' ~ 'Manhattan',
+      zip_code == '11109' ~ 'Queens',
+      zip_code == '10282' ~ 'Manhattan',
+      zip_code == '10271' ~ 'Manhattan',
+      zip_code == '10278' ~ 'Manhattan',
+      zip_code == '10279' ~ 'Manhattan',
+      TRUE ~ borough)) %>%
+  
+  #removing these zip codes bc
+  #not apart of the 5 boroughs
+  filter(!(zip_code == '10000'),
+         !(zip_code == '11003'),
+         !(zip_code == '11040'))
+
+disease_eda <- all_dis_df %>%
+  pivot_longer(cols = 'count_resp':'ili_pne_admissions',
+               names_to = 'illness_counts',
+               values_to = 'count') %>%
+  mutate(month_num = match(month, month.name),
+         date = as.Date(paste(year, month_num, day, sep = '-'),
+                        format = '%Y-%m-%d'),
+         
+         illness_counts = case_when(
+           illness_counts == 'total_ed_visits' ~ 'ED visits (overall)',
+           illness_counts == 'ili_pne_visits' ~ 'Pneumonia (ER visits)',
+           illness_counts == 'ili_pne_admissions' ~ 'Pneumonia (ER admissions)',
+           illness_counts == 'count_resp' ~ 'Respiratory diseases',
+           illness_counts == 'count_asth' ~ 'Asthma'))
 
 
-```{r, warning = FALSE}
-daily_neighborhood_data %>%
-  filter(pollutant == "O3 (ppm)") %>%
-  ggplot() + geom_line(aes(x = date, y = mean_value,
-                            group = neighborhood, color = neighborhood)) +
-  scale_color_manual(values = c("red", "blue", 
-                                    "green","orange", 
-                                    "black")) +
-  labs(title = "O3 measurements per neighborhood", x = "Date", 
-       y = "Mean measurement (ppm)", color = "Neighborhood")
-```
-
-```{r, warning = FALSE}
-daily_neighborhood_data %>%
-  filter(pollutant == "PM 2.5 (ug/m3 LC)") %>%
-  ggplot() + geom_line(aes(x = date, y = mean_value,
-                            group = neighborhood, color = neighborhood)) +
-  scale_color_manual(values = c("red", "blue", 
-                                    "black",
-                                    "green","orange")) +
-  labs(title = "PM 2.5 measurements per neighborhood", x = "Date", 
-       y = "Mean measurement (ug/m3 LC)", color = "Neighborhood")
-```
-
-#### Histogram of illness
-The distribution of disease counts and ER visits/admissions was graphed. A right skewedness was seen in all histograms. 
-```{r, warning = FALSE}
 #distribution of illness counts
 disease_eda %>%
   ggplot(aes(x = count, fill = illness_counts)) +
   geom_histogram(bins = 15) + 
-  facet_wrap(~illness_counts, scales = 'free')
+  facet_wrap(~illness_counts, scales = 'free') +
+  theme(legend.position = "none") 
+
 ```
 
-#### Boxplot Disease Counts
-Boxplots of each disease or admission visits were plotted by borough. Each disease or admission visit had similar distributions, however, Brooklyn and Bronx showed higher ED visits.  
- 
-```{r, warning = FALSE}
+
+#### Boxplots of disease counts by borough
+
+Boxplots of each disease or hospital visits were plotted by borough. Even for boroughs, illness distributions are zero inflated. Again, the ER visits (overall) has more variability among boroughs.
+
+```{r, out.width = '100%', message = F, warning = F}
 #distribution of illness counts by neighborhood
 disease_eda %>%
   ggplot(aes(x = borough, y = count, fill = borough)) +
   geom_boxplot() +
   facet_wrap(~illness_counts, scales = 'free') +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(legend.position = "none")
 ```
 
-#### Time Series Disease Counts 
-```{r, message = FALSE}
+
+#### Time series plots on daily disease counts by neighborhoods
+
+Five specific neighborhoods, each in a different borough. The neighborhoods were picked based on the available data for the pollutants.
+
+```{r, out.width = '100%', message = F, warning = F}
 #neighborhoods of interest
 neighborhoods = c("Inwood and Washington Heights", "Lower East Side",
                   "Mid-Island", "Hunts Point and Mott Haven", "Central Queens")
-
-
 
 daily_disease_neigh = disease_eda %>%
   filter(neighborhood %in% neighborhoods) %>%
@@ -788,43 +894,56 @@ daily_disease_neigh = disease_eda %>%
 ```
 
 
-```{r, warning = FALSE}
-#time series...
+In the time series plots below, each line represents the total number of hospital visits per day per neighborhood, and each plot presents that information for the different illnesses and total ER visits. 
+
+The plots below further supports that most illness distributions are zero inflated. Specifically, asthma, respiratory diseases. Thus, we decided against using those as responses in regression analysis as prediction may not be accurate. Similarly, we noticed that pneumonia ER admissions consistently had less counts than pneumonia ER visits. And although overall ER visits had more counts, we decided to soley focus on pneumonia ER visits as a response in regression for the purpose of this analysis.
+
+
+```{r, out.width = '100%', message = F, warning = F}
 daily_disease_neigh %>%
   filter(illness_counts == 'Asthma') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
-#lots of zeros
 ```
 
-```{r, warning = FALSE}
+```{r, out.width = '100%', message = F, warning = F}
 daily_disease_neigh %>%
   filter(illness_counts == 'Respiratory diseases') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
-#lots of zeros
 ```
 
-```{r, warning = FALSE}
+```{r, out.width = '100%', message = F, warning = F}
 daily_disease_neigh %>%
   filter(illness_counts == 'Pneumonia (ER visits)') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
-
-#decide against pneumonia (ER admissions) bc visits would be higher
-#more likely to have more zeros in admissions, and EDA showed it. 
 ```
 
-```{r, warning = FALSE}
+```{r, out.width = '100%', message = F, warning = F}
+daily_disease_neigh %>%
+  filter(illness_counts == 'Pneumonia (ER admissions)') %>%
+  ggplot(aes(x = date, y = total_counts,
+             group = neighborhood, color = neighborhood)) +
+  geom_line()
+```
+
+
+```{r, out.width = '100%', message = F, warning = F}
 daily_disease_neigh %>%
   filter(illness_counts == 'ED visits (overall)') %>%
   ggplot(aes(x = date, y = total_counts,
              group = neighborhood, color = neighborhood)) +
   geom_line()
 ```
+
+
+
+[Similarly, time series plot in regards to daily ER visit and disease counts were generated, showing that asthma and respiratory diseases did not have a seasonal pattern. However, pneumonia ER visits did peak during the winter months. Colds, flus and other respiratory illnesses are common in colder months. Among these variables, [pneumonia](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3314701/) is commonly known have a higher occurrence during winter. This is partly attributed to the drop in temperature and rise in humidity levels, which can impair the immune system thus rendering individuals more vulnerable to infections. The body focuses on combating the cold and retaining warmth, making it more challenging to fend off infections such as pneumonia.]
+ 
 
 
 
@@ -871,7 +990,7 @@ We will now use the merged dataset for modelling. For our dataset, we selected f
 
 In the final dataset, every one of the `r nrow(disease_air)` rows is a date-neighborhood combination, for dates between March 2020 and November 2022. An important nuance of this modelling section is that we lagged ozone and PM 2.5 readings by one day, which is [the believed time it can take for those pollutants to have an effect on your respiratory health.](https://www.airnow.gov/sites/default/files/2018-04/aqi_brochure_02_14_0.pdf)
 
-## Response variable: Pneumonia ER visits
+### Response variable: Pneumonia ER visits
 
 We first look at the response variable we'll focus on: visits to the hospital due to pneumonia. This variable is discrete and we found that a square root transformation yielded a more Normal distribution
 
@@ -887,7 +1006,7 @@ disease_air %>%
        x = "Sqrt(Pneumonia visits)")
 ```
 
-## Choosing predictors
+### Choosing predictors
 
 Our next challenge is choosing which variables to use as predictors of `sqrt(pneumonia visits)`. We know from our exploratory data analysis that pollutant levels are associated with date, so including both in the model would be a multicollinearity issue. However, the exploratory data analysis did not reveal an association between boroughs (location) and pollutants, so using both in a model would be appropriate. 
 
@@ -920,7 +1039,7 @@ modelr::crossv_mc(disease_air, 100) %>%
   labs(title = "RMSE of models predicting sqrt(pneumonia visits)")
 ```
 
-## Modelling 
+### Modelling 
 
 After this, we fit the selected model on the entire dataset, and notice that the diagnostics are not good: the residuals clearly have some relationship to the predicted values, but in reality should be nothing more than noise. This motivates bootstrap so we can have interpretable confidence intervals.
 
@@ -962,7 +1081,7 @@ pivot_longer(everything(),
     mean = mean(value))
 ```
 
-### Bootstrapping 
+#### Bootstrapping 
 
 We did bootstrapping with 5,000 samples, and got an estimated $R^2$ and 95% confidence interval of:
 
@@ -972,7 +1091,7 @@ bootstrap_results %>%
   knitr::kable(digits = 2)
 ```
 
-## Interpreting coefficients
+### Interpreting coefficients
 
 Additionally, we are able to interpret the coefficients (holding all else constant):
 
