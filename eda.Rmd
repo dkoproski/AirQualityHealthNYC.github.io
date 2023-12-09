@@ -302,7 +302,7 @@ daily_neighborhood_data %>%
 
 Here, our analysis also spans from roughly 2020 to 2022. From the plot below, we can see that respiratory diseases, pneumonia-related emergency department visits and admissions all peak during winter seasons, which seems to match up with the time-series plots for Carbon Monoxide and Nitrogen Dioxide. Colds, flus and other respiratory illnesses are common in colder months. Among these variables, [pneumonia](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3314701/) is commonly known have a higher occurrence during winter. This is partly attributed to the drop in temperature and rise in humidity levels, which can impair the immune system thus rendering individuals more vulnerable to infections. The body focuses on combating the cold and retaining warmth, making it more challenging to fend off infections such as pneumonia.
 
-However, we saw previously that Ozone trends in the opposite direction as other pollutants, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a cross-correlation analysis as an attempt to test out the idea of lagging certain variables.
+However, we saw previously that Ozone trends in the opposite direction as other pollutants, which prompts our interest in exploring a potential lagged association between Ozone levels and disease occurrences. To investigate this, we have conducted a cross-correlation analysis at the end of this page, as an attempt to test out the idea of lagging certain variables.
 
 ```{r, message = FALSE, results='hide', warning = F}
 dis_asth_df = read_csv(here::here("data/raw_data/joined_respiratory.csv"),
@@ -476,6 +476,8 @@ air_qual_dis =
   filter(!(year == '2022' & month == 'December')) 
 ```
 
+The work in this section is an attempt to learn and discover how we can lag certain variables for our statistical analysis, and is purely exploratory. From previous EDA, we discovered that Ozone was an opposite trend as compared to other variables. Hence, we can use the `ccf()` function to visualize how the correlation between Ozone and Pneumonia ER visits varies as we apply a lag. In the plot below, we can see that the correlation oscillates and peaks when we apply a 125 day lag to the Pneumonia ER Visit variable.
+
 ```{r, out.width='100%', warning = F, results = 'hide', message=F}
 ccf_df = air_qual_dis |> 
   filter(!is.na(o3_ppm) & !is.na(ili_pne_visits)) |> 
@@ -486,7 +488,11 @@ ccf_df = air_qual_dis |>
 
 ccf_res = ccf(ccf_df$o3_ppm, ccf_df$ili_pne_visits, lag.max=250, plot = FALSE)
 plot(ccf_res, main = "Analysing Lag between Ozone and Pneumonia ER visits (in days)")
+```
 
+To help visualize this lag, the consequent plot shows how the peaks of the two variables match up better when we apply a lag.
+
+```{r, out.width='100%', warning = F, results = 'hide', message=F}
 # Visualize lag
 
 ccf_df |> 
@@ -499,7 +505,11 @@ ccf_df |>
   scale_color_manual(labels = c("Ozone (10^-2 ppm)", "Pneumonia hospital visits"), 
                      values = c("Ozone (10^-2 ppm)" = "#FFA500", "Pneumonia ER visits" = "#6495ED"), 
                      guide = "legend")
+```
 
+In the pre-lag model, we see that Pneumonia ER visits decrease with an increase in Ozone levels.
+
+```{r, out.width='100%', warning = F, results = 'hide', message=F}
 prelag_model = lm(ili_pne_visits ~ scaled_o3, data = ccf_df)
 broom::tidy(prelag_model)
 ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) + 
@@ -508,7 +518,11 @@ ggplot(aes(x = scaled_o3, y = ili_pne_visits), data = ccf_df) +
   labs(title = "Pre-lag: Pneumonia ER visits vs. Ozone",
        x = expression(paste("Ozone (", 10^-2, " ppm)")), 
        y = "Pneumonia hospital visits (count)")
+```
 
+However in the post-lag model, we see that Pneumonia ER visits increase together with Ozone levels.
+
+```{r, out.width='100%', warning = F, results = 'hide', message=F}
 lag_model = lm(lagged_pne ~ scaled_o3, data = ccf_df)
 broom::tidy(lag_model)
 ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) + 
@@ -519,12 +533,5 @@ ggplot(aes(x = scaled_o3, y = lagged_pne), data = ccf_df) +
        y = "Pneumonia hospital visits (count)")
 ```
 
-
-
-
-
-
-
-
-
+Once again, this is not a robust analysis on how cross correlation should be applied to our statistical models later on since the `ccf()` function is not the exact method we should apply in our analysis, hence we will properly introduce the `statar` package later on to do this.
 
