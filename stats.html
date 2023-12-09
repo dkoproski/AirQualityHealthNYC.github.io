@@ -447,7 +447,6 @@ disease_air %&gt;%
          &quot;Sqrt(Pneumonia visits) has a more favorable distribution for regression&quot;,
        y = &quot;Count&quot;,
        x = &quot;Sqrt(Pneumonia visits)&quot;)</code></pre>
-<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 <p><img src="Stats_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <p>Our next challenge is choosing which variables to use as predictors
 of <code>sqrt(pneumonia visits)</code>. We know from our exploratory
@@ -528,8 +527,6 @@ pivot_longer(everything(),
     ci_lower = quantile(value, 0.025, na.rm = T), 
     ci_upper = quantile(value, 0.975, na.rm = T),
     mean = mean(value))</code></pre>
-<pre><code>## Warning: `unnest()` has a new interface. See `?unnest` for details.
-## ℹ Try `df %&gt;% unnest(c(estimates, results))`, with `mutate()` if needed.</code></pre>
 <p>We did bootstrap with 5,000 samples, and got an estimated <span
 class="math inline">\(r^2\)</span> and 95% confidence interval of:</p>
 <pre class="r"><code>bootstrap_results %&gt;%
@@ -554,12 +551,12 @@ class="math inline">\(r^2\)</span> and 95% confidence interval of:</p>
 </tbody>
 </table>
 <p>Additionally, we are able to interpret the coefficients (holding all
-else constant:</p>
+else constant):</p>
 <ul>
 <li>Using Fresh Meadows as the reference, we see that Willlowbrook has a
 similar effect on the predicted value of <code>sqrt(pneumonia)</code>,
 because its confidence interval includes 0. Washington Heights is the
-higuest of all values.</li>
+highest of all values.</li>
 </ul>
 <pre class="r"><code>bootstrap_results %&gt;%
   filter(str_detect(estimate, &quot;neighborhood&quot;)) %&gt;%
@@ -580,7 +577,7 @@ higuest of all values.</li>
 <p><img src="Stats_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
 <ul>
 <li>The predicted number of <code>sqrt(pneumonia cases)</code> is on the
-rise, although the diference between 2020 (reference group) and 2021 is
+rise, although the difference between 2020 (reference group) and 2021 is
 not significant.</li>
 </ul>
 <pre class="r"><code>bootstrap_results %&gt;%
