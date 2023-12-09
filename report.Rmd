@@ -731,7 +731,6 @@ daily_neighborhood_data %>%
 ```
 
 #### Histogram of illness
-
 ```{r}
 #distribution of illness counts
 disease_eda %>%
