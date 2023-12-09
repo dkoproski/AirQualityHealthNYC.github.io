@@ -19,8 +19,6 @@ options(readr.show_col_types = FALSE)
 ```
 
 *by Lupe Antonio Lopez, Gustavo Garcia-Franceschini, Dylan Koproski, Ru Jin Lim, Ixtaccihuatl Obregon.*
-
-# Project Report 
  
 ## **Introduction** 
 
