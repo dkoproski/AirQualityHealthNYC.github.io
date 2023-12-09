@@ -37,8 +37,7 @@ While the data we used changed as our analyses progressed, our main guiding ques
 
 ### Related Work 
 
-In a study evaluating the potential decrease in greenhouse gas (GHG) emissions, in relation to air quality and public health in NYC, the suggested policy measures may result in an annual reduction of 160 to 390 deaths attributed to PM2.5. Neighborhoods characterized by higher poverty levels showed a more pronounced health gain [(Johnson, S. 2020)](https://pubs.acs.org/doi/10.1021/acs.est.0c00694). In a study focusing on PM2.5 levels, the potential health benefits for adults and children were assessed. Outcomes such as preterm birth, low birthweight, infant mortality, asthma incidence, hospital admissions, emergency visits, and autism spectrum disorder were considered. A estimated 23% improvement in PM2.5 was calculated, thus leading to avoided illness cases and death. Furthermore, for the period of 2021-2025, the estimated associated economic benefit ranged from \$31.8 billion and \$77 billion [(Perera, F. 2021)](https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3Dihub). Ambient PM2.5 attributed deaths increased from 3.5 million in 1990 to 4.2 million in 2015. In 2015, the fifth-ranking cause of global deaths was ambient PM2.5 [PM2.5 related deaths](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439030/). In a study following the PM2.5 concentration in NYC from 2015-2020, similar decrease levels between January and May were observed. There was less air pollutant in 2020 that could have been due to the government shutdown during the corona virus pandemic could not be confirmed[COVID shutdown](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7314691/#bb0010). 
-The findings of a study investigating the interactive effects of PM2.5 and O3 on daily mortality, showed a synergistic effect in total, cardiovascular, and respiratory mortality.In relation to respiratory mortality, PM2.5 had a higher impacted on cases in higher altitudes with higher O3 exposure [(Liu, C.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10548261/). 
+Ambient PM2.5 attributed deaths increased from 3.5 million in 1990 to 4.2 million in 2015, thus leading to become the fifth-ranking cause of global deaths [Cohen, A.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439030/). In 2015 the Environmental Protection Agency (EPA) proposed the Clean Air Act section 111(d) to implement emission guidelines for power plants. Additionally, the collaborative alliance between states, tribes and the federal government was established to reduce air pollution for public safety and protecting the environment [(EPA)]( https://archive.epa.gov/epa/cleanpowerplan/fact-sheet-clean-power-plan-proposed-federal-plan.html#:~:text=On%20August%203%2C%202015%2C%20the,that%20began%20construction%20on%20or). In the evaluation of potential decrease in greenhouse gas emissions (GHG) in NYC, suggested policy measure tested may result in an annual reduction of 160-290 deaths attributed to PM2.5[(Johnson, S. 2020)](https://pubs.acs.org/doi/10.1021/acs.est.0c00694). In NYC specifically, PM2.5 concentration from 2015-2020 had a similar decline between January and May [Zangari,S.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7314691/#bb0010). Asthma incidence, hospital admissions, and emergency visits were evaluated in relation to PM2.5 levels. With a calculated 23% improvement in PM2.5 levels, illness and death were calculated to be avoided and have an economic benefit of \$31.8 billion and \$77 billion for the years 2021-2025 [(Perera, F. 2021)](https://www.sciencedirect.com/science/article/pii/S0013935120314523?via%3Dihub). Interactive effects of PM2.5 and O3 on daily mortality showed a synergistic effect in total, cardiovascular, and respiratory mortality. In relation to respiratory mortality, PM2.5 had a higher impact on cases in higher altitudes with higher O3 exposure [(Liu, C.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10548261/). Since O3 has low water-solubility, inhaling ozone may influence lung health. In European cities, increased concentrations of daily O3  during warm periods was observed to cause an increase in daily number of respiratory deaths by 1.13% [(Manisalidis, I.)]( https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7044178/). Furthermore, long term effects of NO2 can cause chronic lung disease due to its ability to penetrate deep into the lungs and can have effects on the cellular level [(Manisalidis, I.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7044178/).
 
 
 ## **Methods and Exploratory Analysis** 
@@ -54,11 +53,9 @@ While all of our datasets contained some level of location data, we needed addit
 Two air quality and two disease data sets were obtained for analysis. [AIR QUALITY (SEASONAL) ONE CLEANING]. [AIR QUALITY (DAILY)]. 
 Two disease data sets. [1] and [2]
 
-
-DF for Interactive Histogram and Boxplot
 ```{r, message = FALSE}
 
-# Load datasets for interactive histogram and boxplot
+## DF for interactive histogram and boxplot
 
 df_histo_pm2.5 = 
   read_csv("data/cleaned_data/uhf_airquality.csv") |> 
@@ -82,20 +79,21 @@ df_histo_ozone =
   mutate(year = str_extract(time_period, "\\d{4}")) |> 
   select(year, data_value) |> 
   filter(year != 2009)
-```
 
+#############################################
 
-DF for Interactive Heatmaps
-```{r,  message = FALSE, warning = FALSE}
+## DF for Interactive Heatmaps
+
 df_air_geo = 
   read_csv("data/cleaned_data/uhf_airquality.csv") |> 
   mutate(lat = intplat10,
          lon = intplon10) |> 
   select(-intplat10, -intplon10)
-```
 
-DF for Boxplots according to Borough
-```{r message = FALSE}
+#############################################
+
+## DF for Boxplots according to Borough
+
 daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
   mutate(borough = case_when(
     county == "New York" ~ "Manhattan",
@@ -107,22 +105,20 @@ daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
     pollutant= case_when(
     pollutant == "PM2.5" ~ "PM 2.5",
     pollutant == "Ozone" ~ "O3",
-    T ~ pollutant )) %>% 
-  filter(pollutant != "CO") %>%
+    T ~ pollutant ),
+    date = as.Date(date, format = "%m/%d/%Y")) %>% 
   mutate(
     pollutant = str_c(pollutant, " (", units, ")")
   )
-  
-```
 
-DF for time series by neighboorhood 
-```{r, warning = FALSE}
-#this data maps measurement sites to neighborhoods
+#############################################
+
+## DF for time series by neighboorhood (maps measurement sites to neighborhoods)
 
 sites_nghbors = read_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
-```
 
-```{r message = FALSE}
+#############################################
+
 #Where Fresh Meadows is Queens and Willowbrook is in Staten Island
 #Hunts Point - Mott Haven is in Bronx
 
@@ -151,18 +147,19 @@ for (i in 1:length(neighborhoods)) {
   store_data[[i]] = daily_data
   
 }
-```
 
-```{r, warning = FALSE}
+#############################################
+
 daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
   bind_rows(store_data[[3]]) %>%
   bind_rows(store_data[[4]]) %>%
   bind_rows(store_data[[5]]) %>%
   mutate(date = as.Date(date, format = "%m/%d/%Y"))
-```
 
-DF EDA Disease 
-```{r, warning = FALSE}
+#############################################
+
+## DF EDA Disease 
+
 #loading disease data
 disease_zip <- read_csv(here::here('data/cleaned_data/disease_zip.csv'))
 #loading zip code data
@@ -238,10 +235,11 @@ disease_eda <- disease_data %>%
            illness_counts == 'ili_pne_admissions' ~ 'Pneumonia (ER admissions)',
            illness_counts == 'count_resp' ~ 'Respiratory diseases',
            illness_counts == 'count_asth' ~ 'Asthma'))
-```
 
-DF for time series
-```{r, warning = FALSE, message = FALSE}
+#############################################
+
+## DF for time series
+
 #neighborhoods of interest
 neighborhoods = c("Inwood and Washington Heights", "Lower East Side",
                   "Mid-Island", "Hunts Point and Mott Haven", "Central Queens")
@@ -372,20 +370,6 @@ combined_boxplot_fig
 #### Heatmaps of air quality from 2010-2021
 
 A heat map of the air pollutants with a year selector was constructed to monitor and understand the air quality in NYC. High concentrations of the selected pollutant were indicated by red and maroon, while lower concentrations were shown in green. The PM2.5 heat map showed a greater amount of PM2.5 levels in Lower Manhattan throughout the years. Comparing 2009 to 2021, the levels in each area show a decline in PM2.5 levels. Outer boroughs such as Brooklyn showed consistently high concentrations of O3 levels from 2009 to 2021. NO2 displayed a decrease in concentration however it was less noticeable. 
-
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
-library(tidyverse)
-library(leaflet)
-library(plotly)
-library(glue)
-library(leaflet.extras)
-
-df_air_geo = 
-  read_csv("data/cleaned_data/uhf_airquality.csv") |> 
-  mutate(lat = intplat10,
-         lon = intplon10) |> 
-  select(-intplat10, -intplon10)
-```
 
 **2010-2021: Ozone levels (O3)**
 
@@ -603,23 +587,6 @@ Time series plots were created for daily air concentrations. After restricting o
 This makes sense intuitively, as we would expect higher emissions from heating and transportation to gather in urban regions due to colder temperatures, leading to higher levels of Nitrogen Dioxide and Carbon Monoxide. In fact, [epidemics of CO poisoning](https://pubmed.ncbi.nlm.nih.gov/9950394/) commonly occurs during winter months and sources include smoke from fires, fumes from heating systems burning fuels, and exhaust fumes from motor vehicles. On the other hand, according to the [American Lung Association](https://www.lung.org/clean-air/outdoors/what-makes-air-unhealthy/ozone#), high levels of Ozone are more likely to form in warmer temperatures, which is why harmful ozone levels primarily occur in the summer in most of the US because climate change is driving warmer temperatures.
 
 ```{r, out.width = '100%', message = F}
-daily_air = read_csv(here::here("data/raw_data/alt_air_data.csv")) %>%
-  mutate(borough = case_when(
-    county == "New York" ~ "Manhattan",
-    county == "Bronx" ~ "Bronx",
-    county == "Kings" ~ "Brooklyn",
-    county == "Queens" ~ "Queens",
-    county == "Richmond" ~ "Staten Island"
-     ),
-    pollutant= case_when(
-    pollutant == "PM2.5" ~ "PM 2.5",
-    pollutant == "Ozone" ~ "O3",
-    T ~ pollutant ),
-    date = as.Date(date, format = "%m/%d/%Y")) %>% 
-  mutate(
-    pollutant = str_c(pollutant, " (", units, ")")
-  )
-
 poll_plot = daily_air |> 
   ggplot(aes(x = date, y = value, color = pollutant)) +
   geom_point() +
@@ -695,6 +662,7 @@ The frequency distribution of daily air pollutant concentrations in regard to bo
 
 ```{r, warning = FALSE}
 daily_air %>%
+  filter(!str_detect(pollutant, "CO")) %>%
   ggplot() + geom_boxplot(aes(x = borough, y = value, fill = borough)) + 
   labs(x = "Borough", y = "Measurement value", fill = "Borough") +
   theme(axis.text.x  = element_text(angle=15)) +
