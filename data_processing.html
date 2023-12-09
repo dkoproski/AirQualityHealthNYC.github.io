@@ -376,9 +376,8 @@ div.tocify {
 
 <div id="air-quality-datasets" class="section level1">
 <h1>Air Quality datasets</h1>
-<div id="data-cleaning-done-on-neighborhood-level-air-quality-dataset"
-class="section level2">
-<h2>Data cleaning done on neighborhood-level air quality dataset</h2>
+<div id="data-cleaning---neighborhood-level" class="section level2">
+<h2>Data Cleaning - neighborhood-level</h2>
 <p>This dataset has neighborhood-level air quality data. It has 6300
 rows and 16 columns.</p>
 <pre class="r"><code>library(tidyverse)
@@ -458,9 +457,9 @@ left_join(geo_joins_sites, geo_join_neighborhoods) %&gt;%
   select(zip_code, site_name, pollutant, geo_place_name) %&gt;%
   write_csv(here::here(&quot;data/cleaned_data/pollutant_per_neighborhood.csv&quot;))</code></pre>
 </div>
-<div id="daily-air-quality-data-at-the-neighborhood-level"
+<div id="daily-air-quality-data---neighborhood-level"
 class="section level2">
-<h2>Daily air quality data at the neighborhood level</h2>
+<h2>Daily Air Quality Data - Neighborhood Level</h2>
 <p>We used the dataset just created to summarize pollutant measurements
 at the neighborhood level. After doing this, we had daily data on
 pollutants at the neighborhood level, which allowed for regression.</p>
@@ -501,11 +500,9 @@ write_csv(daily_neighborhood_data,
 </div>
 <div id="disease-dataset" class="section level1">
 <h1>Disease dataset</h1>
-<div
-id="merging-hospitalizationemergency-department-data-involving-asthma-counts-respiratory-diseases-and-pneumonia"
-class="section level3">
-<h3><em>Merging hospitalization/emergency department data involving
-asthma counts, respiratory diseases and pneumonia</em></h3>
+<div id="merging-hospitalizationemergency-department-data"
+class="section level2">
+<h2>Merging hospitalization/emergency department data</h2>
 <pre class="r"><code># Load dataset with respiratory and asthma counts (missing some zipcodes)
 
 dis_asth_df = read_csv(here::here(&quot;data/raw_data/joined_respiratory.csv&quot;),
@@ -540,10 +537,11 @@ all_dis_df =
   full_join(dis_asth_df, dis_pneu_df, by = c(&quot;zip_code&quot;, &quot;year&quot;, &#39;month&#39;, &#39;day&#39;))</code></pre>
 </div>
 <div
-id="merging-hospitalizationemergency-department-data-with-zip-code-data-containing-neighborhood-and-borough-information"
-class="section level3">
-<h3><em>Merging hospitalization/emergency department data with zip code
-data containing neighborhood and borough information</em></h3>
+id="merging-hospitalizationemergency-department-data-with-zip-code-data"
+class="section level2">
+<h2>Merging hospitalization/emergency department data with zip code
+data</h2>
+<p>This contains neighborhood and borough information.</p>
 <pre class="r"><code>#loading zip code data
 zip_shapes &lt;- read_csv(here::here(&#39;data/cleaned_shapes/nyc_zip_codes.csv&#39;)) %&gt;%
   clean_names()
@@ -580,9 +578,8 @@ all_dis_df &lt;- left_join(all_dis_df, zip_shapes, by = &#39;zip_code&#39;) %&gt
          !(zip_code == &#39;11003&#39;),
          !(zip_code == &#39;11040&#39;))</code></pre>
 </div>
-</div>
-<div id="disease-eda-dataset" class="section level1">
-<h1>Disease EDA dataset</h1>
+<div id="disease-dataset---eda" class="section level2">
+<h2>Disease Dataset - EDA</h2>
 <pre class="r"><code>disease_eda &lt;- all_dis_df %&gt;%
   pivot_longer(cols = &#39;count_resp&#39;:&#39;ili_pne_admissions&#39;,
                names_to = &#39;illness_counts&#39;,
@@ -598,11 +595,14 @@ all_dis_df &lt;- left_join(all_dis_df, zip_shapes, by = &#39;zip_code&#39;) %&gt
            illness_counts == &#39;count_resp&#39; ~ &#39;Respiratory diseases&#39;,
            illness_counts == &#39;count_asth&#39; ~ &#39;Asthma&#39;))</code></pre>
 </div>
-<div id="observing-specific-neighborhoods" class="section level1">
-<h1>Observing specific neighborhoods</h1>
-<div id="creating-neighborhood-level-dataset-for-disease-counts"
-class="section level3">
-<h3><em>Creating neighborhood-level dataset for disease counts</em></h3>
+</div>
+<div id="merging-air-quality-and-disease-datasets"
+class="section level1">
+<h1>Merging Air Quality and Disease Datasets</h1>
+<div id="disease-count-dataset---neighborhood-level"
+class="section level2">
+<h2>Disease Count Dataset - Neighborhood-level</h2>
+<p>Observing specific neighborhoods</p>
 <pre class="r"><code>#loading neighborhood sites data
 sites_neighb &lt;- read_csv(here::here(&quot;data/cleaned_data/pollutant_per_neighborhood.csv&quot;))
 
@@ -634,14 +634,9 @@ daily_disease_neigh &lt;- bind_rows(store_data[[1]], store_data[[2]]) %&gt;%
   bind_rows(store_data[[4]]) %&gt;%
   bind_rows(store_data[[5]]) %&gt;%
   mutate(date = as.Date(date, format = &#39;%Y-%m-%d&#39;))</code></pre>
-</div>
-</div>
-<div id="air-quality-data" class="section level1">
-<h1>Air quality data</h1>
-</div>
 <div id="merging-air-quality-data-with-disease-data"
-class="section level1">
-<h1>Merging air quality data with disease data</h1>
+class="section level4">
+<h4>Merging air quality data with disease data</h4>
 <pre class="r"><code>#altering format
 daily_disease_neigh = daily_disease_neigh %&gt;%
   pivot_wider(names_from = illness_counts, values_from = total_counts)
@@ -666,6 +661,8 @@ disease_air &lt;- full_join(daily_disease_neigh, air_neighb, by = c(&#39;date&#3
            month %in% c(&#39;December&#39;, &#39;January&#39;, &#39;February&#39;) ~ &#39;Winter&#39;,
            month %in% c(&#39;March&#39;, &#39;April&#39;, &#39;May&#39;) ~ &#39;Spring&#39;))</code></pre>
 <p>Old code below:..</p>
+</div>
+</div>
 </div>
 <div id="air-quality-dataset" class="section level1">
 <h1>Air quality dataset</h1>
