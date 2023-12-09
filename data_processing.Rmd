@@ -13,12 +13,13 @@ library(tidyverse)
 library(plotly)
 library(janitor)
 library(readr)
+library(statar)
 options(readr.show_col_types = FALSE)
 ```
 
 # Air Quality datasets
 
-## Data Cleaning - neighborhood-level 
+## Data Cleaning - Neighborhood-level 
 
 This dataset has neighborhood-level air quality data. It has 6300 rows and 16 columns.
 <<<<<<< HEAD
@@ -106,7 +107,7 @@ left_join(geo_joins_sites, geo_join_neighborhoods) %>%
   write_csv(here::here("data/cleaned_data/pollutant_per_neighborhood.csv"))
 ```
 
-## Daily Air Quality Data -  Neighborhood Level
+## Daily Air Quality Data - Neighborhood-level
 
 We used the dataset just created to summarize pollutant measurements at the neighborhood level. After doing this, we had daily data on pollutants at the neighborhood level, which allowed for regression.
 
@@ -147,8 +148,7 @@ daily_neighborhood_data = bind_rows(store_data[[1]], store_data[[2]]) %>%
 
 
 
-
-# Disease dataset
+# Disease datasets
 
 ## Merging hospitalization/emergency department data 
 
@@ -324,7 +324,7 @@ disease_air <- full_join(daily_disease_neigh, air_neighb, by = c('date', "neighb
 
 
 
-# Regression analysis data
+# Regression Analysis Data
 
 We altered the final merged dataset to aid our regression. Since the Union Square - Lower East Side neighborhood only contained information for the PM2.5 pollutant, we decided to remove the neighborhood from the dataset. Additionally, our EDA revealed that Asthma and Respiratory diseases had very few counts of admittance, which would result in them not being great responses in models. Thus, they were both removed. Furthermore, 
 
