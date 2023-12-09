@@ -441,13 +441,14 @@ disease_eda %>%
   ggplot(aes(x = borough, y = count, fill = borough)) +
   geom_boxplot() +
   facet_wrap(~illness_counts, scales = 'free') +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(legend.position = "none")
 ```
 
 
 ### Time series plots for select neighborhoods
 
-In preperation for regression analysis, we explored 5 specific neighborhoods, each in a different borough. The neighborhoods were picked based on the available data for the pollutants.
+In preparation for regression analysis, we explored 5 specific neighborhoods, each in a different borough. The neighborhoods were picked based on the available data for the pollutants.
 
 ```{r, out.width = '100%', message = F, warning = F}
 #neighborhoods of interest
