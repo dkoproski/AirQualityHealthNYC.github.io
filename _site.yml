@@ -16,7 +16,7 @@ navbar:
     - text: "Final Report"
       href: report.html
     - text: "Video"
-      href: https://www.youtube.com/YOUR_CHANNEL_OR_VIDEO_LINK
+      href: https://www.youtube.com/watch?v=Z9KlJo__uIE
       icon: fa-youtube
     - text: "GitHub"
       href: https://github.com/dkoproski/AirQualityHealthNYC.github.io
