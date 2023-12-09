@@ -842,7 +842,7 @@ disease_eda %>%
 
 Five specific neighborhoods, each in a different borough. The neighborhoods were picked based on the available data for the pollutants.
 
-```{r, out.width = '100%', message = F, warning = F}
+```{r message=FALSE, warning=FALSE, out.width='100%', results='hide'}
 #neighborhoods of interest
 neighborhoods = c("Inwood and Washington Heights", "Lower East Side",
                   "Mid-Island", "Hunts Point and Mott Haven", "Central Queens")
